@@ -1,0 +1,287 @@
+/**
+ * PILKARZYKI DESIGN TOKENS v2.0
+ * Modern Dark-First Design System
+ * Inspired by Arsenal 23/24 Third Kit
+ */
+
+:root {
+  /* ================================
+     COLOR SYSTEM
+     ================================ */
+
+  /* Primary Palette - Arsenal 23/24 Third Kit (Style Guide) */
+  --rich-green: #29544D;
+  --collegiate-navy: #061852;
+  --sand-gold: #DECF99;
+  --off-white: #F2F2F2;
+
+  /* Teal Accent Palette */
+  --mineral-green: #0D9488;
+  --deep-teal: #0F766E;
+  --bright-teal: #14B8A6;
+  --electric-teal: #2DD4BF;
+  --teal-muted: #5EEAD4;
+
+  /* Neutral Palette - Light Theme (Style Guide) */
+  --white: #FFFFFF;
+  --gray-50: #F9FAFB;
+  --gray-100: #F3F4F6;
+  --gray-200: #E5E7EB;
+  --gray-300: #D1D5DB;
+  --gray-400: #9CA3AF;
+  --gray-500: #6B7280;
+  --gray-600: #4B5563;
+  --gray-700: #374151;
+  --gray-800: #1F2937;
+  --gray-900: #111827;
+
+  /* Functional Colors */
+  --success: #10B981;
+  --success-light: #34D399;
+  --warning: #F59E0B;
+  --warning-light: #FBBF24;
+  --danger: #EF4444;
+  --danger-light: #F87171;
+  --info: #3B82F6;
+  --info-light: #60A5FA;
+
+  /* Position Colors */
+  --goalkeeper: #FBBF24;
+  --defender: #3B82F6;
+  --midfielder: #10B981;
+  --forward: #EF4444;
+
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #0D9488 0%, #0F172A 100%);
+  --gradient-card: linear-gradient(180deg, #1E293B 0%, #0F172A 100%);
+  --gradient-glass: linear-gradient(135deg, rgba(13, 148, 136, 0.1) 0%, rgba(15, 23, 42, 0.8) 100%);
+  --gradient-mesh: radial-gradient(at 0% 0%, rgba(13, 148, 136, 0.3) 0px, transparent 50%),
+                   radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.2) 0px, transparent 50%);
+  --gradient-shimmer: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+
+  /* ================================
+     TYPOGRAPHY
+     ================================ */
+
+  /* Font Families */
+  --font-display: 'Inter', 'SF Pro Display', system-ui, -apple-system, sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+
+  /* Font Sizes - Style Guide Scale */
+  --text-xs: 0.75rem;      /* 12px - Caption */
+  --text-sm: 0.9375rem;    /* 15px - Small */
+  --text-base: 1.0625rem;  /* 17px - Body */
+  --text-lg: 1.1875rem;    /* 19px - Body Large */
+  --text-xl: 1.625rem;     /* 26px - Heading 3 */
+  --text-2xl: 2rem;        /* 32px - Heading 2 */
+  --text-3xl: 2.625rem;    /* 42px - Heading 1 */
+  --text-4xl: 4rem;        /* 64px - Display */
+
+  /* Font Weights */
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  --font-extrabold: 800;
+
+  /* Line Heights - Enhanced for Readability */
+  --leading-none: 1;
+  --leading-tight: 1.35;     /* headings: 135% of font size */
+  --leading-snug: 1.5;       /* subheadings: 150% */
+  --leading-normal: 1.6;     /* body text: 160% */
+  --leading-relaxed: 1.75;   /* comfortable reading: 175% */
+  --leading-loose: 2;        /* maximum spacing: 200% */
+
+  /* Letter Spacing */
+  --tracking-tighter: -0.05em;
+  --tracking-tight: -0.025em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.025em;
+  --tracking-wider: 0.05em;
+  --tracking-widest: 0.1em;
+
+  /* ================================
+     SPACING SYSTEM - 8px Grid for Vertical Rhythm
+     ================================ */
+
+  /* Base Scale (8px increments) */
+  --space-0: 0;
+  --space-1: 0.25rem;      /* 4px - minimal gap */
+  --space-2: 0.5rem;       /* 8px - base unit */
+  --space-3: 0.75rem;      /* 12px */
+  --space-4: 1rem;         /* 16px - 2×base */
+  --space-5: 1.25rem;      /* 20px */
+  --space-6: 1.5rem;       /* 24px - 3×base */
+  --space-8: 2rem;         /* 32px - 4×base */
+  --space-10: 2.5rem;      /* 40px - 5×base */
+  --space-12: 3rem;        /* 48px - 6×base */
+  --space-16: 4rem;        /* 64px - 8×base */
+  --space-20: 5rem;        /* 80px - 10×base */
+  --space-24: 6rem;        /* 96px - 12×base */
+  --space-32: 8rem;        /* 128px - 16×base */
+  --space-40: 10rem;       /* 160px - 20×base */
+  --space-48: 12rem;       /* 192px - 24×base */
+
+  /* Semantic Vertical Spacing */
+  --spacing-text-block: var(--space-4);        /* 16px - between paragraphs */
+  --spacing-content-group: var(--space-8);     /* 32px - between related content */
+  --spacing-section-gap: var(--space-16);      /* 64px - between sections */
+  --spacing-section-large: var(--space-24);    /* 96px - major section breaks */
+  --spacing-heading-top: var(--space-12);      /* 48px - space above heading */
+  --spacing-heading-bottom: var(--space-6);    /* 24px - space below heading */
+  --spacing-card-gap: var(--space-8);          /* 32px - between cards */
+  --spacing-card-padding: var(--space-6);      /* 24px - inside cards */
+  --spacing-component-gap: var(--space-6);     /* 24px - between UI components */
+
+  /* Horizontal Spacing & Container Margins - Style Guide Standard: 48px */
+  --container-padding-mobile: var(--space-6);   /* 24px - mobile side padding */
+  --container-padding-tablet: var(--space-8);   /* 32px - tablet side padding */
+  --container-padding-desktop: var(--space-12); /* 48px - desktop side padding (Style Guide) */
+  --container-padding-wide: var(--space-12);    /* 48px - wide screen side padding (Style Guide) */
+
+  /* Horizontal Gaps */
+  --gap-xs: var(--space-2);      /* 8px - minimal horizontal gap */
+  --gap-sm: var(--space-4);      /* 16px - small objects */
+  --gap-md: var(--space-6);      /* 24px - medium objects */
+  --gap-lg: var(--space-8);      /* 32px - large objects */
+  --gap-xl: var(--space-10);     /* 40px - extra large groups */
+  --gap-2xl: var(--space-12);    /* 48px - major separations */
+
+  /* ================================
+     BORDER RADIUS - Style Guide
+     ================================ */
+
+  --radius-none: 0;
+  --radius-sm: 0.5rem;     /* 8px */
+  --radius-md: 0.75rem;    /* 12px */
+  --radius-lg: 1rem;       /* 16px */
+  --radius-xl: 1.25rem;    /* 20px */
+  --radius-2xl: 1.75rem;   /* 28px */
+  --radius-3xl: 2.5rem;    /* 40px */
+  --radius-full: 9999px;
+
+  /* ================================
+     SHADOWS
+     ================================ */
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.3);
+
+  /* Colored Shadows */
+  --shadow-teal: 0 10px 30px -5px rgba(13, 148, 136, 0.5);
+  --shadow-teal-lg: 0 20px 40px -10px rgba(13, 148, 136, 0.6);
+  --shadow-blue: 0 10px 30px -5px rgba(59, 130, 246, 0.5);
+  --shadow-green: 0 10px 30px -5px rgba(16, 185, 129, 0.5);
+  --shadow-red: 0 10px 30px -5px rgba(239, 68, 68, 0.5);
+
+  /* ================================
+     Z-INDEX SYSTEM
+     ================================ */
+
+  --z-base: 0;
+  --z-dropdown: 1000;
+  --z-sticky: 1100;
+  --z-fixed: 1200;
+  --z-modal-backdrop: 1300;
+  --z-modal: 1400;
+  --z-popover: 1500;
+  --z-tooltip: 1600;
+  --z-toast: 1700;
+
+  /* ================================
+     TRANSITIONS & ANIMATIONS
+     ================================ */
+
+  /* Duration */
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
+  --duration-slower: 500ms;
+
+  /* Easing Functions */
+  --ease-linear: linear;
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --ease-smooth: cubic-bezier(0.4, 0.0, 0.2, 1);
+
+  /* ================================
+     BREAKPOINTS
+     ================================ */
+
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+
+  /* ================================
+     CONTAINER WIDTHS
+     ================================ */
+
+  --container-sm: 640px;
+  --container-md: 768px;
+  --container-lg: 1024px;
+  --container-xl: 1280px;
+  --container-2xl: 1536px;
+
+  /* ================================
+     ICON SIZES
+     ================================ */
+
+  --icon-xs: 14px;
+  --icon-sm: 16px;
+  --icon-base: 20px;
+  --icon-lg: 24px;
+  --icon-xl: 32px;
+  --icon-2xl: 48px;
+
+  /* ================================
+     BLUR EFFECTS
+     ================================ */
+
+  --blur-sm: 4px;
+  --blur-md: 8px;
+  --blur-lg: 16px;
+  --blur-xl: 24px;
+  --blur-2xl: 40px;
+
+  /* ================================
+     OPACITY LEVELS
+     ================================ */
+
+  --opacity-0: 0;
+  --opacity-5: 0.05;
+  --opacity-10: 0.1;
+  --opacity-20: 0.2;
+  --opacity-30: 0.3;
+  --opacity-40: 0.4;
+  --opacity-50: 0.5;
+  --opacity-60: 0.6;
+  --opacity-70: 0.7;
+  --opacity-80: 0.8;
+  --opacity-90: 0.9;
+  --opacity-100: 1;
+}
+
+/* ================================
+   LIGHT THEME (Default - Style Guide)
+   ================================ */
+
+:root {
+  --background: #FFFFFF;
+  --background-secondary: var(--gray-50);
+  --background-tertiary: var(--gray-100);
+  --background-card: #FFFFFF;
+  --foreground: var(--gray-900);
+  --foreground-secondary: var(--gray-700);
+  --foreground-tertiary: var(--gray-600);
+  --border: var(--gray-200);
+  --border-light: var(--gray-300);
+}

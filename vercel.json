@@ -1,0 +1,17 @@
+{
+  "framework": "nextjs",
+  "regions": ["fra1"],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "build": {
+    "env": {
+      "NODE_ENV": "production"
+    }
+  },
+  "functions": {
+    "src/app/**": {
+      "maxDuration": 30
+    }
+  }
+}
