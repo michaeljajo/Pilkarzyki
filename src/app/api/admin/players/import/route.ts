@@ -143,6 +143,8 @@ export async function POST(request: NextRequest) {
           .eq('clerk_id', clerkManager.clerk_id)
           .single()
 
+        let manager = supabaseManager
+
         if (managerError && managerError.code === 'PGRST116') {
           // Manager doesn't exist in Supabase, create them
           const { data: newManager, error: createError } = await supabaseAdmin
@@ -162,14 +164,18 @@ export async function POST(request: NextRequest) {
             result.skipped++
             continue
           }
-          supabaseManager = newManager
+          manager = newManager
         } else if (managerError) {
           result.errors.push(`Row ${rowNum}: Failed to fetch manager from database - ${managerError.message}`)
           result.skipped++
           continue
         }
 
-        const manager = supabaseManager
+        if (!manager) {
+          result.errors.push(`Row ${rowNum}: Manager data is missing`)
+          result.skipped++
+          continue
+        }
 
         // Check if player already exists
         const { data: existingPlayer } = await supabaseAdmin

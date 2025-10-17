@@ -354,8 +354,9 @@ export async function GET(
     }
 
     // Create user lookup map
-    const userMap = {}
-    users?.forEach(user => {
+    type UserData = { id: string; first_name: string | null; last_name: string | null }
+    const userMap: Record<string, UserData> = {}
+    users?.forEach((user: UserData) => {
       userMap[user.id] = user
     })
 

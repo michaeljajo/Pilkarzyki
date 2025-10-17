@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
             last_name: lastName,
             is_admin: clerkUser.publicMetadata?.isAdmin === true
           })
-          .select('id')
+          .select('id, email')
           .single()
 
         if (insertError) {
@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
             last_name: lastName,
             is_admin: clerkUser.publicMetadata?.isAdmin === true
           })
-          .select('id')
+          .select('id, email')
           .single()
 
         if (insertError) {

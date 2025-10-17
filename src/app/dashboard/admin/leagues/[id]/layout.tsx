@@ -5,7 +5,7 @@ import { LeagueAdminContextSetter } from '@/components/admin/LeagueAdminContextS
 
 interface LeagueAdminLayoutProps {
   children: ReactNode
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 async function getLeague(id: string) {
@@ -28,7 +28,8 @@ async function getLeague(id: string) {
 }
 
 export default async function LeagueAdminLayout({ children, params }: LeagueAdminLayoutProps) {
-  const league = await getLeague(params.id)
+  const resolvedParams = await params
+  const league = await getLeague(resolvedParams.id)
 
   if (!league) {
     notFound()

@@ -123,7 +123,7 @@ export async function GET(
       }
 
       const playersWithResults = lineup.player_ids
-        .map(playerId => {
+        .map((playerId: string) => {
           const player = playersMap.get(playerId)
           if (!player) return null
 
@@ -210,7 +210,7 @@ export async function PUT(
           return { id: lineup.id, total_goals: 0 }
         }
 
-        const totalGoals = lineup.player_ids.reduce((sum, playerId) => {
+        const totalGoals = lineup.player_ids.reduce((sum: number, playerId: string) => {
           return sum + (resultsMap.get(playerId) || 0)
         }, 0)
 
@@ -266,13 +266,13 @@ export async function PUT(
         let awayScore = 0
 
         if (homeLineup?.player_ids && homeLineup.player_ids.length > 0) {
-          homeScore = homeLineup.player_ids.reduce((sum, playerId) => {
+          homeScore = homeLineup.player_ids.reduce((sum: number, playerId: string) => {
             return sum + (resultsMap.get(playerId) || 0)
           }, 0)
         }
 
         if (awayLineup?.player_ids && awayLineup.player_ids.length > 0) {
-          awayScore = awayLineup.player_ids.reduce((sum, playerId) => {
+          awayScore = awayLineup.player_ids.reduce((sum: number, playerId: string) => {
             return sum + (resultsMap.get(playerId) || 0)
           }, 0)
         }

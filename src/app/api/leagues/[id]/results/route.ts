@@ -65,7 +65,7 @@ export async function GET(
       } | null
     }
 
-    const transformedResults = results?.map((result: ResultWithRelations) => ({
+    const transformedResults = (results as unknown as ResultWithRelations[])?.map((result) => ({
       id: result.id,
       player_name: result.player?.name || 'Unknown',
       goals: result.goals,

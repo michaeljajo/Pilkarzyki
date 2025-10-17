@@ -108,6 +108,7 @@ export interface Result {
 export interface Standing {
   managerId: string
   managerName: string
+  email: string
   played: number
   won: number
   drawn: number
