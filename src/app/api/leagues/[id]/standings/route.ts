@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
-import { calculateLeagueStandings, recalculateLeagueStandings } from '@/utils/standings-calculator'
+import { calculateLeagueStandings, recalculateLeagueStandings, ManagerStats } from '@/utils/standings-calculator'
 import { verifyLeagueAdmin } from '@/lib/auth-helpers'
-import { Standing } from '@/types'
 
 // Simple in-memory cache to prevent concurrent calculations
-const calculatingStandings = new Map<string, Promise<Standing[]>>()
+const calculatingStandings = new Map<string, Promise<ManagerStats[]>>()
 
 export async function GET(
   request: NextRequest,
@@ -87,7 +86,7 @@ export async function GET(
           calculatingStandings.delete(leagueId)
           return NextResponse.json({
             league,
-            standings: calculatedStandings.map((standing: Standing, index: number) => ({
+            standings: calculatedStandings.map((standing, index) => ({
               position: index + 1,
               managerId: standing.managerId,
               managerName: standing.managerName,
