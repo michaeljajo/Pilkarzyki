@@ -49,7 +49,7 @@ export async function GET(
             last_name: lastName,
             is_admin: clerkUser.publicMetadata?.isAdmin === true
           })
-          .select('id')
+          .select('id, email')
           .single()
 
         if (insertError) {
@@ -75,7 +75,7 @@ export async function GET(
             last_name: '',
             is_admin: false
           })
-          .select('id')
+          .select('id, email')
           .single()
 
         if (insertError) {
