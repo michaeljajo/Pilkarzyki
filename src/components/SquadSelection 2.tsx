@@ -158,8 +158,8 @@ export default function SquadSelection({ leagueId }: SquadSelectionProps) {
     }
   }, [selectedPlayers, selectedCupPlayers, squadData?.isDualGameweek])
 
-  const handleDragStart = (e: React.DragEvent, player: Player) => {
-    setDraggedPlayer(player)
+  const handleDragStart = (e: React.DragEvent, player: { name: string; surname: string; position: 'Goalkeeper' | 'Defender' | 'Midfielder' | 'Forward'; league?: string; id?: string }) => {
+    setDraggedPlayer(player as Player)
     e.dataTransfer.effectAllowed = 'move'
   }
 

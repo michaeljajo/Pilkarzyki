@@ -25,7 +25,7 @@ interface DropZoneProps {
   onDrop: (e: React.DragEvent, index: number) => void
   onDragOver: (e: React.DragEvent) => void
   onRemove: (index: number) => void
-  onDragStart: (e: React.DragEvent, player: Player) => void
+  onDragStart: (e: React.DragEvent, player: { name: string; surname: string; position: 'Goalkeeper' | 'Defender' | 'Midfielder' | 'Forward'; league?: string; id?: string }) => void
   player: Player | null
   index: number
   isDragOver: boolean
@@ -125,8 +125,8 @@ export default function SquadSelection({ leagueId }: SquadSelectionProps) {
     }
   }, [selectedPlayers])
 
-  const handleDragStart = (e: React.DragEvent, player: Player) => {
-    setDraggedPlayer(player)
+  const handleDragStart = (e: React.DragEvent, player: { name: string; surname: string; position: 'Goalkeeper' | 'Defender' | 'Midfielder' | 'Forward'; league?: string; id?: string }) => {
+    setDraggedPlayer(player as Player)
     e.dataTransfer.effectAllowed = 'move'
   }
 
