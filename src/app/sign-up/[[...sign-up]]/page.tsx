@@ -19,13 +19,6 @@ export default function Page() {
               card: 'shadow-lg',
             }
           }}
-          additionalOAuthScopes={{
-            google: ['profile', 'email']
-          }}
-          initialValues={{
-            firstName: '',
-            lastName: ''
-          }}
         />
       </div>
     </div>

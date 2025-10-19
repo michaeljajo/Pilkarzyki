@@ -124,11 +124,11 @@ export default function CupGroupsPage() {
         }
 
         const transformedGroups: GroupAssignment = {}
-        Object.entries(groupsData.groups).forEach(([groupName, groupManagers]: [string, GroupManagerData[]]) => {
-          transformedGroups[groupName] = groupManagers.map((m: GroupManagerData) => ({
+        Object.entries(groupsData.groups).forEach(([groupName, groupManagers]) => {
+          transformedGroups[groupName] = (groupManagers as GroupManagerData[]).map((m: GroupManagerData) => ({
             id: m.managerId,
-            firstName: m.manager.first_name,
-            lastName: m.manager.last_name,
+            firstName: m.manager.first_name || undefined,
+            lastName: m.manager.last_name || undefined,
             email: m.manager.email
           }))
         })
@@ -212,6 +212,12 @@ export default function CupGroupsPage() {
   async function saveGroupAssignments() {
     try {
       setSaving(true)
+
+      // Check if cup exists
+      if (!cup) {
+        setError('Cup not found')
+        return
+      }
 
       // Validate all managers are assigned
       if (unassignedManagers.length > 0) {

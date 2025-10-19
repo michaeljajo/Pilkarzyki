@@ -1,10 +1,24 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+
+interface League {
+  id: string
+  name: string
+  season: string
+}
+
+interface Gameweek {
+  id: string
+  week: number
+  leagues?: {
+    name: string
+  }
+}
 
 export default function TestGameweeksPage() {
-  const [gameweeks, setGameweeks] = useState([])
-  const [leagues, setLeagues] = useState([])
+  const [gameweeks, setGameweeks] = useState<Gameweek[]>([])
+  const [leagues, setLeagues] = useState<League[]>([])
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
 
@@ -29,7 +43,7 @@ export default function TestGameweeksPage() {
       }
     } catch (error) {
       console.error('Fetch failed:', error)
-      setMessage(`❌ Fetch failed: ${error.message}`)
+      setMessage(`❌ Fetch failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setLoading(false)
     }
@@ -56,7 +70,7 @@ export default function TestGameweeksPage() {
       }
     } catch (error) {
       console.error('Fetch failed:', error)
-      setMessage(`❌ Fetch failed: ${error.message}`)
+      setMessage(`❌ Fetch failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setLoading(false)
     }
@@ -81,7 +95,7 @@ export default function TestGameweeksPage() {
       }
     } catch (error) {
       console.error('Fetch failed:', error)
-      setMessage(`❌ Fetch failed: ${error.message}`)
+      setMessage(`❌ Fetch failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setLoading(false)
     }

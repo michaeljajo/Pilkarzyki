@@ -101,12 +101,14 @@ export async function GET(
 
     // Get manager's assigned players for this league
     console.log('Squad API - Looking for players with manager_id:', userRecord.id)
-    const { data: players, error } = await supabaseAdmin
+    const { data: initialPlayers, error } = await supabaseAdmin
       .from('players')
       .select('*')
       .eq('manager_id', userRecord.id)
       .order('position')
       .order('name')
+
+    let players = initialPlayers
 
     console.log('Squad API - Found players:', players?.length || 0)
 

@@ -37,22 +37,10 @@ function getStageLabel(cupWeek: number, totalManagers: number): string {
 export default function CupSchedulePage() {
   const params = useParams()
   const router = useRouter()
-  const [cup, setCup] = useState<{ id: string; name: string; league_id: string } | null>(null)
+  const [cup, setCup] = useState<any>(null)
   const [leagueGameweeks, setLeagueGameweeks] = useState<LeagueGameweek[]>([])
   const [mappings, setMappings] = useState<GameweekMapping[]>([])
-  interface CupGameweek {
-    id: string
-    cup_week: number
-    league_gameweek_id: string
-    matches: Array<{
-      id: string
-      group_name: string | null
-      home_manager: { first_name: string | null; last_name: string | null } | null
-      away_manager: { first_name: string | null; last_name: string | null } | null
-      stage: string
-    }>
-  }
-  const [schedule, setSchedule] = useState<CupGameweek[]>([])
+  const [schedule, setSchedule] = useState<any[]>([])
   const [hasSchedule, setHasSchedule] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -111,11 +99,7 @@ export default function CupSchedulePage() {
         setHasSchedule(true)
 
         // Extract mappings from existing schedule
-        interface ScheduleGameweekData {
-          cup_week: number
-          league_gameweek_id: string
-        }
-        const existingMappings: GameweekMapping[] = scheduleData.schedule.map((gw: ScheduleGameweekData) => ({
+        const existingMappings: GameweekMapping[] = scheduleData.schedule.map((gw: any) => ({
           cupWeek: gw.cup_week,
           leagueGameweekId: gw.league_gameweek_id
         }))
@@ -127,7 +111,7 @@ export default function CupSchedulePage() {
         const groupsData = await groupsResponse.json()
 
         const groups = groupsData.groups || {}
-        const numManagers = Object.values(groups).reduce((sum: number, group: unknown[]) => sum + group.length, 0)
+        const numManagers = Object.values(groups).reduce((sum: number, group: any) => sum + group.length, 0)
 
         // For 4-team cup: 2 group + 2 semi-final + 1 final = 5 gameweeks
         // For 8-team cup: 6 group + 2 quarter + 2 semi + 1 final = 11 gameweeks
@@ -264,13 +248,13 @@ export default function CupSchedulePage() {
             icon={<ArrowLeft size={18} />}
             className="mb-2 -ml-2"
           >
-            Powrót do Przeglądu Pucharu
+            Back to Cup Overview
           </Button>
           <h1 className="text-5xl font-bold text-[var(--foreground)]">
-            Harmonogram Pucharu
+            Cup Schedule
           </h1>
           <p className="text-xl text-[var(--foreground-secondary)]">
-            Zmapuj kolejki pucharowe do kolejek ligi i wygeneruj mecze
+            Map cup gameweeks to league gameweeks and generate matches
           </p>
         </div>
         {hasSchedule && (
@@ -280,7 +264,7 @@ export default function CupSchedulePage() {
             variant="danger"
             icon={<Trash2 size={18} />}
           >
-            Usuń Harmonogram
+            Delete Schedule
           </Button>
         )}
       </motion.div>
@@ -302,7 +286,7 @@ export default function CupSchedulePage() {
         <>
           {/* Info Alert */}
           <Alert variant="info">
-            <strong>Instrukcje Konfiguracji:</strong> Zmapuj każdą kolejkę pucharową do kolejki ligi. Mecze pucharowe będą rozgrywane równolegle z meczami ligi w wybranych kolejkach.
+            <strong>Setup Instructions:</strong> Map each cup gameweek to a league gameweek. Cup matches will be played alongside league matches on the selected gameweeks.
           </Alert>
 
           {/* Gameweek Mappings */}
@@ -310,7 +294,7 @@ export default function CupSchedulePage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
                 <Calendar size={28} className="text-[var(--mineral-green)]" />
-                Mapowanie Kolejek
+                Gameweek Mappings
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -324,7 +308,7 @@ export default function CupSchedulePage() {
                     className="flex items-center gap-4 p-4 bg-[var(--background-tertiary)] rounded-xl"
                   >
                     <div className="w-48 flex flex-col gap-1">
-                      <span className="font-semibold text-lg">Kolejka Pucharu {mapping.cupWeek}</span>
+                      <span className="font-semibold text-lg">Cup Week {mapping.cupWeek}</span>
                       <span className="text-sm text-[var(--foreground-secondary)]">
                         {getStageLabel(mapping.cupWeek, totalManagers)}
                       </span>
@@ -335,15 +319,15 @@ export default function CupSchedulePage() {
                         onChange={(e) => updateMapping(index, e.target.value)}
                         fullWidth
                       >
-                        <option value="">Wybierz kolejkę ligi...</option>
+                        <option value="">Select league gameweek...</option>
                         {leagueGameweeks.map(gw => (
                           <option
                             key={gw.id}
                             value={gw.id}
                             disabled={usedGameweekIds.has(gw.id) && mapping.leagueGameweekId !== gw.id}
                           >
-                            Kolejka Ligi {gw.week}
-                            {usedGameweekIds.has(gw.id) && mapping.leagueGameweekId !== gw.id ? ' (Już użyta)' : ''}
+                            League Gameweek {gw.week}
+                            {usedGameweekIds.has(gw.id) && mapping.leagueGameweekId !== gw.id ? ' (Already used)' : ''}
                           </option>
                         ))}
                       </Select>
@@ -355,7 +339,7 @@ export default function CupSchedulePage() {
                       disabled={mappings.length <= 1}
                       icon={<Trash2 size={16} />}
                     >
-                      Usuń
+                      Remove
                     </Button>
                   </motion.div>
                 ))}
@@ -368,7 +352,7 @@ export default function CupSchedulePage() {
                   icon={<Plus size={18} />}
                   disabled={mappings.length >= leagueGameweeks.length}
                 >
-                  Dodaj Kolejkę
+                  Add Gameweek
                 </Button>
                 <Button
                   onClick={generateSchedule}
@@ -376,7 +360,7 @@ export default function CupSchedulePage() {
                   icon={<Calendar size={18} />}
                   disabled={mappings.some(m => !m.leagueGameweekId)}
                 >
-                  Generuj Harmonogram Pucharu
+                  Generate Cup Schedule
                 </Button>
               </div>
             </CardContent>
@@ -389,7 +373,7 @@ export default function CupSchedulePage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
                 <Calendar size={28} className="text-[var(--mineral-green)]" />
-                Wygenerowany Harmonogram ({schedule.length} kolejek)
+                Generated Schedule ({schedule.length} gameweeks)
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -405,26 +389,20 @@ export default function CupSchedulePage() {
                     <div className="flex justify-between items-center mb-4">
                       <div>
                         <h4 className="font-semibold text-xl text-[var(--foreground)]">
-                          Kolejka Pucharu {cupGameweek.cup_week}
+                          Cup Gameweek {cupGameweek.cup_week}
                         </h4>
                         <p className="text-sm text-[var(--foreground-secondary)] mt-1">
-                          Kolejka Ligi {cupGameweek.gameweeks?.week} • {cupGameweek.stage.replace('_', ' ')}
+                          League Gameweek {cupGameweek.gameweeks?.week} • {cupGameweek.stage.replace('_', ' ')}
                         </p>
                       </div>
                       <span className="px-3 py-1 text-xs font-semibold rounded-full bg-[var(--mineral-green)]/20 text-[var(--mineral-green)]">
-                        {cupGameweek.matches?.length || 0} meczów
+                        {cupGameweek.matches?.length || 0} matches
                       </span>
                     </div>
 
                     {cupGameweek.matches && cupGameweek.matches.length > 0 ? (
                       <div className="space-y-2">
-                        {cupGameweek.matches.map((match: {
-                          id: string
-                          group_name: string | null
-                          home_manager: { first_name: string | null; last_name: string | null } | null
-                          away_manager: { first_name: string | null; last_name: string | null } | null
-                          stage: string
-                        }) => (
+                        {cupGameweek.matches.map((match: any) => (
                           <div
                             key={match.id}
                             className="flex justify-between items-center p-3 bg-[var(--background-secondary)] rounded-lg"
@@ -452,7 +430,7 @@ export default function CupSchedulePage() {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-[var(--foreground-secondary)] text-sm">Brak meczów</p>
+                      <p className="text-[var(--foreground-secondary)] text-sm">No matches</p>
                     )}
                   </motion.div>
                 ))}
@@ -466,7 +444,7 @@ export default function CupSchedulePage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
                   <Trophy size={28} className="text-[var(--mineral-green)]" />
-                  Struktura Pucharowa
+                  Knockout Structure
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -474,26 +452,26 @@ export default function CupSchedulePage() {
                   {/* Semi-Finals */}
                   <div className="flex gap-16">
                     <div className="text-center">
-                      <div className="text-sm text-[var(--foreground-secondary)] mb-2">Półfinał 1</div>
+                      <div className="text-sm text-[var(--foreground-secondary)] mb-2">Semi-Final 1</div>
                       <div className="border-2 border-[var(--mineral-green)] rounded-lg p-4 bg-[var(--mineral-green)]/5 min-w-[200px]">
-                        <div className="font-semibold">Zwycięzca Grupy A</div>
+                        <div className="font-semibold">Group A Winner</div>
                         <div className="text-sm text-[var(--foreground-secondary)]">vs</div>
-                        <div className="font-semibold">Wicemistrz Grupy B</div>
+                        <div className="font-semibold">Group B Runner-up</div>
                       </div>
                       <div className="text-xs text-[var(--foreground-tertiary)] mt-2">
-                        Kolejki {schedule.find(s => s.stage === 'semi_final')?.cup_week || '3-4'} (2 mecze)
+                        Weeks {schedule.find(s => s.stage === 'semi_final')?.cup_week || '3-4'} (2 legs)
                       </div>
                     </div>
 
                     <div className="text-center">
-                      <div className="text-sm text-[var(--foreground-secondary)] mb-2">Półfinał 2</div>
+                      <div className="text-sm text-[var(--foreground-secondary)] mb-2">Semi-Final 2</div>
                       <div className="border-2 border-[var(--mineral-green)] rounded-lg p-4 bg-[var(--mineral-green)]/5 min-w-[200px]">
-                        <div className="font-semibold">Wicemistrz Grupy A</div>
+                        <div className="font-semibold">Group A Runner-up</div>
                         <div className="text-sm text-[var(--foreground-secondary)]">vs</div>
-                        <div className="font-semibold">Zwycięzca Grupy B</div>
+                        <div className="font-semibold">Group B Winner</div>
                       </div>
                       <div className="text-xs text-[var(--foreground-tertiary)] mt-2">
-                        Kolejki {schedule.find(s => s.stage === 'semi_final')?.cup_week || '3-4'} (2 mecze)
+                        Weeks {schedule.find(s => s.stage === 'semi_final')?.cup_week || '3-4'} (2 legs)
                       </div>
                     </div>
                   </div>
@@ -503,14 +481,14 @@ export default function CupSchedulePage() {
 
                   {/* Final */}
                   <div className="text-center">
-                    <div className="text-sm text-[var(--foreground-secondary)] mb-2">Finał</div>
+                    <div className="text-sm text-[var(--foreground-secondary)] mb-2">Final</div>
                     <div className="border-4 border-yellow-500 rounded-lg p-6 bg-yellow-50 min-w-[200px]">
-                      <div className="font-bold text-lg">🏆 Zwycięzca PF1</div>
+                      <div className="font-bold text-lg">🏆 Winner SF1</div>
                       <div className="text-sm text-[var(--foreground-secondary)]">vs</div>
-                      <div className="font-bold text-lg">🏆 Zwycięzca PF2</div>
+                      <div className="font-bold text-lg">🏆 Winner SF2</div>
                     </div>
                     <div className="text-xs text-[var(--foreground-tertiary)] mt-2">
-                      Kolejka {schedule.find(s => s.stage === 'final')?.cup_week || '5'} (1 mecz)
+                      Week {schedule.find(s => s.stage === 'final')?.cup_week || '5'} (1 match)
                     </div>
                   </div>
                 </div>

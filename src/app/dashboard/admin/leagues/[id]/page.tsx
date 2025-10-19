@@ -22,6 +22,7 @@ export default function LeagueDetailsPage() {
   interface ScheduleGameweek {
     id: string
     week: number
+    is_completed?: boolean
     matches: Array<{
       id: string
       home_manager: { first_name: string | null; last_name: string | null; email: string } | null

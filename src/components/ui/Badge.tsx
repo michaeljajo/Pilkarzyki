@@ -11,7 +11,7 @@ interface BadgeProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const Badge = forwardRef<HTMLDivElement, BadgeProps>(
-  ({ className, variant = 'default', size = 'md', animated = false, children, ...props }, ref) => {
+  ({ className, variant = 'default', size = 'md', animated = false, children, onDrag, onDragStart, onDragEnd, ...props }, ref) => {
     const baseClasses = cn(
       'inline-flex items-center justify-center',
       'font-semibold rounded-full',
@@ -40,22 +40,34 @@ const Badge = forwardRef<HTMLDivElement, BadgeProps>(
       lg: { paddingLeft: '1.25em', paddingRight: '1.25em', gap: '0.5em' },
     }
 
-    const Component = animated ? motion.div : 'div'
+    if (animated) {
+      return (
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+        >
+          <div
+            ref={ref}
+            className={cn(baseClasses, variants[variant], sizes[size], className)}
+            style={sizeStyles[size]}
+            {...props}
+          >
+            {children}
+          </div>
+        </motion.div>
+      )
+    }
 
     return (
-      <Component
+      <div
         ref={ref}
         className={cn(baseClasses, variants[variant], sizes[size], className)}
         style={sizeStyles[size]}
-        {...(animated && {
-          initial: { scale: 0 },
-          animate: { scale: 1 },
-          transition: { type: 'spring', stiffness: 300, damping: 20 },
-        })}
         {...props}
       >
         {children}
-      </Component>
+      </div>
     )
   }
 )

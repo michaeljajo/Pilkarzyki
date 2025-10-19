@@ -109,7 +109,7 @@ export default async function DashboardPage() {
               {hasAdminAccess && (
                 <Badge variant="info" size="sm">
                   <Settings size={12} />
-                  Administrator
+                  Admin
                 </Badge>
               )}
               <UserButton afterSignOutUrl="/" />
@@ -125,7 +125,7 @@ export default async function DashboardPage() {
           <div className="flex justify-between items-center mb-12">
             <div>
               <h1 className="text-4xl font-bold text-gray-900 leading-tight">
-                Moje Ligi
+                My Leagues
               </h1>
             </div>
             <Link href="/dashboard/create-league">
@@ -134,7 +134,7 @@ export default async function DashboardPage() {
                 icon={<Plus size={20} />}
                 className="hover-lift"
               >
-                Utwórz nową ligę
+                Create a new league
               </Button>
             </Link>
           </div>
@@ -144,17 +144,17 @@ export default async function DashboardPage() {
             <div className="bg-white rounded-2xl border border-gray-200 p-16 text-center">
               <Trophy size={48} className="mx-auto text-gray-400 mb-4" />
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Brak Aktywnych Lig
+                No Active Leagues
               </h3>
               <p className="text-gray-600 mb-6">
-                Utwórz swoją pierwszą ligę, aby rozpocząć
+                Create your first league to get started
               </p>
               <Link href="/dashboard/create-league">
                 <Button
                   size="lg"
                   icon={<Plus size={20} />}
                 >
-                  Utwórz nową ligę
+                  Create a new league
                 </Button>
               </Link>
             </div>

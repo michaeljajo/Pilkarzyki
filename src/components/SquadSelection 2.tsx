@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { PlayerJersey } from '@/components/ui/PlayerJersey'
 import { FootballField } from '@/components/ui/FootballField'
-import { Player, League, Gameweek, Lineup, Cup, CupGameweek, CupLineup } from '@/types'
+import { Player, League, Gameweek, Lineup } from '@/types'
 import { validateLineup, validateDualLineups } from '@/utils/validation'
 
 interface SquadData {
@@ -13,9 +13,9 @@ interface SquadData {
   players: Player[]
   currentGameweek: Gameweek | null
   currentLineup: Lineup | null
-  cup?: Cup
-  currentCupGameweek?: CupGameweek
-  currentCupLineup?: CupLineup
+  cup?: any
+  currentCupGameweek?: any
+  currentCupLineup?: any
   isDualGameweek: boolean
 }
 
@@ -27,7 +27,7 @@ interface DropZoneProps {
   onDrop: (e: React.DragEvent, index: number) => void
   onDragOver: (e: React.DragEvent) => void
   onRemove: (index: number) => void
-  onDragStart: (e: React.DragEvent, player: { name: string; surname: string; position: string; league?: string; id?: string }) => void
+  onDragStart: (e: React.DragEvent, player: Player) => void
   player: Player | null
   index: number
   isDragOver: boolean
@@ -85,10 +85,9 @@ export default function SquadSelection({ leagueId }: SquadSelectionProps) {
   const [crossLineupErrors, setCrossLineupErrors] = useState<string[]>([])
 
   // Helper function to safely get lock date
-  const getLockDate = (gameweek: Gameweek | CupGameweek | null | undefined): Date | null => {
+  const getLockDate = (gameweek: any) => {
     if (!gameweek) return null
-    // Handle both snake_case (database) and camelCase (typed) properties
-    const lockDate = (gameweek as Gameweek).lockDate || (gameweek as { lock_date?: Date | string }).lock_date
+    const lockDate = gameweek.lock_date || gameweek.lockDate
     return lockDate ? new Date(lockDate) : null
   }
 
@@ -98,7 +97,7 @@ export default function SquadSelection({ leagueId }: SquadSelectionProps) {
         const response = await fetch(`/api/manager/leagues/${leagueId}/squad`)
 
         if (!response.ok) {
-          throw new Error('Nie udało się pobrać danych składu')
+          throw new Error('Failed to fetch squad data')
         }
 
         const data = await response.json()
@@ -120,7 +119,7 @@ export default function SquadSelection({ leagueId }: SquadSelectionProps) {
           setSelectedCupPlayers(cupLineupPlayers)
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Nieznany błąd')
+        setError(err instanceof Error ? err.message : 'Unknown error')
       } finally {
         setLoading(false)
       }
@@ -159,8 +158,8 @@ export default function SquadSelection({ leagueId }: SquadSelectionProps) {
     }
   }, [selectedPlayers, selectedCupPlayers, squadData?.isDualGameweek])
 
-  const handleDragStart = (e: React.DragEvent, player: Player | { name: string; surname: string; position: string; league?: string; id?: string }) => {
-    setDraggedPlayer(player as Player)
+  const handleDragStart = (e: React.DragEvent, player: Player) => {
+    setDraggedPlayer(player)
     e.dataTransfer.effectAllowed = 'move'
   }
 
@@ -255,7 +254,7 @@ export default function SquadSelection({ leagueId }: SquadSelectionProps) {
 
         if (!leagueResponse.ok) {
           const errorData = await leagueResponse.json()
-          throw new Error(errorData.error || 'Nie udało się zapisać składu ligowego')
+          throw new Error(errorData.error || 'Failed to save league lineup')
         }
 
         // Save cup lineup
@@ -270,10 +269,10 @@ export default function SquadSelection({ leagueId }: SquadSelectionProps) {
 
         if (!cupResponse.ok) {
           const errorData = await cupResponse.json()
-          throw new Error(errorData.error || 'Nie udało się zapisać składu pucharowego')
+          throw new Error(errorData.error || 'Failed to save cup lineup')
         }
 
-        alert('Oba składy zostały zapisane pomyślnie!')
+        alert('Both lineups saved successfully!')
       } else {
         // Save league lineup only
         const response = await fetch('/api/lineups', {
@@ -287,13 +286,13 @@ export default function SquadSelection({ leagueId }: SquadSelectionProps) {
 
         if (!response.ok) {
           const errorData = await response.json()
-          throw new Error(errorData.error || 'Nie udało się zapisać składu')
+          throw new Error(errorData.error || 'Failed to save lineup')
         }
 
-        alert('Skład został zapisany pomyślnie!')
+        alert('Lineup saved successfully!')
       }
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Nie udało się zapisać składu')
+      alert(err instanceof Error ? err.message : 'Failed to save lineup')
     } finally {
       setSaving(false)
     }
@@ -310,9 +309,9 @@ export default function SquadSelection({ leagueId }: SquadSelectionProps) {
   if (error || !squadData) {
     return (
       <div className="text-center py-8">
-        <p className="text-red-600">Błąd: {error}</p>
+        <p className="text-red-600">Error: {error}</p>
         <Button onClick={() => window.location.reload()} variant="secondary" className="mt-4">
-          Spróbuj ponownie
+          Retry
         </Button>
       </div>
     )
@@ -340,31 +339,19 @@ export default function SquadSelection({ leagueId }: SquadSelectionProps) {
       {!squadData.currentGameweek ? (
         <div className="text-center py-16">
           <div className="text-6xl mb-4">⚽</div>
-          <p className="text-navy-600 text-lg">Nie znaleziono aktywnej kolejki. Skontaktuj się z administratorem ligi.</p>
+          <p className="text-navy-600 text-lg">No active gameweek found. Contact your league admin.</p>
         </div>
       ) : (
         <div className="grid xl:grid-cols-3 gap-2.5">
           {/* Squad Pool - Left Side (Sticky) */}
           <div className="xl:col-span-1" style={{ width: 'fit-content' }}>
-            <div style={{ position: 'sticky', top: '80px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <Card className="h-fit">
-                <CardContent style={{ padding: '10px' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <div style={{ display: 'flex', gap: '4px' }}>
-                      {squadData.players.slice(0, 2).map((player) => (
-                        <PlayerJersey
-                          key={player.id}
-                          player={player}
-                          onDragStart={handleDragStart}
-                          isSelected={selectedPlayerIds.has(player.id)}
-                          isDragging={draggedPlayer?.id === player.id}
-                          className="cursor-move"
-                        />
-                      ))}
-                    </div>
-                    {Array.from({ length: Math.ceil((squadData.players.length - 2) / 2) }).map((_, rowIndex) => (
-                      <div key={rowIndex} style={{ display: 'flex', gap: '4px' }}>
-                        {squadData.players.slice(2 + rowIndex * 2, 2 + (rowIndex + 1) * 2).map((player) => (
+            <div className="sticky" style={{ top: '80px' }}>
+              <div className="space-y-2.5">
+                <Card className="h-fit">
+                  <CardContent style={{ padding: '10px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div style={{ display: 'flex', gap: '4px' }}>
+                        {squadData.players.slice(0, 2).map((player) => (
                           <PlayerJersey
                             key={player.id}
                             player={player}
@@ -375,40 +362,53 @@ export default function SquadSelection({ leagueId }: SquadSelectionProps) {
                           />
                         ))}
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                      {Array.from({ length: Math.ceil((squadData.players.length - 2) / 2) }).map((_, rowIndex) => (
+                        <div key={rowIndex} style={{ display: 'flex', gap: '4px' }}>
+                          {squadData.players.slice(2 + rowIndex * 2, 2 + (rowIndex + 1) * 2).map((player) => (
+                            <PlayerJersey
+                              key={player.id}
+                              player={player}
+                              onDragStart={handleDragStart}
+                              isSelected={selectedPlayerIds.has(player.id)}
+                              isDragging={draggedPlayer?.id === player.id}
+                              className="cursor-move"
+                            />
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
 
-              {/* Save Button */}
-              <Button
-                onClick={saveLineups}
-                disabled={!isValid || isGameweekLocked || saving}
-                loading={saving}
-                className="text-[11px] py-1.5"
-                style={{ width: '100%' }}
-              >
-                {isGameweekLocked ? (
-                  <>🔒 Zablokowane</>
-                ) : squadData.isDualGameweek ? (
-                  <>⚽ Zapisz oba składy</>
-                ) : (
-                  <>⚽ Zapisz</>
-                )}
-              </Button>
+                {/* Save Button */}
+                <Button
+                  onClick={saveLineups}
+                  disabled={!isValid || isGameweekLocked || saving}
+                  loading={saving}
+                  className="text-[11px] py-1.5 w-full"
+                >
+                  {isGameweekLocked ? (
+                    <>🔒 Locked</>
+                  ) : squadData.isDualGameweek ? (
+                    <>⚽ Save Both Lineups</>
+                  ) : (
+                    <>⚽ Save</>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
 
           {/* Pitches - Right Side */}
-          <div className="xl:col-span-2 space-y-6">
+          <div className="xl:col-span-2 space-y-8">
             {/* League Pitch */}
             <Card className="bg-[#F2F2F2] border-gray-300">
               <CardHeader style={{ padding: '12px 16px' }}>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">Skład Ligowy</CardTitle>
+                  <CardTitle className="text-lg">League Lineup</CardTitle>
                   {squadData.isDualGameweek && (
                     <span className="text-xs font-semibold px-2 py-1 bg-blue-100 text-blue-700 rounded">
-                      Kolejka {squadData.currentGameweek.week}
+                      Gameweek {squadData.currentGameweek.week}
                     </span>
                   )}
                 </div>
@@ -460,14 +460,14 @@ export default function SquadSelection({ leagueId }: SquadSelectionProps) {
             {/* Cup Pitch (Only shown if dual gameweek) */}
             {squadData.isDualGameweek && squadData.currentCupGameweek && (
               <Card className="bg-[#F2F2F2] border-yellow-500 border-2 overflow-hidden">
-                <CardHeader style={{ padding: '16px 24px' }} className="bg-yellow-50 rounded-t-2xl">
+                <CardHeader style={{ padding: '12px 16px' }} className="bg-yellow-50">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg flex items-center gap-2">
                       <span>🏆</span>
-                      Skład Pucharowy
+                      Cup Lineup
                     </CardTitle>
                     <span className="text-xs font-semibold px-2 py-1 bg-yellow-100 text-yellow-700 rounded">
-                      {squadData.cup?.name || 'Puchar'} - Kolejka {squadData.currentCupGameweek.cupWeek}
+                      {squadData.cup?.name || 'Cup'} - Week {squadData.currentCupGameweek.cup_week}
                     </span>
                   </div>
                 </CardHeader>
@@ -519,7 +519,7 @@ export default function SquadSelection({ leagueId }: SquadSelectionProps) {
             {/* Cross-Lineup Errors */}
             {crossLineupErrors.length > 0 && (
               <div className="bg-red-50/90 backdrop-blur-sm border-2 border-red-500 rounded-xl p-4">
-                <h4 className="font-semibold text-red-700 mb-2">⚠️ Konflikt Składów</h4>
+                <h4 className="font-semibold text-red-700 mb-2">⚠️ Lineup Conflict</h4>
                 <ul className="text-sm text-red-700 space-y-1">
                   {crossLineupErrors.map((error, index) => (
                     <li key={index}>{error}</li>

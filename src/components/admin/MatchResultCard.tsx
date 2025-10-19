@@ -106,7 +106,7 @@ export function MatchResultCard({
       <div className="p-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Home Manager */}
-          {renderManagerSide(match.home_manager, match.home_lineup, homeScore, 'home')}
+          {renderManagerSide(match.home_manager, match.home_lineup, homeScore)}
 
           {/* VS Divider */}
           <div className="flex items-center justify-center lg:block hidden">
@@ -122,7 +122,7 @@ export function MatchResultCard({
           </div>
 
           {/* Away Manager */}
-          {renderManagerSide(match.away_manager, match.away_lineup, awayScore, 'away')}
+          {renderManagerSide(match.away_manager, match.away_lineup, awayScore)}
         </div>
       </div>
 

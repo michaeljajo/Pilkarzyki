@@ -12,7 +12,7 @@ interface ChipProps extends Omit<HTMLAttributes<HTMLDivElement>, 'onDelete'> {
 }
 
 const Chip = forwardRef<HTMLDivElement, ChipProps>(
-  ({ className, variant = 'default', onDelete, icon, children, ...props }, ref) => {
+  ({ className, variant = 'default', onDelete, icon, children, onDrag, onDragStart, onDragEnd, onAnimationStart, onAnimationEnd, onAnimationIteration, ...props }, ref) => {
     const baseClasses = cn(
       'inline-flex items-center gap-1.5',
       'px-3 py-1.5 rounded-full',

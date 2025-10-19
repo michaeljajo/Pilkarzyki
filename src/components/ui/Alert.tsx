@@ -26,6 +26,9 @@ const Alert = forwardRef<HTMLDivElement, AlertProps>(
     autoDismissDelay = 5000,
     icon,
     children,
+    onDrag,
+    onDragStart,
+    onDragEnd,
     ...props
   }, ref) => {
     const [isVisible, setIsVisible] = useState(true)
@@ -84,19 +87,21 @@ const Alert = forwardRef<HTMLDivElement, AlertProps>(
       <AnimatePresence>
         {isVisible && (
           <motion.div
-            ref={ref}
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
-            className={cn(
-              'relative rounded-xl border backdrop-blur-sm p-4',
-              'shadow-lg',
-              variantStyles.container,
-              className
-            )}
-            {...props}
           >
+            <div
+              ref={ref}
+              className={cn(
+                'relative rounded-xl border backdrop-blur-sm p-4',
+                'shadow-lg',
+                variantStyles.container,
+                className
+              )}
+              {...props}
+            >
             <div className="flex items-start gap-3">
               {/* Icon */}
               <div className={cn('flex-shrink-0 mt-0.5', variantStyles.icon)}>
@@ -129,6 +134,7 @@ const Alert = forwardRef<HTMLDivElement, AlertProps>(
                   <X size={16} />
                 </button>
               )}
+            </div>
             </div>
           </motion.div>
         )}

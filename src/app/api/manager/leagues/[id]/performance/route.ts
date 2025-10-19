@@ -135,21 +135,27 @@ export async function GET(
       gameweek: number
     }> = []
     if (recentMatches) {
-      recentForm = recentMatches.map((match: MatchWithRelations) => {
+      recentForm = (recentMatches as unknown as MatchWithRelations[]).map((match) => {
         const isHome = match.home_manager_id === user.id
         const userScore = isHome ? match.home_score : match.away_score
         const opponentScore = isHome ? match.away_score : match.home_score
 
         let result = 'D' // Draw
-        if (userScore > opponentScore) result = 'W' // Win
-        else if (userScore < opponentScore) result = 'L' // Loss
+        if (userScore !== null && opponentScore !== null) {
+          if (userScore > opponentScore) result = 'W' // Win
+          else if (userScore < opponentScore) result = 'L' // Loss
+        }
+
+        const opponentManager = isHome ? match.away_manager : match.home_manager
+        const opponentName = opponentManager
+          ? `${opponentManager.first_name || ''} ${opponentManager.last_name || ''}`.trim() || 'Unknown'
+          : 'Unknown'
 
         return {
-          gameweek: match.gameweeks?.week,
+          gameweek: match.gameweeks?.week || 0,
           result,
           score: `${userScore}-${opponentScore}`,
-          opponent: isHome ? match.away_manager : match.home_manager,
-          date: match.gameweeks?.start_date
+          opponent: opponentName
         }
       })
     }

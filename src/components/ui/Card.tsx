@@ -10,7 +10,7 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const Card = forwardRef<HTMLDivElement, CardProps>(
-  ({ className, hover3d = false, glass = false, onMouseMove, onMouseLeave, children, ...props }, ref) => {
+  ({ className, hover3d = false, glass = false, onMouseMove, onMouseLeave, children, onDrag, onDragStart, onDragEnd, onAnimationStart, onAnimationEnd, onAnimationIteration, ...props }, ref) => {
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
     const [isHovered, setIsHovered] = useState(false)
 

@@ -50,13 +50,16 @@ export default async function StandingsSelectorPage() {
         .eq('leagues.is_active', true)
 
       // Extract league data from the join
-      leagues = data?.map(item => ({
-        id: item.leagues.id,
-        name: item.leagues.name,
-        season: item.leagues.season,
-        is_active: item.leagues.is_active,
-        created_at: item.leagues.created_at
-      })) || []
+      leagues = data?.map(item => {
+        const league = item.leagues as unknown as { id: string; name: string; season: string; is_active: boolean; created_at: string }
+        return {
+          id: league.id,
+          name: league.name,
+          season: league.season,
+          is_active: league.is_active,
+          created_at: league.created_at
+        }
+      }) || []
     }
   } catch (error) {
     console.error('Error fetching user leagues:', error)

@@ -16,6 +16,7 @@ interface Gameweek {
   week: number
   start_date: string
   end_date: string
+  lock_date?: string
   is_completed: boolean
   leagues?: League
 }

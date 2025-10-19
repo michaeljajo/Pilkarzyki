@@ -26,6 +26,12 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     children,
     disabled,
     onClick,
+    onDrag,
+    onDragStart,
+    onDragEnd,
+    onAnimationStart,
+    onAnimationEnd,
+    onAnimationIteration,
     ...props
   }, ref) => {
     const [ripples, setRipples] = useState<Array<{ x: number; y: number; id: number }>>([])
@@ -112,13 +118,13 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     return (
       <motion.button
-        ref={ref}
+        whileHover={{ scale: disabled || loading ? 1 : 1.02 }}
+        whileTap={{ scale: disabled || loading ? 1 : 0.98 }}
         className={cn(baseClasses, variants[variant], sizes[size], className)}
         style={sizeStyles[size]}
         disabled={disabled || loading}
         onClick={handleClick}
-        whileHover={{ scale: disabled || loading ? 1 : 1.02 }}
-        whileTap={{ scale: disabled || loading ? 1 : 0.98 }}
+        ref={ref}
         {...props}
       >
         {/* Ripple Effect */}

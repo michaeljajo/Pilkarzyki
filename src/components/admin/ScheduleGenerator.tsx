@@ -198,7 +198,7 @@ export function ScheduleGenerator() {
               <Button
                 onClick={handleDeleteSchedule}
                 disabled={isGenerating}
-                variant="destructive"
+                variant="danger"
                 className="flex-1"
               >
                 Delete Schedule

@@ -58,7 +58,7 @@ function AdminLayoutContent({ children }: { children: ReactNode }) {
           <nav className="mt-8">
             {leagueId ? (
               // League-specific navigation
-              <LeagueAdminNav leagueId={leagueId} leagueName={leagueName} />
+              <LeagueAdminNav leagueId={leagueId} leagueName={leagueName || undefined} />
             ) : (
               // Global admin navigation
               <>
