@@ -6,8 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Alert } from '@/components/ui/Alert'
 import { Select } from '@/components/ui/Select'
-import { EmptyState } from '@/components/ui/EmptyState'
-import { Calendar, Trash2, Plus, AlertCircle, ArrowLeft, Trophy } from 'lucide-react'
+import { Calendar, Trash2, Plus, ArrowLeft, Trophy } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 interface LeagueGameweek {
@@ -37,10 +36,10 @@ function getStageLabel(cupWeek: number, totalManagers: number): string {
 export default function CupSchedulePage() {
   const params = useParams()
   const router = useRouter()
-  const [cup, setCup] = useState<any>(null)
+  const [cup, setCup] = useState<{ id: string; league_id: string; name: string } | null>(null)
   const [leagueGameweeks, setLeagueGameweeks] = useState<LeagueGameweek[]>([])
   const [mappings, setMappings] = useState<GameweekMapping[]>([])
-  const [schedule, setSchedule] = useState<any[]>([])
+  const [schedule, setSchedule] = useState<Array<{ id: string; cup_week: number; league_gameweek_id: string; stage: string; gameweeks?: { week: number }; matches?: Array<{ id: string; group_name?: string; home_manager?: { first_name: string; last_name: string }; away_manager?: { first_name: string; last_name: string }; is_completed?: boolean; home_score?: number; away_score?: number }> }>>([])
   const [hasSchedule, setHasSchedule] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -99,7 +98,7 @@ export default function CupSchedulePage() {
         setHasSchedule(true)
 
         // Extract mappings from existing schedule
-        const existingMappings: GameweekMapping[] = scheduleData.schedule.map((gw: any) => ({
+        const existingMappings: GameweekMapping[] = scheduleData.schedule.map((gw: { cup_week: number; league_gameweek_id: string }) => ({
           cupWeek: gw.cup_week,
           leagueGameweekId: gw.league_gameweek_id
         }))
@@ -111,7 +110,7 @@ export default function CupSchedulePage() {
         const groupsData = await groupsResponse.json()
 
         const groups = groupsData.groups || {}
-        const numManagers = Object.values(groups).reduce((sum: number, group: any) => sum + group.length, 0)
+        const numManagers = Object.values(groups).reduce((sum: number, group: unknown) => sum + (Array.isArray(group) ? group.length : 0), 0)
 
         // For 4-team cup: 2 group + 2 semi-final + 1 final = 5 gameweeks
         // For 8-team cup: 6 group + 2 quarter + 2 semi + 1 final = 11 gameweeks
@@ -402,7 +401,7 @@ export default function CupSchedulePage() {
 
                     {cupGameweek.matches && cupGameweek.matches.length > 0 ? (
                       <div className="space-y-2">
-                        {cupGameweek.matches.map((match: any) => (
+                        {cupGameweek.matches.map((match) => (
                           <div
                             key={match.id}
                             className="flex justify-between items-center p-3 bg-[var(--background-secondary)] rounded-lg"

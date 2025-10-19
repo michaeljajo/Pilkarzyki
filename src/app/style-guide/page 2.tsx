@@ -967,7 +967,7 @@ export default function StyleGuidePage() {
                     Card Title
                   </h3>
                   <p className="text-base text-gray-600 mb-1" style={{ lineHeight: '1.2' }}>
-                    This card shows poor spacing with cramped text that's hard to read.
+                    This card shows poor spacing with cramped text that&apos;s hard to read.
                   </p>
                   <p className="text-base text-gray-600" style={{ lineHeight: '1.2' }}>
                     Tight line height and minimal gaps create visual clutter.

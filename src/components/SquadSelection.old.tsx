@@ -79,9 +79,9 @@ export default function SquadSelection({ leagueId }: SquadSelectionProps) {
   const [validationErrors, setValidationErrors] = useState<string[]>([])
 
   // Helper function to safely get lock date
-  const getLockDate = (gameweek: any) => {
+  const getLockDate = (gameweek: Gameweek | { lock_date?: string; lockDate?: string } | null) => {
     if (!gameweek) return null
-    const lockDate = gameweek.lock_date || gameweek.lockDate
+    const lockDate = 'lock_date' in gameweek ? gameweek.lock_date : 'lockDate' in gameweek ? gameweek.lockDate : null
     return lockDate ? new Date(lockDate) : null
   }
 
