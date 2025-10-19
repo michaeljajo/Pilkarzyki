@@ -85,10 +85,8 @@ export function EmptyState({
           transition={{ delay: 0.4 }}
         >
           <Button
-            onClick={action.onClick}
             size={action.size || 'lg'}
             variant={action.variant || 'primary'}
-            icon={action.icon}
             {...action}
           >
             {action.label}

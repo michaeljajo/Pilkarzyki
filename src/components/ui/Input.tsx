@@ -50,7 +50,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           )}
 
           {/* Input */}
-          <motion.input
+          <input
             ref={ref}
             id={inputId}
             className={cn(
@@ -69,7 +69,6 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               paddingLeft: leftIcon ? '3em' : '1.25em',
               paddingRight: rightIcon ? '3em' : '1.25em'
             }}
-            whileFocus={{ scale: 1.01 }}
             {...props}
           />
 
