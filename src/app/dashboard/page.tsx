@@ -61,11 +61,24 @@ export default async function DashboardPage() {
   console.log('Admin error:', adminError)
 
   // Combine and deduplicate leagues
-  const managerLeagueIds = new Set(managerSquads?.map(s => s.leagues.id) || [])
+  // Type assertion for Supabase joined data
+  const typedManagerSquads = managerSquads as Array<{
+    league_id: string;
+    leagues: {
+      id: string;
+      name: string;
+      season: string;
+      is_active: boolean;
+      created_at: string;
+      admin_id: string;
+    };
+  }> | null;
+
+  const managerLeagueIds = new Set(typedManagerSquads?.map(s => s.leagues.id) || [])
   const adminLeagueIds = new Set(adminLeagues?.map(l => l.id) || [])
 
   const allLeagues = [
-    ...(managerSquads?.map(item => ({
+    ...(typedManagerSquads?.map(item => ({
       id: item.leagues.id,
       name: item.leagues.name,
       season: item.leagues.season,
