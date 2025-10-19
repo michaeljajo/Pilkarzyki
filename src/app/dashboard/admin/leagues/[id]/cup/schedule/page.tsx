@@ -151,6 +151,12 @@ export default function CupSchedulePage() {
     try {
       setSaving(true)
 
+      // Validate cup exists
+      if (!cup) {
+        setError('Cup not found')
+        return
+      }
+
       // Validate all mappings are complete
       const incompleteMappings = mappings.filter(m => !m.leagueGameweekId)
       if (incompleteMappings.length > 0) {
