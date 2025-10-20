@@ -19,11 +19,14 @@ export function ToastProvider() {
         },
         success: {
           iconTheme: {
-            primary: 'var(--success)',
-            secondary: 'var(--off-white)',
+            primary: '#10B981',
+            secondary: '#ffffff',
           },
           style: {
-            border: '1px solid var(--success)',
+            background: '#10B981',
+            border: '1px solid #059669',
+            color: '#ffffff',
+            fontWeight: '500',
           },
         },
         error: {

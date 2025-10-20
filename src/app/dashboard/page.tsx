@@ -138,7 +138,7 @@ export default async function DashboardPage() {
           <div className="flex justify-between items-center mb-12">
             <div>
               <h1 className="text-4xl font-bold text-gray-900 leading-tight">
-                My Leagues
+                Moje Ligi
               </h1>
             </div>
             <Link href="/dashboard/create-league">
@@ -147,7 +147,7 @@ export default async function DashboardPage() {
                 icon={<Plus size={20} />}
                 className="hover-lift"
               >
-                Create a new league
+                Stwórz nową ligę
               </Button>
             </Link>
           </div>
@@ -157,17 +157,17 @@ export default async function DashboardPage() {
             <div className="bg-white rounded-2xl border border-gray-200 p-16 text-center">
               <Trophy size={48} className="mx-auto text-gray-400 mb-4" />
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                No Active Leagues
+                Brak Aktywnych Lig
               </h3>
               <p className="text-gray-600 mb-6">
-                Create your first league to get started
+                Stwórz swoją pierwszą ligę, aby rozpocząć
               </p>
               <Link href="/dashboard/create-league">
                 <Button
                   size="lg"
                   icon={<Plus size={20} />}
                 >
-                  Create a new league
+                  Stwórz nową ligę
                 </Button>
               </Link>
             </div>

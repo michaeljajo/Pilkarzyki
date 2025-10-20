@@ -69,6 +69,8 @@ export interface Lineup {
   playerIds: string[]
   isLocked: boolean
   totalGoals: number
+  createdByAdmin?: boolean
+  adminCreatorId?: string
   createdAt: Date
   updatedAt: Date
 }

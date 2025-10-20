@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/utils/cn'
-import { Users, Trophy, Calendar, ClipboardList, BarChart3, Settings, ArrowLeft, Award } from 'lucide-react'
+import { Users, Trophy, Calendar, ClipboardList, BarChart3, Settings, ArrowLeft, Award, Shirt } from 'lucide-react'
 
 interface LeagueAdminNavProps {
   leagueId: string
@@ -33,6 +33,11 @@ const getLeagueNavItems = (leagueId: string) => [
     icon: Calendar
   },
   {
+    href: `/dashboard/admin/leagues/${leagueId}/lineups`,
+    label: 'Składy',
+    icon: Shirt
+  },
+  {
     href: `/dashboard/admin/leagues/${leagueId}/cup`,
     label: 'Puchar',
     icon: Award
@@ -54,45 +59,54 @@ export function LeagueAdminNav({ leagueId, leagueName }: LeagueAdminNavProps) {
   const navItems = getLeagueNavItems(leagueId)
 
   return (
-    <div className="space-y-12">
-      {/* Back to Leagues */}
-      <div className="px-3" style={{ marginBottom: '48px' }}>
-        <Link
-          href="/dashboard/admin/leagues"
-          className="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors text-[var(--foreground-secondary)] hover:bg-[var(--background-secondary)] hover:text-[var(--foreground)]"
-        >
-          <ArrowLeft size={18} className="mr-3" />
-          Wszystkie Ligi
-        </Link>
-      </div>
-
+    <div>
       {/* League Navigation */}
-      <div className="px-3 pt-8">
-        <ul className="space-y-1">
-          {navItems.map((item) => {
-            const Icon = item.icon
-            const isActive = item.exactMatch
-              ? pathname === item.href
-              : pathname.startsWith(item.href)
+      <ul style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {navItems.map((item) => {
+          const Icon = item.icon
+          const isActive = item.exactMatch
+            ? pathname === item.href
+            : pathname.startsWith(item.href)
 
-            return (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className={cn(
-                    'group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors',
-                    isActive
-                      ? 'bg-[var(--mineral-green)]/20 text-[var(--mineral-green)] border-r-2 border-[var(--mineral-green)]'
-                      : 'text-[var(--foreground-secondary)] hover:bg-[var(--background-secondary)] hover:text-[var(--foreground)]'
-                  )}
-                >
-                  <Icon size={18} className="mr-3 flex-shrink-0" />
-                  {item.label}
-                </Link>
-              </li>
-            )
-          })}
-        </ul>
+          return (
+            <li key={item.href}>
+              <Link
+                href={item.href}
+                className={cn(
+                  'group flex items-center text-sm font-medium rounded-xl transition-all duration-200 hover:scale-[1.02]',
+                  isActive
+                    ? 'bg-[#29544D] text-white shadow-md'
+                    : 'text-gray-700 hover:bg-gray-100 hover:text-[#29544D]'
+                )}
+                style={{
+                  padding: '12px 16px',
+                  gap: '12px',
+                  borderLeft: isActive ? '4px solid #1f3f3a' : '4px solid transparent'
+                }}
+              >
+                <Icon size={20} />
+                <span>{item.label}</span>
+                {isActive && <span className="ml-auto text-xs">●</span>}
+              </Link>
+            </li>
+          )
+        })}
+      </ul>
+
+      {/* Back to Game */}
+      <div style={{ marginTop: '32px' }}>
+        <Link
+          href="/dashboard"
+          className="group flex items-center text-sm font-medium rounded-xl transition-all duration-200 hover:scale-[1.02] text-gray-700 hover:bg-gray-100 hover:text-[#29544D]"
+          style={{
+            padding: '12px 16px',
+            gap: '12px',
+            borderLeft: '4px solid transparent'
+          }}
+        >
+          <ArrowLeft size={20} />
+          <span>Powrót do gry</span>
+        </Link>
       </div>
     </div>
   )

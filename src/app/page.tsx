@@ -48,21 +48,11 @@ export default async function Home() {
         <div className="max-w-5xl mx-auto text-center animate-fade-in-up" style={{ display: 'flex', flexDirection: 'column', gap: '48px' }}>
           {/* Hero Content */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <div className="inline-flex items-center justify-center rounded-full bg-gray-50 border border-gray-200" style={{ paddingLeft: '16px', paddingRight: '16px', paddingTop: '8px', paddingBottom: '8px', gap: '8px', alignSelf: 'center' }}>
-              <Zap size={16} className="text-[#29544D]" />
-              <span className="text-sm text-gray-600">Nowoczesna Platforma Fantasy Football</span>
-            </div>
-
             <h1 className="font-extrabold" style={{ fontSize: '64px', lineHeight: '1.3' }}>
-              <span className="gradient-text-teal">Fantasy Football</span>
+              <span className="gradient-text-teal">Piłkarzyki</span>
               <br />
-              <span className="text-gray-900">Na Nowo</span>
+              <span className="text-gray-900">na nowo</span>
             </h1>
-
-            <p className="text-gray-600 max-w-3xl mx-auto" style={{ fontSize: '19px', lineHeight: '1.6' }}>
-              Doświadcz najlepszej platformy do zarządzania fantasy football z statystykami na żywo,
-              wciągającą rozgrywką i oszałamiającym designem.
-            </p>
           </div>
 
           {/* Feature Highlights */}
@@ -111,48 +101,18 @@ export default async function Home() {
               </Button>
             </Link>
           </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-3 max-w-2xl mx-auto" style={{ paddingTop: '48px', gap: '32px' }}>
-            <div className="text-center">
-              <div className="font-bold gradient-text-teal" style={{ fontSize: '42px', marginBottom: '4px' }}>150+</div>
-              <div className="text-sm text-gray-600 flex items-center justify-center" style={{ gap: '4px' }}>
-                <Trophy size={14} />
-                Aktywne Ligi
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="font-bold gradient-text-teal" style={{ fontSize: '42px', marginBottom: '4px' }}>2.5k+</div>
-              <div className="text-sm text-gray-600 flex items-center justify-center" style={{ gap: '4px' }}>
-                <Users size={14} />
-                Menedżerowie
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="font-bold gradient-text-teal" style={{ fontSize: '42px', marginBottom: '4px' }}>10k+</div>
-              <div className="text-sm text-gray-600 flex items-center justify-center" style={{ gap: '4px' }}>
-                <Calendar size={14} />
-                Mecze
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
       {/* Footer */}
       <footer className="bg-gray-50 border-t border-gray-200 mt-auto">
         <div className="max-w-7xl mx-auto" style={{ padding: '32px 16px' }}>
-          <div className="flex flex-col md:flex-row justify-between items-center" style={{ gap: '16px' }}>
+          <div className="flex justify-center items-center">
             <div className="flex items-center" style={{ gap: '8px' }}>
               <Trophy size={20} className="text-[#29544D]" />
               <span className="text-sm text-gray-600">
-                © 2025 Pilkarzyki. Stworzone dla fanów piłki nożnej na całym świecie.
+                © 2025 Piłkarzyki. Zagraj w draft z kolegami i znajomymi.
               </span>
-            </div>
-            <div className="flex items-center text-sm text-gray-600" style={{ gap: '24px' }}>
-              <a href="#" className="hover:text-[#29544D] transition-colors">O nas</a>
-              <a href="#" className="hover:text-[#29544D] transition-colors">Prywatność</a>
-              <a href="#" className="hover:text-[#29544D] transition-colors">Warunki</a>
             </div>
           </div>
         </div>

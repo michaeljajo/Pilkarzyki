@@ -16,14 +16,26 @@ export async function GET(
     const resolvedParams = await params
     const leagueId = resolvedParams.id
 
-    // Get user record, create if doesn't exist
-    let { data: userRecord } = await supabaseAdmin
-      .from('users')
-      .select('id, email')
-      .eq('clerk_id', userId)
-      .single()
+    // Check if managerId is provided (admin use case)
+    const { searchParams } = new URL(request.url)
+    const managerId = searchParams.get('managerId')
 
-    if (!userRecord) {
+    // If managerId is provided, use that for fetching squad
+    // Otherwise, use current user's ID
+    let targetUserId: string | null = null
+
+    if (managerId) {
+      // Admin is requesting another manager's squad
+      targetUserId = managerId
+    } else {
+      // Get current user record, create if doesn't exist
+      let { data: userRecord } = await supabaseAdmin
+        .from('users')
+        .select('id, email')
+        .eq('clerk_id', userId)
+        .single()
+
+      if (!userRecord) {
       console.log('Squad API - User not found in database, creating...')
 
       try {
@@ -88,6 +100,9 @@ export async function GET(
       }
     }
 
+      targetUserId = userRecord.id
+    }
+
     // Get league details
     const { data: league } = await supabaseAdmin
       .from('leagues')
@@ -100,11 +115,11 @@ export async function GET(
     }
 
     // Get manager's assigned players for this league
-    console.log('Squad API - Looking for players with manager_id:', userRecord.id)
+    console.log('Squad API - Looking for players with manager_id:', targetUserId)
     const { data: initialPlayers, error } = await supabaseAdmin
       .from('players')
       .select('*')
-      .eq('manager_id', userRecord.id)
+      .eq('manager_id', targetUserId)
       .order('position')
       .order('name')
 
@@ -117,12 +132,20 @@ export async function GET(
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    // If no players found, try to find and fix orphaned players
+    // If no players found and NOT admin request, try to find and fix orphaned players
     if (!players || players.length === 0) {
-      console.log('Squad API - No players found, checking for orphaned players...')
+      if (managerId) {
+        // For admin requests, just return empty array if no players found
+        console.log('Squad API - No players found for manager:', managerId)
+      } else {
+        console.log('Squad API - No players found, checking for orphaned players...')
 
       // Get current user email for matching
-      const currentUserEmail = userRecord.email || ''
+      const currentUserEmail = (await supabaseAdmin
+        .from('users')
+        .select('email')
+        .eq('id', targetUserId)
+        .single()).data?.email || ''
       console.log('Squad API - Current user email:', currentUserEmail)
 
       // Look for duplicate users with the same email but different IDs
@@ -130,7 +153,7 @@ export async function GET(
         .from('users')
         .select('id, email, clerk_id, created_at')
         .eq('email', currentUserEmail)
-        .neq('id', userRecord.id)
+        .neq('id', targetUserId!)
 
       console.log('Squad API - Found duplicate users:', duplicateUsers)
 
@@ -169,7 +192,7 @@ export async function GET(
           // Reassign all orphaned players to current user
           const { error: updateError } = await supabaseAdmin
             .from('players')
-            .update({ manager_id: userRecord.id })
+            .update({ manager_id: targetUserId })
             .in('manager_id', duplicateIds)
 
           if (updateError) {
@@ -181,7 +204,7 @@ export async function GET(
             const { data: updatedPlayers } = await supabaseAdmin
               .from('players')
               .select('*')
-              .eq('manager_id', userRecord.id)
+              .eq('manager_id', targetUserId)
               .order('position')
               .order('name')
 
@@ -190,35 +213,6 @@ export async function GET(
           }
         }
       }
-
-      // If still no players, check if there are any unassigned players for the current user's email
-      if ((!players || players.length === 0) && currentUserEmail && currentUserEmail !== 'unknown@example.com') {
-        console.log('Squad API - Checking for unassigned players by email pattern...')
-
-        // Check if there are players with manager_id that doesn't exist in users table
-        const { data: orphanedByMissingUser } = await supabaseAdmin
-          .from('players')
-          .select(`
-            id, name, position, manager_id,
-            users!left(id, email, first_name, last_name)
-          `)
-          .is('users.id', null)
-
-        console.log('Squad API - Players with missing manager_id references:', orphanedByMissingUser)
-
-        // Also search for players that might match the user's name pattern
-        const userNameParts = currentUserEmail.split('@')[0].toLowerCase()
-        console.log('Squad API - Searching for players matching email prefix:', userNameParts)
-
-        const { data: potentialMatches } = await supabaseAdmin
-          .from('players')
-          .select(`
-            id, name, position, manager_id,
-            users(id, email, first_name, last_name)
-          `)
-          .ilike('name', `%${userNameParts}%`)
-
-        console.log('Squad API - Players matching name pattern:', potentialMatches)
       }
     }
 
@@ -232,11 +226,11 @@ export async function GET(
 
     // Get existing lineup if any
     let currentLineup = null
-    if (currentGameweek) {
+    if (currentGameweek && targetUserId) {
       const { data: lineup } = await supabaseAdmin
         .from('lineups')
         .select('*')
-        .eq('manager_id', userRecord.id)
+        .eq('manager_id', targetUserId)
         .eq('gameweek_id', currentGameweek.id)
         .single()
 
@@ -272,14 +266,16 @@ export async function GET(
           currentCupGameweek = cupGameweek
 
           // Get existing cup lineup if any
-          const { data: cupLineup } = await supabaseAdmin
-            .from('cup_lineups')
-            .select('*')
-            .eq('manager_id', userRecord.id)
-            .eq('cup_gameweek_id', cupGameweek.id)
-            .single()
+          if (targetUserId) {
+            const { data: cupLineup } = await supabaseAdmin
+              .from('cup_lineups')
+              .select('*')
+              .eq('manager_id', targetUserId)
+              .eq('cup_gameweek_id', cupGameweek.id)
+              .single()
 
-          currentCupLineup = cupLineup
+            currentCupLineup = cupLineup
+          }
         }
       }
     }
