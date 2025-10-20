@@ -195,11 +195,23 @@ export async function GET(
       return NextResponse.json({ managers: [] })
     }
 
-    const managers = squads.map(squad => ({
-      id: (squad.users as any).id,
-      firstName: (squad.users as any).first_name,
-      lastName: (squad.users as any).last_name,
-      email: (squad.users as any).email
+    // Type assertion for Supabase joined data
+    // Note: !inner join returns users as array with single element
+    type SquadWithUser = {
+      manager_id: string;
+      users: Array<{
+        id: string;
+        first_name: string;
+        last_name: string;
+        email: string;
+      }>;
+    };
+
+    const managers = (squads as SquadWithUser[]).map(squad => ({
+      id: squad.users[0].id,
+      firstName: squad.users[0].first_name,
+      lastName: squad.users[0].last_name,
+      email: squad.users[0].email
     }))
 
     // If gameweekId is provided, get lineups for that gameweek

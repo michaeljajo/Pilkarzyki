@@ -167,7 +167,7 @@ export function AdminLineupsManager({ leagueId, gameweeks, managers }: AdminLine
                         </span>
                       )}
                       <Button
-                        variant={hasSubmitted ? 'outline' : 'default'}
+                        variant={hasSubmitted ? 'outline' : 'primary'}
                         size="sm"
                         icon={<Edit size={16} />}
                         onClick={() => handleEditLineup(manager)}
