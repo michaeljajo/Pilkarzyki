@@ -153,15 +153,9 @@ export default function LeagueGameweeksPage() {
     // Set the hours and minutes in local time
     dateObj.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0)
 
-    // Convert to ISO string but then remove the timezone to keep it as "local"
-    // This ensures consistent handling
-    const year = dateObj.getFullYear()
-    const month = String(dateObj.getMonth() + 1).padStart(2, '0')
-    const day = String(dateObj.getDate()).padStart(2, '0')
-    const hrs = String(dateObj.getHours()).padStart(2, '0')
-    const mins = String(dateObj.getMinutes()).padStart(2, '0')
-
-    return `${year}-${month}-${day}T${hrs}:${mins}:00`
+    // Return ISO string with timezone offset to preserve local time
+    // This ensures the database stores the exact time the admin intends
+    return dateObj.toISOString()
   }
 
   function updateEditingDateTime(field: 'start_date' | 'end_date', type: 'date' | 'time', value: string) {
