@@ -89,7 +89,7 @@ export default function LeagueGameweeksPage() {
         body: JSON.stringify({
           start_date: editingGameweek.start_date,
           end_date: editingGameweek.end_date,
-          lock_date: editingGameweek.lock_date,
+          lock_date: editingGameweek.start_date, // Lock date = start date
           is_completed: editingGameweek.is_completed,
           is_locked: editingGameweek.is_locked
         })
@@ -204,10 +204,10 @@ export default function LeagueGameweeksPage() {
                           Edytuj Kolejkę {gameweek.week}
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
                             <label className="block text-sm font-medium text-[var(--foreground-secondary)] mb-2">
-                              Data rozpoczęcia
+                              Data rozpoczęcia (i blokada składu)
                             </label>
                             <input
                               type="datetime-local"
@@ -225,18 +225,6 @@ export default function LeagueGameweeksPage() {
                               type="datetime-local"
                               value={formatDateForInput(editingGameweek.end_date)}
                               onChange={(e) => updateEditingField('end_date', e.target.value)}
-                              className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium text-[var(--foreground-secondary)] mb-2">
-                              Blokada składu
-                            </label>
-                            <input
-                              type="datetime-local"
-                              value={formatDateForInput(editingGameweek.lock_date)}
-                              onChange={(e) => updateEditingField('lock_date', e.target.value)}
                               className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                             />
                           </div>

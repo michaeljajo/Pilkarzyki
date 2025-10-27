@@ -38,13 +38,16 @@ export async function PATCH(
       return NextResponse.json({ error: 'Gameweek not found' }, { status: 404 })
     }
 
-    // Update gameweek
+    // Determine the final start_date to use
+    const finalStartDate = start_date || existingGameweek.start_date
+
+    // Update gameweek - lock_date always equals start_date
     const { data, error } = await supabaseAdmin
       .from('gameweeks')
       .update({
-        start_date: start_date || existingGameweek.start_date,
+        start_date: finalStartDate,
         end_date: end_date || existingGameweek.end_date,
-        lock_date: lock_date || existingGameweek.lock_date,
+        lock_date: finalStartDate, // Lock date always equals start date
         is_completed: is_completed !== undefined ? is_completed : existingGameweek.is_completed,
         is_locked: is_locked !== undefined ? is_locked : existingGameweek.is_locked,
         updated_at: new Date().toISOString()
