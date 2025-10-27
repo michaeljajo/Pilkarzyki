@@ -88,18 +88,18 @@ function AdminLayoutContent({ children }: { children: ReactNode }) {
                     )
                   })}
                 </ul>
+
+                {/* Exit Admin Button - only shown in global admin view */}
+                <div className="px-3 mt-8 pt-6 border-t border-gray-200">
+                  <Link
+                    href="/dashboard"
+                    className="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors text-gray-600 hover:bg-gray-100 hover:text-gray-900 w-full"
+                  >
+                    Powrót do gry
+                  </Link>
+                </div>
               </>
             )}
-
-            {/* Exit Admin Button */}
-            <div className="px-3 mt-8 pt-6 border-t border-gray-200">
-              <Link
-                href="/dashboard"
-                className="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors text-gray-600 hover:bg-gray-100 hover:text-gray-900 w-full"
-              >
-                Powrót do gry
-              </Link>
-            </div>
           </nav>
         </aside>
 
