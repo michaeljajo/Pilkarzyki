@@ -9,7 +9,9 @@ import Link from 'next/link'
 interface Player {
   id: string
   name: string
+  surname: string
   position: string
+  club: string
   manager?: {
     first_name: string
     last_name: string
@@ -101,6 +103,9 @@ export default function LeaguePlayersPage() {
                       Nazwisko
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Klub
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Pozycja
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -112,7 +117,10 @@ export default function LeaguePlayersPage() {
                   {players.map((player) => (
                     <tr key={player.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {player.name}
+                        {player.name} {player.surname}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {player.club}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {player.position}
