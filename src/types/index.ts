@@ -29,6 +29,7 @@ export interface Player {
   surname: string
   league: string
   position: Position
+  club?: string
   managerId?: string
   totalGoals?: number
   createdAt: Date
@@ -42,6 +43,7 @@ export interface PlayerWithManager {
   surname: string
   league: string
   position: Position
+  club?: string
   manager_id?: string
   total_goals?: number
   created_at: Date
@@ -127,11 +129,11 @@ export type Position = 'Goalkeeper' | 'Defender' | 'Midfielder' | 'Forward'
 export type UserRole = 'admin' | 'manager'
 
 export interface PlayerImport {
-  Name: string
-  Surname: string
-  League: string
+  Name: string  // Full name (first name + surname combined)
   Position: Position
-  Manager: string
+  Club: string
+  League: string
+  Manager?: string  // Optional - manager assignment
 }
 
 export interface LineupValidation {

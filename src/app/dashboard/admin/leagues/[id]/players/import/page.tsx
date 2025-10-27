@@ -10,6 +10,7 @@ export default function LeaguePlayersImportPage() {
   const router = useRouter()
   const [file, setFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
+  const [downloading, setDownloading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
@@ -17,6 +18,31 @@ export default function LeaguePlayersImportPage() {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0])
       setError(null)
+    }
+  }
+
+  const handleDownloadTemplate = async () => {
+    try {
+      setDownloading(true)
+      const response = await fetch('/api/admin/players/import')
+
+      if (!response.ok) {
+        throw new Error('Failed to download template')
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'player-import-template.xlsx'
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to download template')
+    } finally {
+      setDownloading(false)
     }
   }
 
@@ -69,6 +95,16 @@ export default function LeaguePlayersImportPage() {
         <p className="mt-1 text-gray-600">
           Prześlij plik Excel, aby zaimportować zawodników do tej ligi
         </p>
+      </div>
+
+      <div>
+        <Button
+          onClick={handleDownloadTemplate}
+          loading={downloading}
+          variant="secondary"
+        >
+          Pobierz szablon Excel
+        </Button>
       </div>
 
       {error && (
@@ -137,22 +173,28 @@ export default function LeaguePlayersImportPage() {
               Twój plik Excel powinien zawierać następujące kolumny:
             </p>
             <ul className="list-disc list-inside space-y-1 text-gray-600">
-              <li><strong>Nazwisko</strong>: Pełne nazwisko zawodnika</li>
-              <li><strong>Pozycja</strong>: Bramkarz, Obrońca, Pomocnik lub Napastnik</li>
-              <li><strong>Menedżer</strong>: Adres e-mail menedżera (musi być zarejestrowany)</li>
+              <li><strong>Name</strong>: Pełne imię i nazwisko zawodnika</li>
+              <li><strong>Position</strong>: Goalkeeper, Defender, Midfielder lub Forward</li>
+              <li><strong>Club</strong>: Nazwa klubu zawodnika</li>
+              <li><strong>League</strong>: Nazwa ligi (np. Premier League, La Liga)</li>
+              <li><strong>Manager</strong> (opcjonalne): Adres e-mail menedżera lub imię i nazwisko</li>
             </ul>
             <p className="text-gray-700 mt-4">
               Przykład:
             </p>
             <div className="bg-gray-50 p-3 rounded font-mono text-xs">
-              <div className="grid grid-cols-3 gap-4 font-semibold mb-1">
-                <div>Nazwisko</div>
-                <div>Pozycja</div>
-                <div>Menedżer</div>
+              <div className="grid grid-cols-5 gap-4 font-semibold mb-1">
+                <div>Name</div>
+                <div>Position</div>
+                <div>Club</div>
+                <div>League</div>
+                <div>Manager</div>
               </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div>John Doe</div>
+              <div className="grid grid-cols-5 gap-4">
+                <div>Lionel Messi</div>
                 <div>Forward</div>
+                <div>Inter Miami</div>
+                <div>La Liga</div>
                 <div>manager@example.com</div>
               </div>
             </div>

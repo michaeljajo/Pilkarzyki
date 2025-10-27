@@ -9,6 +9,7 @@ interface PlayerJerseyProps {
     surname: string
     position: 'Goalkeeper' | 'Defender' | 'Midfielder' | 'Forward'
     league?: string
+    club?: string
     id?: string
   }
   className?: string
@@ -76,14 +77,26 @@ export function PlayerJersey({
           {player.name} {player.surname}
         </h3>
 
-        {/* League Info - Only show league, position indicated by border */}
-        <div className="text-center">
+        {/* Club & League Info - Show club primarily, position indicated by border */}
+        <div className="text-center space-y-0.5">
+          {player.club && (
+            <p
+              className="text-gray-700 font-medium truncate"
+              style={{
+                fontSize: '11px',
+                lineHeight: '1.3'
+              }}
+              title={player.club}
+            >
+              {player.club}
+            </p>
+          )}
           {player.league && (
             <p
               className="text-gray-500 truncate"
               style={{
-                fontSize: '11px',
-                lineHeight: '1.4'
+                fontSize: '10px',
+                lineHeight: '1.3'
               }}
               title={player.league}
             >

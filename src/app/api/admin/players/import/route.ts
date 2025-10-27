@@ -68,13 +68,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate required columns
-    const requiredColumns = ['Name', 'Surname', 'League', 'Position', 'Manager']
+    const requiredColumns = ['Name', 'Position', 'Club', 'League']
     const firstRow = jsonData[0]
     const missingColumns = requiredColumns.filter(col => !(col in firstRow))
 
     if (missingColumns.length > 0) {
       return NextResponse.json({
-        error: `Missing required columns: ${missingColumns.join(', ')}`
+        error: `Missing required columns: ${missingColumns.join(', ')}. Optional: Manager`
       }, { status: 400 })
     }
 
@@ -109,8 +109,8 @@ export async function POST(request: NextRequest) {
 
       try {
         // Validate required fields
-        if (!row.Name || !row.Surname || !row.League || !row.Position || !row.Manager) {
-          result.errors.push(`Row ${rowNum}: Missing required fields`)
+        if (!row.Name || !row.League || !row.Position || !row.Club) {
+          result.errors.push(`Row ${rowNum}: Missing required fields (Name, Position, Club, League)`)
           result.skipped++
           continue
         }
@@ -123,71 +123,89 @@ export async function POST(request: NextRequest) {
           continue
         }
 
-        // Find manager by email or name
-        const clerkManager = existingUsers.find(user =>
-          user.email === row.Manager ||
-          `${user.first_name} ${user.last_name}`.toLowerCase() === row.Manager.toLowerCase() ||
-          user.first_name?.toLowerCase() === row.Manager.toLowerCase()
-        )
+        // Parse full name into first name and surname
+        const nameParts = row.Name.trim().split(/\s+/)
+        const firstName = nameParts[0] || ''
+        const surname = nameParts.length > 1 ? nameParts.slice(1).join(' ') : ''
 
-        if (!clerkManager) {
-          result.errors.push(`Row ${rowNum}: Manager "${row.Manager}" not found`)
+        if (!firstName) {
+          result.errors.push(`Row ${rowNum}: Name cannot be empty`)
           result.skipped++
           continue
         }
 
-        // Ensure manager exists in Supabase users table
-        const { data: supabaseManager, error: managerError } = await supabaseAdmin
-          .from('users')
-          .select('id')
-          .eq('clerk_id', clerkManager.clerk_id)
-          .single()
+        // Manager is now optional
+        let clerkManager = null
+        if (row.Manager && row.Manager.trim()) {
+          const managerValue = row.Manager.trim()
+          clerkManager = existingUsers.find(user =>
+            user.email === managerValue ||
+            `${user.first_name} ${user.last_name}`.toLowerCase() === managerValue.toLowerCase() ||
+            user.first_name?.toLowerCase() === managerValue.toLowerCase()
+          )
 
-        let manager = supabaseManager
-
-        if (managerError && managerError.code === 'PGRST116') {
-          // Manager doesn't exist in Supabase, create them
-          const { data: newManager, error: createError } = await supabaseAdmin
-            .from('users')
-            .insert({
-              clerk_id: clerkManager.clerk_id,
-              email: clerkManager.email,
-              first_name: clerkManager.first_name,
-              last_name: clerkManager.last_name,
-              is_admin: false
-            })
-            .select('id')
-            .single()
-
-          if (createError) {
-            result.errors.push(`Row ${rowNum}: Failed to create manager in database - ${createError.message}`)
+          if (!clerkManager) {
+            result.errors.push(`Row ${rowNum}: Manager "${managerValue}" not found`)
             result.skipped++
             continue
           }
-          manager = newManager
-        } else if (managerError) {
-          result.errors.push(`Row ${rowNum}: Failed to fetch manager from database - ${managerError.message}`)
-          result.skipped++
-          continue
         }
 
-        if (!manager) {
-          result.errors.push(`Row ${rowNum}: Manager data is missing`)
-          result.skipped++
-          continue
+        // Ensure manager exists in Supabase users table (if manager was specified)
+        let manager = null
+        if (clerkManager) {
+          const { data: supabaseManager, error: managerError } = await supabaseAdmin
+            .from('users')
+            .select('id')
+            .eq('clerk_id', clerkManager.clerk_id)
+            .single()
+
+          manager = supabaseManager
+
+          if (managerError && managerError.code === 'PGRST116') {
+            // Manager doesn't exist in Supabase, create them
+            const { data: newManager, error: createError } = await supabaseAdmin
+              .from('users')
+              .insert({
+                clerk_id: clerkManager.clerk_id,
+                email: clerkManager.email,
+                first_name: clerkManager.first_name,
+                last_name: clerkManager.last_name,
+                is_admin: false
+              })
+              .select('id')
+              .single()
+
+            if (createError) {
+              result.errors.push(`Row ${rowNum}: Failed to create manager in database - ${createError.message}`)
+              result.skipped++
+              continue
+            }
+            manager = newManager
+          } else if (managerError) {
+            result.errors.push(`Row ${rowNum}: Failed to fetch manager from database - ${managerError.message}`)
+            result.skipped++
+            continue
+          }
+
+          if (!manager) {
+            result.errors.push(`Row ${rowNum}: Manager data is missing`)
+            result.skipped++
+            continue
+          }
         }
 
         // Check if player already exists
         const { data: existingPlayer } = await supabaseAdmin
           .from('players')
           .select('id')
-          .eq('name', row.Name)
-          .eq('surname', row.Surname)
+          .eq('name', firstName)
+          .eq('surname', surname)
           .eq('league', row.League)
           .single()
 
         if (existingPlayer) {
-          result.errors.push(`Row ${rowNum}: Player "${row.Name} ${row.Surname}" already exists in ${row.League}`)
+          result.errors.push(`Row ${rowNum}: Player "${row.Name}" already exists in ${row.League}`)
           result.skipped++
           continue
         }
@@ -196,11 +214,12 @@ export async function POST(request: NextRequest) {
         const { data: player, error: playerError } = await supabaseAdmin
           .from('players')
           .insert({
-            name: row.Name,
-            surname: row.Surname,
+            name: firstName,
+            surname: surname,
             league: row.League,
             position: row.Position,
-            manager_id: manager.id,
+            club: row.Club,
+            manager_id: manager?.id || null,
             total_goals: 0
           })
           .select()
@@ -215,46 +234,48 @@ export async function POST(request: NextRequest) {
         result.details.players.push(player)
         result.imported++
 
-        // Create or update squad
-        const { data: existingSquad } = await supabaseAdmin
-          .from('squads')
-          .select('id')
-          .eq('manager_id', manager.id)
-          .eq('league_id', leagueId)
-          .single()
-
-        let squadId = existingSquad?.id
-
-        if (!existingSquad) {
-          const { data: newSquad, error: squadError } = await supabaseAdmin
+        // Create or update squad (only if manager is assigned)
+        if (manager) {
+          const { data: existingSquad } = await supabaseAdmin
             .from('squads')
-            .insert({
-              manager_id: manager.id,
-              league_id: leagueId
-            })
-            .select()
+            .select('id')
+            .eq('manager_id', manager.id)
+            .eq('league_id', leagueId)
             .single()
 
-          if (squadError) {
-            result.errors.push(`Row ${rowNum}: Failed to create squad - ${squadError.message}`)
-            continue
+          let squadId = existingSquad?.id
+
+          if (!existingSquad) {
+            const { data: newSquad, error: squadError } = await supabaseAdmin
+              .from('squads')
+              .insert({
+                manager_id: manager.id,
+                league_id: leagueId
+              })
+              .select()
+              .single()
+
+            if (squadError) {
+              result.errors.push(`Row ${rowNum}: Failed to create squad - ${squadError.message}`)
+              continue
+            }
+
+            squadId = newSquad.id
+            result.details.squads.push(newSquad)
           }
 
-          squadId = newSquad.id
-          result.details.squads.push(newSquad)
-        }
+          // Add player to squad
+          if (squadId) {
+            const { error: squadPlayerError } = await supabaseAdmin
+              .from('squad_players')
+              .insert({
+                squad_id: squadId,
+                player_id: player.id
+              })
 
-        // Add player to squad
-        if (squadId) {
-          const { error: squadPlayerError } = await supabaseAdmin
-            .from('squad_players')
-            .insert({
-              squad_id: squadId,
-              player_id: player.id
-            })
-
-          if (squadPlayerError) {
-            result.errors.push(`Row ${rowNum}: Failed to add player to squad - ${squadPlayerError.message}`)
+            if (squadPlayerError) {
+              result.errors.push(`Row ${rowNum}: Failed to add player to squad - ${squadPlayerError.message}`)
+            }
           }
         }
 
@@ -300,24 +321,24 @@ export async function GET() {
     // Create template data
     const templateData = [
       {
-        Name: 'Lionel',
-        Surname: 'Messi',
-        League: 'La Liga',
+        Name: 'Lionel Messi',
         Position: 'Forward',
-        Manager: 'manager@example.com'
-      },
-      {
-        Name: 'Virgil',
-        Surname: 'van Dijk',
-        League: 'Premier League',
-        Position: 'Defender',
-        Manager: 'manager@example.com'
-      },
-      {
-        Name: 'Luka',
-        Surname: 'Modric',
+        Club: 'Inter Miami',
         League: 'La Liga',
+        Manager: 'manager@example.com'
+      },
+      {
+        Name: 'Virgil van Dijk',
+        Position: 'Defender',
+        Club: 'Liverpool FC',
+        League: 'Premier League',
+        Manager: 'manager@example.com'
+      },
+      {
+        Name: 'Luka Modric',
         Position: 'Midfielder',
+        Club: 'Real Madrid',
+        League: 'La Liga',
         Manager: 'manager2@example.com'
       }
     ]
@@ -328,10 +349,10 @@ export async function GET() {
 
     // Set column widths
     worksheet['!cols'] = [
-      { width: 15 }, // Name
-      { width: 15 }, // Surname
-      { width: 20 }, // League
+      { width: 20 }, // Name
       { width: 12 }, // Position
+      { width: 20 }, // Club
+      { width: 20 }, // League
       { width: 25 }  // Manager
     ]
 
