@@ -143,10 +143,25 @@ export default function LeagueGameweeksPage() {
   function combineDateTime(date: string, time: string): string {
     if (!date) return ''
     if (!time) time = '00:00'
-    // Create a local datetime string in ISO format
-    const localDateTime = `${date}T${time}:00`
-    // Return as-is for the API (it will be treated as local time)
-    return localDateTime
+
+    // Parse the time to get hours and minutes
+    const [hours, minutes] = time.split(':')
+
+    // Create a Date object from the date string at midnight local time
+    const dateObj = new Date(date + 'T00:00:00')
+
+    // Set the hours and minutes in local time
+    dateObj.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0)
+
+    // Convert to ISO string but then remove the timezone to keep it as "local"
+    // This ensures consistent handling
+    const year = dateObj.getFullYear()
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0')
+    const day = String(dateObj.getDate()).padStart(2, '0')
+    const hrs = String(dateObj.getHours()).padStart(2, '0')
+    const mins = String(dateObj.getMinutes()).padStart(2, '0')
+
+    return `${year}-${month}-${day}T${hrs}:${mins}:00`
   }
 
   function updateEditingDateTime(field: 'start_date' | 'end_date', type: 'date' | 'time', value: string) {
