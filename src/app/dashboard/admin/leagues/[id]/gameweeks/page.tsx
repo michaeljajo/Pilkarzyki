@@ -126,19 +126,27 @@ export default function LeagueGameweeksPage() {
   function formatDateForInput(dateString: string): string {
     if (!dateString) return ''
     const date = new Date(dateString)
-    return date.toISOString().slice(0, 10) // YYYY-MM-DD
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
   }
 
   function formatTimeForInput(dateString: string): string {
     if (!dateString) return ''
     const date = new Date(dateString)
-    return date.toISOString().slice(11, 16) // HH:MM
+    const hours = String(date.getHours()).padStart(2, '0')
+    const minutes = String(date.getMinutes()).padStart(2, '0')
+    return `${hours}:${minutes}`
   }
 
   function combineDateTime(date: string, time: string): string {
     if (!date) return ''
     if (!time) time = '00:00'
-    return `${date}T${time}:00`
+    // Create a local datetime string in ISO format
+    const localDateTime = `${date}T${time}:00`
+    // Return as-is for the API (it will be treated as local time)
+    return localDateTime
   }
 
   function updateEditingDateTime(field: 'start_date' | 'end_date', type: 'date' | 'time', value: string) {
