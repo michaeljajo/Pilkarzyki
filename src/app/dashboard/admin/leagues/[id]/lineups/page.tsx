@@ -44,11 +44,10 @@ export default async function AdminLineupsPage({
     .eq('league_id', leagueId)
     .order('week', { ascending: true })
 
-  // Get all non-admin users (managers) - they should all be able to have lineups created
+  // Get all users - any user can have lineups created for them
   const { data: allUsers } = await supabaseAdmin
     .from('users')
-    .select('id, first_name, last_name, email, is_admin')
-    .eq('is_admin', false)
+    .select('id, first_name, last_name, email')
     .order('first_name', { ascending: true })
 
   const managers = allUsers?.map(user => ({
