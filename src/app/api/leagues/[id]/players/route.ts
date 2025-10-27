@@ -15,20 +15,39 @@ export async function GET(
 
     const leagueId = params.id
 
+    // First, get the league name from the league ID
+    const { data: league, error: leagueError } = await supabaseAdmin
+      .from('leagues')
+      .select('name')
+      .eq('id', leagueId)
+      .single()
+
+    if (leagueError || !league) {
+      console.error('Error fetching league:', leagueError)
+      return NextResponse.json(
+        { error: 'League not found' },
+        { status: 404 }
+      )
+    }
+
     // Fetch all players for this league with their manager information
+    // Note: players.league is a TEXT field containing league name, not a foreign key
     const { data: players, error } = await supabaseAdmin
       .from('players')
       .select(`
         id,
         name,
+        surname,
         position,
+        club,
+        league,
         manager:users!players_manager_id_fkey (
           id,
           first_name,
           last_name
         )
       `)
-      .eq('league_id', leagueId)
+      .eq('league', league.name)
       .order('name', { ascending: true })
 
     if (error) {
