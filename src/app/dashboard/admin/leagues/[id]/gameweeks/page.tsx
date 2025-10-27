@@ -126,7 +126,38 @@ export default function LeagueGameweeksPage() {
   function formatDateForInput(dateString: string): string {
     if (!dateString) return ''
     const date = new Date(dateString)
-    return date.toISOString().slice(0, 16)
+    return date.toISOString().slice(0, 10) // YYYY-MM-DD
+  }
+
+  function formatTimeForInput(dateString: string): string {
+    if (!dateString) return ''
+    const date = new Date(dateString)
+    return date.toISOString().slice(11, 16) // HH:MM
+  }
+
+  function combineDateTime(date: string, time: string): string {
+    if (!date) return ''
+    if (!time) time = '00:00'
+    return `${date}T${time}:00`
+  }
+
+  function updateEditingDateTime(field: 'start_date' | 'end_date', type: 'date' | 'time', value: string) {
+    if (!editingGameweek) return
+
+    const currentValue = editingGameweek[field]
+    const currentDate = formatDateForInput(currentValue)
+    const currentTime = formatTimeForInput(currentValue)
+
+    const newDate = type === 'date' ? value : currentDate
+    const newTime = type === 'time' ? value : currentTime
+
+    const combined = combineDateTime(newDate, newTime)
+
+    setEditingGameweek({
+      ...editingGameweek,
+      [field]: combined,
+      lock_date: field === 'start_date' ? combined : editingGameweek.lock_date
+    })
   }
 
   function getStatusLabel(gameweek: Gameweek): string {
@@ -204,29 +235,47 @@ export default function LeagueGameweeksPage() {
                           Edytuj Kolejkę {gameweek.week}
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-4">
+                          {/* Start Date and Time */}
                           <div>
                             <label className="block text-sm font-medium text-[var(--foreground-secondary)] mb-2">
                               Data rozpoczęcia (i blokada składu)
                             </label>
-                            <input
-                              type="datetime-local"
-                              value={formatDateForInput(editingGameweek.start_date)}
-                              onChange={(e) => updateEditingField('start_date', e.target.value)}
-                              className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
-                            />
+                            <div className="grid grid-cols-2 gap-3">
+                              <input
+                                type="date"
+                                value={formatDateForInput(editingGameweek.start_date)}
+                                onChange={(e) => updateEditingDateTime('start_date', 'date', e.target.value)}
+                                className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                              />
+                              <input
+                                type="time"
+                                value={formatTimeForInput(editingGameweek.start_date)}
+                                onChange={(e) => updateEditingDateTime('start_date', 'time', e.target.value)}
+                                className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                              />
+                            </div>
                           </div>
 
+                          {/* End Date and Time */}
                           <div>
                             <label className="block text-sm font-medium text-[var(--foreground-secondary)] mb-2">
                               Data zakończenia
                             </label>
-                            <input
-                              type="datetime-local"
-                              value={formatDateForInput(editingGameweek.end_date)}
-                              onChange={(e) => updateEditingField('end_date', e.target.value)}
-                              className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
-                            />
+                            <div className="grid grid-cols-2 gap-3">
+                              <input
+                                type="date"
+                                value={formatDateForInput(editingGameweek.end_date)}
+                                onChange={(e) => updateEditingDateTime('end_date', 'date', e.target.value)}
+                                className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                              />
+                              <input
+                                type="time"
+                                value={formatTimeForInput(editingGameweek.end_date)}
+                                onChange={(e) => updateEditingDateTime('end_date', 'time', e.target.value)}
+                                className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                              />
+                            </div>
                           </div>
                         </div>
 
