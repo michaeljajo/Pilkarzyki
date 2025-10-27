@@ -18,6 +18,7 @@ interface ResolvedNames {
 export function resolveUserNames(userData: ClerkUserData): ResolvedNames {
   const email = userData.email || ''
   const emailPrefix = email.split('@')[0] || 'User'
+  const isGmail = email.toLowerCase().endsWith('@gmail.com')
 
   let firstName = ''
   let lastName = ''
@@ -47,7 +48,7 @@ export function resolveUserNames(userData: ClerkUserData): ResolvedNames {
     lastName = userData.last_name || ''
   } else {
     // PRIORITY 3: Last resort - use email prefix
-    console.log('⚠️ Falling back to email prefix')
+    console.log(`⚠️ Falling back to email prefix${isGmail ? ' (Gmail user)' : ''}`)
     firstName = emailPrefix
     lastName = ''
   }
@@ -57,7 +58,12 @@ export function resolveUserNames(userData: ClerkUserData): ResolvedNames {
     firstName = emailPrefix
   }
 
-  console.log('💾 Resolved names:', { firstName, lastName })
+  console.log('💾 Resolved names:', {
+    firstName,
+    lastName,
+    source: userData.username ? 'username' : (userData.first_name || userData.last_name) ? 'clerk_profile' : 'email_prefix',
+    isGmail
+  })
 
   return {
     firstName,
