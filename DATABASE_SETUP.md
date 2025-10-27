@@ -152,7 +152,7 @@ Phase 1 provides the **foundation** for all other features. With this in place, 
 
 **Webhook Issues:**
 - Clerk webhook secret must match dashboard configuration
-- Webhook URL should be `https://your-domain/api/webhooks/clerk`
+- Webhook URL should be `https://pilkarzyki-michaels-projects-3c70005d.vercel.app/api/webhooks/clerk`
 - Check Clerk dashboard for webhook delivery logs
 
 **Permission Errors:**

@@ -132,7 +132,7 @@ export interface PlayerImport {
   Name: string  // Full name (first name + surname combined)
   Position: Position
   Club: string
-  League: string
+  League?: string  // Optional - if not provided, uses the league being imported to
   Manager?: string  // Optional - manager assignment
 }
 

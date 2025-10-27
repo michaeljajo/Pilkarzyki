@@ -16,15 +16,34 @@ export default async function DashboardPage() {
     redirect('/sign-in')
   }
 
-  // Get user's internal ID
-  const { data: userRecord } = await supabaseAdmin
+  // Get user's internal ID or create if doesn't exist
+  let { data: userRecord } = await supabaseAdmin
     .from('users')
     .select('id')
     .eq('clerk_id', user.id)
     .single()
 
+  // Auto-create user record if it doesn't exist (webhook might not have fired yet)
   if (!userRecord) {
-    redirect('/sign-in')
+    const email = user.emailAddresses[0]?.emailAddress || ''
+    const { data: newUser, error: createError } = await supabaseAdmin
+      .from('users')
+      .insert({
+        clerk_id: user.id,
+        email,
+        first_name: user.firstName || email.split('@')[0] || 'User',
+        last_name: user.lastName || '',
+        is_admin: false
+      })
+      .select('id')
+      .single()
+
+    if (createError || !newUser) {
+      console.error('Error creating user record:', createError)
+      redirect('/sign-in')
+    }
+
+    userRecord = newUser
   }
 
   // Get leagues where user is a manager (has a squad)

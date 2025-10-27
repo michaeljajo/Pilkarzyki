@@ -70,12 +70,25 @@ export default async function AdminLineupsPage({
     }>;
   };
 
-  const managers = (squads as SquadWithUser[] | null)?.map(squad => ({
-    id: squad.users[0].id,
-    firstName: squad.users[0].first_name || '',
-    lastName: squad.users[0].last_name || '',
-    email: squad.users[0].email
-  })) || []
+  // Get unique managers (in case one manager has multiple players)
+  const managerMap = new Map()
+  squads?.forEach((squad: SquadWithUser) => {
+    // Ensure squad.users exists and has at least one element with valid data
+    if (!squad.users || squad.users.length === 0 || !squad.users[0] || !squad.users[0].id) {
+      return
+    }
+
+    const userId = squad.users[0].id
+    if (!managerMap.has(userId)) {
+      managerMap.set(userId, {
+        id: userId,
+        firstName: squad.users[0].first_name || '',
+        lastName: squad.users[0].last_name || '',
+        email: squad.users[0].email
+      })
+    }
+  })
+  const managers = Array.from(managerMap.values())
 
   return (
     <div>

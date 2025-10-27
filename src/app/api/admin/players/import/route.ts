@@ -45,16 +45,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'League ID required' }, { status: 400 })
     }
 
-    // Verify league exists
+    // Verify league exists and get its name
     const { data: league, error: leagueError } = await supabaseAdmin
       .from('leagues')
-      .select('id')
+      .select('id, name')
       .eq('id', leagueId)
       .single()
 
     if (leagueError || !league) {
       return NextResponse.json({ error: 'League not found' }, { status: 404 })
     }
+
+    const leagueName = league.name
 
     // Parse Excel file
     const buffer = await file.arrayBuffer()
@@ -67,8 +69,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No data found in file' }, { status: 400 })
     }
 
-    // Validate required columns
-    const requiredColumns = ['Name', 'Position', 'Club', 'League']
+    // Validate required columns (League is not required - uses the league being imported to)
+    const requiredColumns = ['Name', 'Position', 'Club']
     const firstRow = jsonData[0]
     const missingColumns = requiredColumns.filter(col => !(col in firstRow))
 
@@ -109,8 +111,8 @@ export async function POST(request: NextRequest) {
 
       try {
         // Validate required fields
-        if (!row.Name || !row.League || !row.Position || !row.Club) {
-          result.errors.push(`Row ${rowNum}: Missing required fields (Name, Position, Club, League)`)
+        if (!row.Name || !row.Position || !row.Club) {
+          result.errors.push(`Row ${rowNum}: Missing required fields (Name, Position, Club)`)
           result.skipped++
           continue
         }
@@ -195,28 +197,28 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        // Check if player already exists
+        // Check if player already exists in this league
         const { data: existingPlayer } = await supabaseAdmin
           .from('players')
           .select('id')
           .eq('name', firstName)
           .eq('surname', surname)
-          .eq('league', row.League)
+          .eq('league', leagueName)
           .single()
 
         if (existingPlayer) {
-          result.errors.push(`Row ${rowNum}: Player "${row.Name}" already exists in ${row.League}`)
+          result.errors.push(`Row ${rowNum}: Player "${row.Name}" already exists in ${leagueName}`)
           result.skipped++
           continue
         }
 
-        // Insert player
+        // Insert player (using the league name from the league being imported to)
         const { data: player, error: playerError } = await supabaseAdmin
           .from('players')
           .insert({
             name: firstName,
             surname: surname,
-            league: row.League,
+            league: leagueName,
             position: row.Position,
             club: row.Club,
             manager_id: manager?.id || null,
@@ -324,21 +326,18 @@ export async function GET() {
         Name: 'Lionel Messi',
         Position: 'Forward',
         Club: 'Inter Miami',
-        League: 'La Liga',
         Manager: 'manager@example.com'
       },
       {
         Name: 'Virgil van Dijk',
         Position: 'Defender',
         Club: 'Liverpool FC',
-        League: 'Premier League',
         Manager: 'manager@example.com'
       },
       {
         Name: 'Luka Modric',
         Position: 'Midfielder',
         Club: 'Real Madrid',
-        League: 'La Liga',
         Manager: 'manager2@example.com'
       }
     ]
@@ -352,7 +351,6 @@ export async function GET() {
       { width: 20 }, // Name
       { width: 12 }, // Position
       { width: 20 }, // Club
-      { width: 20 }, // League
       { width: 25 }  // Manager
     ]
 

@@ -20,9 +20,8 @@ Without proper webhook configuration:
 2. Click **"Add Endpoint"**
 3. Set **Endpoint URL** to:
    ```
-   https://your-app-domain.com/api/webhooks/clerk
+   https://pilkarzyki-michaels-projects-3c70005d.vercel.app/api/webhooks/clerk
    ```
-   (Replace with your actual deployed domain)
 
 ### 3. Select Events
 Enable these webhook events:
