@@ -41,6 +41,7 @@ export async function GET(
         position,
         club,
         league,
+        football_league,
         manager:users!players_manager_id_fkey (
           id,
           first_name,

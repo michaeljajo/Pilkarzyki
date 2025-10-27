@@ -221,6 +221,7 @@ export async function POST(request: NextRequest) {
             league: leagueName,
             position: row.Position,
             club: row.Club,
+            football_league: row.League || null,
             manager_id: manager?.id || null,
             total_goals: 0
           })
@@ -326,18 +327,21 @@ export async function GET() {
         Name: 'Lionel Messi',
         Position: 'Forward',
         Club: 'Inter Miami',
+        League: 'MLS',
         Manager: 'manager@example.com'
       },
       {
         Name: 'Virgil van Dijk',
         Position: 'Defender',
         Club: 'Liverpool FC',
+        League: 'Premier League',
         Manager: 'manager@example.com'
       },
       {
         Name: 'Luka Modric',
         Position: 'Midfielder',
         Club: 'Real Madrid',
+        League: 'La Liga',
         Manager: 'manager2@example.com'
       }
     ]
@@ -351,6 +355,7 @@ export async function GET() {
       { width: 20 }, // Name
       { width: 12 }, // Position
       { width: 20 }, // Club
+      { width: 20 }, // League
       { width: 25 }  // Manager
     ]
 

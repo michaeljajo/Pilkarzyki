@@ -30,6 +30,7 @@ export interface Player {
   league: string
   position: Position
   club?: string
+  footballLeague?: string  // Real-life football league (e.g., "Premier League", "La Liga")
   managerId?: string
   totalGoals?: number
   createdAt: Date
@@ -132,7 +133,7 @@ export interface PlayerImport {
   Name: string  // Full name (first name + surname combined)
   Position: Position
   Club: string
-  League?: string  // Optional - if not provided, uses the league being imported to
+  League?: string  // Optional - Real-life football league (e.g., "Premier League", "La Liga")
   Manager?: string  // Optional - manager assignment
 }
 

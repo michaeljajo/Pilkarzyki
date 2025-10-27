@@ -8,7 +8,7 @@ interface PlayerJerseyProps {
     name: string
     surname: string
     position: 'Goalkeeper' | 'Defender' | 'Midfielder' | 'Forward'
-    league?: string
+    footballLeague?: string
     club?: string
     id?: string
   }
@@ -91,16 +91,16 @@ export function PlayerJersey({
               {player.club}
             </p>
           )}
-          {player.league && (
+          {player.footballLeague && (
             <p
               className="text-gray-500 truncate"
               style={{
                 fontSize: '10px',
                 lineHeight: '1.3'
               }}
-              title={player.league}
+              title={player.footballLeague}
             >
-              {player.league}
+              {player.footballLeague}
             </p>
           )}
         </div>
