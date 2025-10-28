@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import { Select } from '@/components/ui/Select'
 import { PlayerJersey } from '@/components/ui/PlayerJersey'
 import { FootballField } from '@/components/ui/FootballField'
 import { Player, League, Gameweek, Lineup, Cup, CupGameweek, CupLineup } from '@/types'
@@ -83,6 +84,7 @@ export default function SquadSelection({ leagueId }: SquadSelectionProps) {
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   const [cupValidationErrors, setCupValidationErrors] = useState<string[]>([])
   const [crossLineupErrors, setCrossLineupErrors] = useState<string[]>([])
+  const [isMobile, setIsMobile] = useState(false)
 
   // Helper function to safely get lock date
   const getLockDate = (gameweek: Gameweek | CupGameweek | null | undefined): Date | null => {
@@ -91,6 +93,18 @@ export default function SquadSelection({ leagueId }: SquadSelectionProps) {
     const lockDate = (gameweek as Gameweek).lockDate || (gameweek as { lock_date?: Date | string }).lock_date
     return lockDate ? new Date(lockDate) : null
   }
+
+  // Detect screen size for responsive UI
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024) // lg breakpoint
+    }
+
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   useEffect(() => {
     async function fetchSquadData() {
@@ -232,6 +246,61 @@ export default function SquadSelection({ leagueId }: SquadSelectionProps) {
     }
   }
 
+  // Mobile dropdown selection handler
+  const handleDropdownChange = (index: number, playerId: string, target: 'league' | 'cup') => {
+    const player = squadData?.players.find(p => p.id === playerId) || null
+
+    if (target === 'league') {
+      const newSelectedPlayers = [...selectedPlayers]
+
+      // Remove this player from other positions in both lineups if selected
+      if (player) {
+        newSelectedPlayers.forEach((p, i) => {
+          if (p?.id === playerId && i !== index) {
+            newSelectedPlayers[i] = null
+          }
+        })
+
+        // Also remove from cup lineup if present
+        if (squadData?.isDualGameweek) {
+          const newSelectedCupPlayers = [...selectedCupPlayers]
+          newSelectedCupPlayers.forEach((p, i) => {
+            if (p?.id === playerId) {
+              newSelectedCupPlayers[i] = null
+            }
+          })
+          setSelectedCupPlayers(newSelectedCupPlayers)
+        }
+      }
+
+      newSelectedPlayers[index] = player
+      setSelectedPlayers(newSelectedPlayers)
+    } else {
+      const newSelectedCupPlayers = [...selectedCupPlayers]
+
+      // Remove this player from other positions in both lineups if selected
+      if (player) {
+        newSelectedCupPlayers.forEach((p, i) => {
+          if (p?.id === playerId && i !== index) {
+            newSelectedCupPlayers[i] = null
+          }
+        })
+
+        // Also remove from league lineup if present
+        const newSelectedPlayers = [...selectedPlayers]
+        newSelectedPlayers.forEach((p, i) => {
+          if (p?.id === playerId) {
+            newSelectedPlayers[i] = null
+          }
+        })
+        setSelectedPlayers(newSelectedPlayers)
+      }
+
+      newSelectedCupPlayers[index] = player
+      setSelectedCupPlayers(newSelectedCupPlayers)
+    }
+  }
+
   const saveLineups = async () => {
     if (!squadData?.currentGameweek) return
 
@@ -335,6 +404,322 @@ export default function SquadSelection({ leagueId }: SquadSelectionProps) {
     ...(squadData.isDualGameweek ? selectedCupPlayers.filter(p => p !== null).map(p => p!.id) : [])
   ])
 
+  // Mobile UI with dropdowns
+  if (isMobile) {
+    return (
+      <div className="bg-gradient-to-br from-background-light to-white field-pattern">
+        {!squadData.currentGameweek ? (
+          <div className="text-center py-16">
+            <div className="text-6xl mb-4">⚽</div>
+            <p className="text-navy-600 text-lg">Nie znaleziono aktywnej kolejki. Skontaktuj się z administratorem ligi.</p>
+          </div>
+        ) : (
+          <div className="space-y-4 pb-4">
+            {/* League Lineup */}
+            <Card className="bg-[#F2F2F2] border-gray-300">
+              <CardHeader className="px-4 py-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base">Skład Ligowy</CardTitle>
+                  {squadData.isDualGameweek && (
+                    <span className="text-[10px] font-semibold px-2 py-0.5 bg-blue-100 text-blue-700 rounded">
+                      Kolejka {squadData.currentGameweek.week}
+                    </span>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent className="px-4 py-2">
+                {/* Pitch Visualization with Stacked Names */}
+                <div className="relative mb-4" style={{ transform: 'scale(0.75)', transformOrigin: 'top center' }}>
+                  <FootballField className="mb-1.5 mx-0 max-w-none" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="flex flex-col gap-4 items-center" style={{ marginTop: '-20px' }}>
+                      {/* Goalkeeper */}
+                      {selectedPlayers[0] ? (
+                        <div className="bg-white rounded-lg px-4 py-2 shadow-md border-2 border-navy-600 min-w-[140px]">
+                          <div className="font-bold text-gray-900 text-center text-xs leading-tight">
+                            {selectedPlayers[0].name} {selectedPlayers[0].surname}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="rounded-lg border-2 border-dashed border-white/70 bg-white/30 backdrop-blur-sm px-4 py-2 min-w-[140px] h-[36px]">
+                        </div>
+                      )}
+
+                      {/* Midfielder/Defender */}
+                      {selectedPlayers[1] ? (
+                        <div className="bg-white rounded-lg px-4 py-2 shadow-md border-2 border-navy-600 min-w-[140px]">
+                          <div className="font-bold text-gray-900 text-center text-xs leading-tight">
+                            {selectedPlayers[1].name} {selectedPlayers[1].surname}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="rounded-lg border-2 border-dashed border-white/70 bg-white/30 backdrop-blur-sm px-4 py-2 min-w-[140px] h-[36px]">
+                        </div>
+                      )}
+
+                      {/* Forward */}
+                      {selectedPlayers[2] ? (
+                        <div className="bg-white rounded-lg px-4 py-2 shadow-md border-2 border-navy-600 min-w-[140px]">
+                          <div className="font-bold text-gray-900 text-center text-xs leading-tight">
+                            {selectedPlayers[2].name} {selectedPlayers[2].surname}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="rounded-lg border-2 border-dashed border-white/70 bg-white/30 backdrop-blur-sm px-4 py-2 min-w-[140px] h-[36px]">
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Dropdown Selectors */}
+                <div className="space-y-3 mt-4">
+                  {/* Position 1 */}
+                  <Select
+                    value={selectedPlayers[0]?.id || ''}
+                    onChange={(e) => handleDropdownChange(0, e.target.value, 'league')}
+                    disabled={isGameweekLocked}
+                    className="text-sm h-10"
+                  >
+                    <option value="">Wybierz zawodnika</option>
+                    {squadData.players
+                      .map(player => (
+                        <option
+                          key={player.id}
+                          value={player.id}
+                          disabled={selectedPlayerIds.has(player.id) && selectedPlayers[0]?.id !== player.id}
+                        >
+                          {player.name} {player.surname} ({player.club})
+                        </option>
+                      ))}
+                  </Select>
+
+                  {/* Position 2 */}
+                  <Select
+                    value={selectedPlayers[1]?.id || ''}
+                    onChange={(e) => handleDropdownChange(1, e.target.value, 'league')}
+                    disabled={isGameweekLocked}
+                    className="text-sm h-10"
+                  >
+                    <option value="">Wybierz zawodnika</option>
+                    {squadData.players
+                      .map(player => (
+                        <option
+                          key={player.id}
+                          value={player.id}
+                          disabled={selectedPlayerIds.has(player.id) && selectedPlayers[1]?.id !== player.id}
+                        >
+                          {player.name} {player.surname} ({player.club})
+                        </option>
+                      ))}
+                  </Select>
+
+                  {/* Position 3 */}
+                  <Select
+                    value={selectedPlayers[2]?.id || ''}
+                    onChange={(e) => handleDropdownChange(2, e.target.value, 'league')}
+                    disabled={isGameweekLocked}
+                    className="text-sm h-10"
+                  >
+                    <option value="">Wybierz zawodnika</option>
+                    {squadData.players
+                      .map(player => (
+                        <option
+                          key={player.id}
+                          value={player.id}
+                          disabled={selectedPlayerIds.has(player.id) && selectedPlayers[2]?.id !== player.id}
+                        >
+                          {player.name} {player.surname} ({player.club})
+                        </option>
+                      ))}
+                  </Select>
+                </div>
+
+                {/* League Validation Errors */}
+                {validationErrors.length > 0 && (
+                  <div className="mt-3 bg-red-50/90 backdrop-blur-sm border border-red-200 rounded p-2">
+                    <ul className="text-[10px] text-red-700 space-y-0.5">
+                      {validationErrors.map((error, index) => (
+                        <li key={index}>⚠️ {error}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Cup Lineup (Only shown if dual gameweek) */}
+            {squadData.isDualGameweek && squadData.currentCupGameweek && (
+              <Card className="bg-[#F2F2F2] border-yellow-500 border-2">
+                <CardHeader className="px-4 py-3 bg-yellow-50 rounded-t-2xl">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <span>🏆</span>
+                      Skład Pucharowy
+                    </CardTitle>
+                    <span className="text-[10px] font-semibold px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded">
+                      {squadData.cup?.name || 'Puchar'} - Kolejka {squadData.currentCupGameweek.cupWeek}
+                    </span>
+                  </div>
+                </CardHeader>
+                <CardContent className="px-4 py-2">
+                  {/* Pitch Visualization with Stacked Names */}
+                  <div className="relative mb-4" style={{ transform: 'scale(0.75)', transformOrigin: 'top center' }}>
+                    <FootballField className="mb-1.5 mx-0 max-w-none" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="flex flex-col gap-4 items-center" style={{ marginTop: '-20px' }}>
+                        {/* Goalkeeper */}
+                        {selectedCupPlayers[0] ? (
+                          <div className="bg-white rounded-lg px-4 py-2 shadow-md border-2 border-yellow-500 min-w-[140px]">
+                            <div className="font-bold text-gray-900 text-center text-xs leading-tight">
+                              {selectedCupPlayers[0].name} {selectedCupPlayers[0].surname}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="rounded-lg border-2 border-dashed border-white/70 bg-white/30 backdrop-blur-sm px-4 py-2 min-w-[140px] h-[36px]">
+                          </div>
+                        )}
+
+                        {/* Midfielder/Defender */}
+                        {selectedCupPlayers[1] ? (
+                          <div className="bg-white rounded-lg px-4 py-2 shadow-md border-2 border-yellow-500 min-w-[140px]">
+                            <div className="font-bold text-gray-900 text-center text-xs leading-tight">
+                              {selectedCupPlayers[1].name} {selectedCupPlayers[1].surname}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="rounded-lg border-2 border-dashed border-white/70 bg-white/30 backdrop-blur-sm px-4 py-2 min-w-[140px] h-[36px]">
+                          </div>
+                        )}
+
+                        {/* Forward */}
+                        {selectedCupPlayers[2] ? (
+                          <div className="bg-white rounded-lg px-4 py-2 shadow-md border-2 border-yellow-500 min-w-[140px]">
+                            <div className="font-bold text-gray-900 text-center text-xs leading-tight">
+                              {selectedCupPlayers[2].name} {selectedCupPlayers[2].surname}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="rounded-lg border-2 border-dashed border-white/70 bg-white/30 backdrop-blur-sm px-4 py-2 min-w-[140px] h-[36px]">
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Dropdown Selectors */}
+                  <div className="space-y-3 mt-4">
+                    {/* Goalkeeper */}
+                    <Select
+                      value={selectedCupPlayers[0]?.id || ''}
+                      onChange={(e) => handleDropdownChange(0, e.target.value, 'cup')}
+                      disabled={isGameweekLocked}
+                      className="text-sm h-10"
+                    >
+                      <option value="">Wybierz zawodnika</option>
+                      {squadData.players
+                        .map(player => (
+                          <option
+                            key={player.id}
+                            value={player.id}
+                            disabled={selectedPlayerIds.has(player.id) && selectedCupPlayers[0]?.id !== player.id}
+                          >
+                            {player.name} {player.surname} ({player.club})
+                          </option>
+                        ))}
+                    </Select>
+
+                    {/* Position 2 */}
+                    <Select
+                      value={selectedCupPlayers[1]?.id || ''}
+                      onChange={(e) => handleDropdownChange(1, e.target.value, 'cup')}
+                      disabled={isGameweekLocked}
+                      className="text-sm h-10"
+                    >
+                      <option value="">Wybierz zawodnika</option>
+                      {squadData.players
+                        .map(player => (
+                          <option
+                            key={player.id}
+                            value={player.id}
+                            disabled={selectedPlayerIds.has(player.id) && selectedCupPlayers[1]?.id !== player.id}
+                          >
+                            {player.name} {player.surname} ({player.club})
+                          </option>
+                        ))}
+                    </Select>
+
+                    {/* Position 3 */}
+                    <Select
+                      value={selectedCupPlayers[2]?.id || ''}
+                      onChange={(e) => handleDropdownChange(2, e.target.value, 'cup')}
+                      disabled={isGameweekLocked}
+                      className="text-sm h-10"
+                    >
+                      <option value="">Wybierz zawodnika</option>
+                      {squadData.players
+                        .map(player => (
+                          <option
+                            key={player.id}
+                            value={player.id}
+                            disabled={selectedPlayerIds.has(player.id) && selectedCupPlayers[2]?.id !== player.id}
+                          >
+                            {player.name} {player.surname} ({player.club})
+                          </option>
+                        ))}
+                    </Select>
+                  </div>
+
+                  {/* Cup Validation Errors */}
+                  {cupValidationErrors.length > 0 && (
+                    <div className="mt-3 bg-red-50/90 backdrop-blur-sm border border-red-200 rounded p-2">
+                      <ul className="text-[10px] text-red-700 space-y-0.5">
+                        {cupValidationErrors.map((error, index) => (
+                          <li key={index}>⚠️ {error}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Cross-Lineup Errors */}
+            {crossLineupErrors.length > 0 && (
+              <div className="bg-red-50/90 backdrop-blur-sm border-2 border-red-500 rounded-xl p-3">
+                <h4 className="font-semibold text-red-700 mb-1 text-sm">⚠️ Konflikt Składów</h4>
+                <ul className="text-xs text-red-700 space-y-1">
+                  {crossLineupErrors.map((error, index) => (
+                    <li key={index}>{error}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Save Button */}
+            <div className="px-4">
+              <Button
+                onClick={saveLineups}
+                disabled={!isValid || isGameweekLocked || saving}
+                loading={saving}
+                className="w-full"
+              >
+                {isGameweekLocked ? (
+                  <>🔒 Zablokowane</>
+                ) : squadData.isDualGameweek ? (
+                  <>⚽ Zapisz oba składy</>
+                ) : (
+                  <>⚽ Zapisz</>
+                )}
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // Desktop UI with drag-and-drop
   return (
     <div className="bg-gradient-to-br from-background-light to-white field-pattern">
       {!squadData.currentGameweek ? (

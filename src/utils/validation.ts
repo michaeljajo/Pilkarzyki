@@ -1,5 +1,8 @@
 import { Player, Position, LineupValidation } from '@/types'
 
+// Type to handle both camelCase and snake_case field names from database
+type PlayerWithDbFields = Player & { football_league?: string }
+
 export function validateLineup(selectedPlayers: Player[]): LineupValidation {
   const errors: string[] = []
 
@@ -9,8 +12,9 @@ export function validateLineup(selectedPlayers: Player[]): LineupValidation {
     return { isValid: false, errors }
   }
 
-  // Check for unique leagues
-  const leagues = selectedPlayers.map(p => p.league)
+  // Check for unique real-life football leagues
+  // Support both camelCase and snake_case field names
+  const leagues = (selectedPlayers as PlayerWithDbFields[]).map(p => p.footballLeague || p.football_league)
   const uniqueLeagues = new Set(leagues)
   if (uniqueLeagues.size !== 3) {
     errors.push('Każdy zawodnik musi pochodzić z innej ligi')

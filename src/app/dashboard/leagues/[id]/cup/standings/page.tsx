@@ -19,14 +19,17 @@ interface Cup {
   }
 }
 
-interface Standing {
+interface Manager {
   id: string
-  manager: {
-    id: string
-    first_name?: string
-    last_name?: string
-    email: string
-  }
+  first_name?: string
+  last_name?: string
+  email: string
+}
+
+interface GroupStanding {
+  id: string
+  group_name: string
+  manager_id: string
   played: number
   won: number
   drawn: number
@@ -37,17 +40,31 @@ interface Standing {
   points: number
   position: number
   qualified: boolean
+  updated_at: string
+  manager: Manager
 }
 
 interface Group {
   group_name: string
-  standings: Standing[]
+  standings: GroupStanding[]
+}
+
+interface KnockoutMatch {
+  id: string
+  stage: string
+  leg: number
+  home_manager: Manager
+  away_manager: Manager
+  home_aggregate_score?: number
+  away_aggregate_score?: number
+  is_completed: boolean
+  winner_id?: string
 }
 
 interface CupGameweek {
   id: string
   stage: string
-  matches: unknown[]
+  matches: KnockoutMatch[]
 }
 
 interface CupStandingsData {

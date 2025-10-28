@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { GameweekMatchData, MatchWithLineups, PlayerWithResult } from '@/types'
-import { MatchResultCard } from '@/components/admin/MatchResultCard'
+import { Icon } from 'lucide-react'
+import { soccerBall } from '@lucide/lab'
 
 interface League {
   id: string
@@ -247,25 +248,24 @@ export default function ResultsPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
+    <div className="max-w-7xl mx-auto p-4">
+      <div className="flex justify-between items-center mb-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Head-to-Head Results</h1>
-          <p className="text-gray-600 mt-2">Manage match results and player goal scoring</p>
+          <h1 className="text-2xl font-bold text-gray-900">Results</h1>
         </div>
       </div>
 
       {/* Gameweek Selector */}
-      <div className="mb-6 bg-white rounded-lg shadow-md p-6">
-        <div className="grid md:grid-cols-2 gap-4 mb-4">
+      <div className="mb-4 bg-white rounded-lg border border-gray-200 p-4">
+        <div className="grid md:grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Select Gameweek
             </label>
             <select
               value={selectedGameweek}
               onChange={(e) => setSelectedGameweek(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Choose a gameweek...</option>
               {gameweeks.map((gameweek) => (
@@ -281,9 +281,9 @@ export default function ResultsPage() {
               <button
                 onClick={saveAllResults}
                 disabled={saving}
-                className="w-full px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+                className="w-full px-4 py-2 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
               >
-                {saving ? 'Saving All Results...' : 'Save All Match Results'}
+                {saving ? 'Saving...' : 'Save All Results'}
               </button>
             </div>
           )}
@@ -292,60 +292,34 @@ export default function ResultsPage() {
 
       {/* Match Results */}
       {selectedGameweek && matchData && (
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Gameweek Info */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex justify-between items-start">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <div className="flex justify-between items-center">
               <div>
-                <h2 className="text-lg font-semibold text-blue-900 mb-1">
+                <h2 className="text-base font-semibold text-blue-900">
                   {matchData.gameweek.leagues?.name} - Week {matchData.gameweek.week}
                 </h2>
-                <p className="text-blue-700 text-sm">
-                  Season: {matchData.gameweek.leagues?.season} •
-                  {matchData.matches.length} {matchData.matches.length === 1 ? 'match' : 'matches'} scheduled
-                </p>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="text-right">
-                  <label className="block text-sm font-medium text-blue-900 mb-1">
-                    Status
-                  </label>
-                  <div className="flex bg-gray-100 rounded-lg p-1">
-                    {(() => {
-                      const currentGameweek = gameweeks.find(gw => gw.id === selectedGameweek)
-                      const isCompleted = currentGameweek?.is_completed || false
+              <div className="flex items-center gap-2">
+                {(() => {
+                  const currentGameweek = gameweeks.find(gw => gw.id === selectedGameweek)
+                  const isCompleted = currentGameweek?.is_completed || false
 
-                      return (
-                        <>
-                          <button
-                            onClick={() => updateGameweekStatus(false)}
-                            disabled={updatingStatus}
-                            className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
-                              !isCompleted
-                                ? 'bg-blue-600 text-white shadow-sm'
-                                : 'text-gray-700 hover:bg-gray-200'
-                            } disabled:opacity-50`}
-                          >
-                            Active
-                          </button>
-                          <button
-                            onClick={() => updateGameweekStatus(true)}
-                            disabled={updatingStatus}
-                            className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
-                              isCompleted
-                                ? 'bg-green-600 text-white shadow-sm'
-                                : 'text-gray-700 hover:bg-gray-200'
-                            } disabled:opacity-50`}
-                          >
-                            Completed
-                          </button>
-                        </>
-                      )
-                    })()}
-                  </div>
-                </div>
+                  return (
+                    <select
+                      value={isCompleted ? 'completed' : 'active'}
+                      onChange={(e) => updateGameweekStatus(e.target.value === 'completed')}
+                      disabled={updatingStatus}
+                      className="px-3 py-1 text-xs font-medium border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                    >
+                      <option value="active">Active</option>
+                      <option value="completed">Completed</option>
+                    </select>
+                  )
+                })()}
                 {updatingStatus && (
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
                 )}
               </div>
             </div>
@@ -353,52 +327,141 @@ export default function ResultsPage() {
 
           {/* Matches */}
           {matchData.matches.length === 0 ? (
-            <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-              <div className="text-gray-500">
-                <div className="text-lg font-medium">No matches scheduled</div>
-                <div className="text-sm mt-1">No matches found for this gameweek</div>
+            <div className="text-center py-16">
+              <div className="text-gray-400">
+                <div className="text-3xl mb-2">⚽</div>
+                <div className="text-sm">Brak meczów w tej kolejce</div>
               </div>
             </div>
           ) : (
             <div className="space-y-6">
-              {matchData.matches.map((match, index) => (
-                <div key={match.id}>
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      Match {index + 1}
-                    </h3>
-                    <button
-                      onClick={() => saveIndividualMatch(match.id)}
-                      disabled={saving}
-                      className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-                    >
-                      {saving ? 'Saving...' : 'Save This Match'}
-                    </button>
+              {matchData.matches.map((match) => {
+                const homeGoals = match.home_lineup?.players?.reduce((sum, p) => sum + (playerGoals[p.id] || 0), 0) || 0
+                const awayGoals = match.away_lineup?.players?.reduce((sum, p) => sum + (playerGoals[p.id] || 0), 0) || 0
+                const homePlayers = match.home_lineup?.players || []
+                const awayPlayers = match.away_lineup?.players || []
+
+                const getManagerDisplayName = (manager: { first_name?: string; last_name?: string; email: string }) => {
+                  if (manager?.first_name && manager?.last_name) {
+                    return `${manager.first_name} ${manager.last_name}`
+                  }
+                  if (manager?.first_name) {
+                    return manager.first_name
+                  }
+                  return manager?.email || 'Unknown Manager'
+                }
+
+                return (
+                  <div key={match.id} className="bg-white border-2 border-[#29544D] rounded-2xl hover:shadow-lg transition-shadow duration-200" style={{ padding: '20px' }}>
+                    {/* Save Button */}
+                    <div className="flex justify-end mb-3">
+                      <button
+                        onClick={() => saveIndividualMatch(match.id)}
+                        disabled={saving}
+                        className="px-4 py-1 text-sm bg-[#29544D] text-white rounded-lg hover:bg-[#1f3d37] disabled:opacity-50"
+                      >
+                        {saving ? 'Zapisywanie...' : 'Zapisz wynik'}
+                      </button>
+                    </div>
+
+                    {/* Match Score Header */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex-1" style={{ paddingRight: '24px' }}>
+                        <p className="text-lg font-semibold text-[#29544D]">
+                          {getManagerDisplayName(match.home_manager)}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-4 px-8">
+                        <span className="text-3xl font-bold text-[#061852]">{homeGoals}</span>
+                        <span className="text-2xl font-medium text-gray-400">-</span>
+                        <span className="text-3xl font-bold text-[#061852]">{awayGoals}</span>
+                      </div>
+                      <div className="flex-1 text-right" style={{ paddingLeft: '24px' }}>
+                        <p className="text-lg font-semibold text-[#29544D]">
+                          {getManagerDisplayName(match.away_manager)}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Player Details */}
+                    <div className="flex items-start justify-between pt-3 border-t-2 border-[#DECF99]">
+                      {/* Home Team Players */}
+                      <div className="flex-1 space-y-1" style={{ paddingRight: '32px' }}>
+                        {homePlayers.length > 0 ? (
+                          homePlayers.map((player) => {
+                            const goals = playerGoals[player.id] || 0
+                            return (
+                              <div key={player.id} className="flex items-baseline gap-2 h-[20px]">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max="10"
+                                  value={goals}
+                                  onChange={(e) => handlePlayerGoalsChange(player.id, parseInt(e.target.value) || 0)}
+                                  disabled={saving}
+                                  className="w-12 px-1 py-0.5 text-xs text-center border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#29544D] disabled:bg-gray-100"
+                                />
+                                <p className={`text-sm leading-5 ${goals > 0 ? 'font-bold text-[#061852]' : 'text-gray-600'}`}>
+                                  {player.name} {player.surname}
+                                </p>
+                                {goals > 0 && (
+                                  <div className="flex items-center gap-1">
+                                    {Array.from({ length: goals }).map((_, i) => (
+                                      <Icon key={i} iconNode={soccerBall} size={12} className="text-[#061852]" strokeWidth={2} />
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            )
+                          })
+                        ) : (
+                          <div className="flex items-baseline gap-2 h-[20px]">
+                            <p className="text-sm text-gray-400 italic leading-5">Nie ustawiono składu</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Away Team Players */}
+                      <div className="flex-1 text-right space-y-1" style={{ paddingLeft: '32px' }}>
+                        {awayPlayers.length > 0 ? (
+                          awayPlayers.map((player) => {
+                            const goals = playerGoals[player.id] || 0
+                            return (
+                              <div key={player.id} className="flex items-baseline justify-end gap-2 h-[20px]">
+                                {goals > 0 && (
+                                  <div className="flex items-center gap-1">
+                                    {Array.from({ length: goals }).map((_, i) => (
+                                      <Icon key={i} iconNode={soccerBall} size={12} className="text-[#061852]" strokeWidth={2} />
+                                    ))}
+                                  </div>
+                                )}
+                                <p className={`text-sm leading-5 ${goals > 0 ? 'font-bold text-[#061852]' : 'text-gray-600'}`}>
+                                  {player.name} {player.surname}
+                                </p>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max="10"
+                                  value={goals}
+                                  onChange={(e) => handlePlayerGoalsChange(player.id, parseInt(e.target.value) || 0)}
+                                  disabled={saving}
+                                  className="w-12 px-1 py-0.5 text-xs text-center border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#29544D] disabled:bg-gray-100"
+                                />
+                              </div>
+                            )
+                          })
+                        ) : (
+                          <div className="flex items-baseline justify-end gap-2 h-[20px]">
+                            <p className="text-sm text-gray-400 italic leading-5">Nie ustawiono składu</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <MatchResultCard
-                    match={match}
-                    onPlayerGoalsChange={handlePlayerGoalsChange}
-                    playerGoals={playerGoals}
-                    disabled={saving}
-                  />
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
-        </div>
-      )}
-
-      {/* Instructions */}
-      {selectedGameweek && matchData && matchData.matches.length > 0 && (
-        <div className="mt-8 bg-gray-50 rounded-lg p-4 text-sm text-gray-600">
-          <h3 className="font-medium text-gray-900 mb-2">How to use:</h3>
-          <ul className="space-y-1 list-disc list-inside">
-            <li>Input goals scored by each player (0-10 range)</li>
-            <li>Scores are calculated automatically as you type</li>
-            <li>Save individual matches or all results at once</li>
-            <li>Change gameweek status from Active to Completed when done</li>
-            <li>League standings will be updated automatically</li>
-          </ul>
         </div>
       )}
     </div>

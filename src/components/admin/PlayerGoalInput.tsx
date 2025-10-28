@@ -28,22 +28,14 @@ export function PlayerGoalInput({ player, goals, onChange, disabled = false }: P
   }
 
   return (
-    <div className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg">
+    <div className="flex items-center justify-between p-2 bg-white border border-gray-200 rounded-lg">
       <div className="flex-1 min-w-0">
-        <div className="flex items-center space-x-2">
-          <div className="text-sm font-medium text-gray-900 truncate">
-            {player.name} {player.surname}
-          </div>
-          <span className={`px-2 py-1 text-xs font-medium rounded-full border ${positionColors[player.position]}`}>
-            {player.position}
-          </span>
+        <div className="text-xs font-medium text-gray-900 truncate">
+          {player.name} {player.surname}
         </div>
       </div>
 
-      <div className="flex items-center space-x-2 ml-4">
-        <label htmlFor={`goals-${player.id}`} className="text-xs text-gray-500 font-medium">
-          Goals:
-        </label>
+      <div className="flex items-center space-x-1.5 ml-3">
         <input
           id={`goals-${player.id}`}
           type="number"
@@ -52,9 +44,9 @@ export function PlayerGoalInput({ player, goals, onChange, disabled = false }: P
           value={localGoals}
           onChange={(e) => handleChange(e.target.value)}
           disabled={disabled}
-          className="w-16 px-2 py-1 text-sm text-center border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
+          className="w-12 px-1.5 py-1 text-xs text-center border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
         />
-        <span className="text-lg">⚽</span>
+        <span className="text-sm">⚽</span>
       </div>
     </div>
   )

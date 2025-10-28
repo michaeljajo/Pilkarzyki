@@ -19,8 +19,27 @@ interface Cup {
   }
 }
 
+interface Player {
+  id: string
+  name: string
+  surname: string
+  position: string
+  goals_scored?: number
+}
+
+interface Lineup {
+  id: string
+  manager_id: string
+  cup_gameweek_id: string
+  players: Player[]
+  total_goals: number
+}
+
 interface CupMatch {
   id: string
+  stage: string
+  leg: number
+  group_name?: string
   home_manager: {
     id: string
     first_name?: string
@@ -35,8 +54,11 @@ interface CupMatch {
   }
   home_score?: number
   away_score?: number
-  home_lineup?: unknown
-  away_lineup?: unknown
+  home_aggregate_score?: number
+  away_aggregate_score?: number
+  is_completed: boolean
+  home_lineup?: Lineup
+  away_lineup?: Lineup
 }
 
 interface CupGameweek {
