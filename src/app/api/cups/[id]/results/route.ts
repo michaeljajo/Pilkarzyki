@@ -158,7 +158,10 @@ export async function GET(
 
     // Batch fetch all results for all gameweeks
     const leagueGameweekIds = cupGameweeks
-      ?.map((gw) => gw.gameweeks?.id)
+      ?.map((gw) => {
+        const gameweek = Array.isArray(gw.gameweeks) ? gw.gameweeks[0] : gw.gameweeks
+        return gameweek?.id
+      })
       .filter(Boolean) || []
 
     const resultsMap = new Map()
@@ -176,6 +179,7 @@ export async function GET(
 
     // Build response with all data
     const gameweeksWithMatches = cupGameweeks?.map((gw) => {
+      const gameweek = Array.isArray(gw.gameweeks) ? gw.gameweeks[0] : gw.gameweeks
       const matchesWithLineups = gw.cup_matches?.map((match) => {
         const homeLineup = lineupsMap.get(`${gw.id}_${match.home_manager_id}`)
         const awayLineup = lineupsMap.get(`${gw.id}_${match.away_manager_id}`)
@@ -188,7 +192,7 @@ export async function GET(
               const player = playersMap.get(playerId)
               if (!player) return null
 
-              const goals = resultsMap.get(`${gw.gameweeks?.id}_${playerId}`) || 0
+              const goals = resultsMap.get(`${gameweek?.id}_${playerId}`) || 0
               return {
                 ...player,
                 goals_scored: goals
@@ -210,7 +214,7 @@ export async function GET(
               const player = playersMap.get(playerId)
               if (!player) return null
 
-              const goals = resultsMap.get(`${gw.gameweeks?.id}_${playerId}`) || 0
+              const goals = resultsMap.get(`${gameweek?.id}_${playerId}`) || 0
               return {
                 ...player,
                 goals_scored: goals
@@ -238,7 +242,7 @@ export async function GET(
         cup_week: gw.cup_week,
         stage: gw.stage,
         leg: gw.leg,
-        gameweek: gw.gameweeks,
+        gameweek: gameweek,
         matches: matchesWithLineups
       }
     })
