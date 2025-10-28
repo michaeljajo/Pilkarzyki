@@ -19,9 +19,35 @@ interface Cup {
   }
 }
 
+interface Standing {
+  id: string
+  manager: {
+    id: string
+    first_name?: string
+    last_name?: string
+    email: string
+  }
+  played: number
+  won: number
+  drawn: number
+  lost: number
+  goals_for: number
+  goals_against: number
+  goal_difference: number
+  points: number
+  position: number
+  qualified: boolean
+}
+
 interface Group {
   group_name: string
-  standings: any[]
+  standings: Standing[]
+}
+
+interface CupGameweek {
+  id: string
+  stage: string
+  matches: unknown[]
 }
 
 interface CupStandingsData {
@@ -31,7 +57,7 @@ interface CupStandingsData {
 
 interface CupResultsData {
   cup: Cup
-  gameweeks: any[]
+  gameweeks: CupGameweek[]
 }
 
 interface CupStandingsPageProps {

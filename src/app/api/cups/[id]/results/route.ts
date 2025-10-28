@@ -103,8 +103,8 @@ export async function GET(
 
     // Collect all unique manager IDs from matches
     const managerIds = new Set<string>()
-    cupGameweeks?.forEach((gw: any) => {
-      gw.cup_matches?.forEach((match: any) => {
+    cupGameweeks?.forEach((gw) => {
+      gw.cup_matches?.forEach((match) => {
         managerIds.add(match.home_manager_id)
         managerIds.add(match.away_manager_id)
       })
@@ -119,7 +119,7 @@ export async function GET(
     const userMap = new Map(users?.map(u => [u.id, u]) || [])
 
     // Fetch all cup lineups for this cup
-    const cupGameweekIds = cupGameweeks?.map((gw: any) => gw.id) || []
+    const cupGameweekIds = cupGameweeks?.map((gw) => gw.id) || []
     const { data: allCupLineups } = await supabaseAdmin
       .from('cup_lineups')
       .select(`
@@ -158,7 +158,7 @@ export async function GET(
 
     // Batch fetch all results for all gameweeks
     const leagueGameweekIds = cupGameweeks
-      ?.map((gw: any) => gw.gameweeks?.id)
+      ?.map((gw) => gw.gameweeks?.id)
       .filter(Boolean) || []
 
     const resultsMap = new Map()
@@ -175,8 +175,8 @@ export async function GET(
     }
 
     // Build response with all data
-    const gameweeksWithMatches = cupGameweeks?.map((gw: any) => {
-      const matchesWithLineups = gw.cup_matches?.map((match: any) => {
+    const gameweeksWithMatches = cupGameweeks?.map((gw) => {
+      const matchesWithLineups = gw.cup_matches?.map((match) => {
         const homeLineup = lineupsMap.get(`${gw.id}_${match.home_manager_id}`)
         const awayLineup = lineupsMap.get(`${gw.id}_${match.away_manager_id}`)
 
@@ -184,7 +184,7 @@ export async function GET(
         let homeLineupWithPlayers = null
         if (homeLineup && homeLineup.player_ids?.length > 0) {
           const homePlayersWithResults = homeLineup.player_ids
-            .map((playerId: string) => {
+            .map((playerId) => {
               const player = playersMap.get(playerId)
               if (!player) return null
 
@@ -206,7 +206,7 @@ export async function GET(
         let awayLineupWithPlayers = null
         if (awayLineup && awayLineup.player_ids?.length > 0) {
           const awayPlayersWithResults = awayLineup.player_ids
-            .map((playerId: string) => {
+            .map((playerId) => {
               const player = playersMap.get(playerId)
               if (!player) return null
 

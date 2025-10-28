@@ -19,6 +19,26 @@ interface Cup {
   }
 }
 
+interface CupMatch {
+  id: string
+  home_manager: {
+    id: string
+    first_name?: string
+    last_name?: string
+    email: string
+  }
+  away_manager: {
+    id: string
+    first_name?: string
+    last_name?: string
+    email: string
+  }
+  home_score?: number
+  away_score?: number
+  home_lineup?: unknown
+  away_lineup?: unknown
+}
+
 interface CupGameweek {
   id: string
   cup_week: number
@@ -32,7 +52,7 @@ interface CupGameweek {
     lock_date: string
     is_completed: boolean
   }
-  matches: any[]
+  matches: CupMatch[]
 }
 
 interface CupResultsData {
@@ -188,7 +208,7 @@ export default function CupResultsPage({ params }: CupResultsPageProps) {
                     </div>
                   ) : (
                     <div className="space-y-6">
-                      {selectedGameweekData.matches.map((match: any) => (
+                      {selectedGameweekData.matches.map((match) => (
                         <CupMatchCard key={match.id} match={match} />
                       ))}
                     </div>

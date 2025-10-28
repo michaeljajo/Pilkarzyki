@@ -58,7 +58,7 @@ export function LeagueNavigation({
   }, [leagueId])
 
   // Filter tabs based on squad visibility and cup existence
-  let filteredTabs = navigationTabs.filter(tab => {
+  const filteredTabs = navigationTabs.filter(tab => {
     if (tab.id === 'squad' && !showSquadTab) return false
     if (tab.isCup && !hasCup) return false
     return true
