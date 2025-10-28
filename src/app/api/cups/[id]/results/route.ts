@@ -188,7 +188,7 @@ export async function GET(
         let homeLineupWithPlayers = null
         if (homeLineup && homeLineup.player_ids?.length > 0) {
           const homePlayersWithResults = homeLineup.player_ids
-            .map((playerId) => {
+            .map((playerId: string) => {
               const player = playersMap.get(playerId)
               if (!player) return null
 
@@ -210,7 +210,7 @@ export async function GET(
         let awayLineupWithPlayers = null
         if (awayLineup && awayLineup.player_ids?.length > 0) {
           const awayPlayersWithResults = awayLineup.player_ids
-            .map((playerId) => {
+            .map((playerId: string) => {
               const player = playersMap.get(playerId)
               if (!player) return null
 
