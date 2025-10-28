@@ -478,7 +478,7 @@ export default function SquadSelection({ leagueId }: SquadSelectionProps) {
                   <Select
                     value={selectedPlayers[0]?.id || ''}
                     onChange={(e) => handleDropdownChange(0, e.target.value, 'league')}
-                    disabled={isGameweekLocked}
+                    disabled={!!isGameweekLocked}
                     className="text-sm h-10"
                   >
                     <option value="">Wybierz zawodnika</option>
@@ -498,7 +498,7 @@ export default function SquadSelection({ leagueId }: SquadSelectionProps) {
                   <Select
                     value={selectedPlayers[1]?.id || ''}
                     onChange={(e) => handleDropdownChange(1, e.target.value, 'league')}
-                    disabled={isGameweekLocked}
+                    disabled={!!isGameweekLocked}
                     className="text-sm h-10"
                   >
                     <option value="">Wybierz zawodnika</option>
@@ -518,7 +518,7 @@ export default function SquadSelection({ leagueId }: SquadSelectionProps) {
                   <Select
                     value={selectedPlayers[2]?.id || ''}
                     onChange={(e) => handleDropdownChange(2, e.target.value, 'league')}
-                    disabled={isGameweekLocked}
+                    disabled={!!isGameweekLocked}
                     className="text-sm h-10"
                   >
                     <option value="">Wybierz zawodnika</option>
@@ -613,7 +613,7 @@ export default function SquadSelection({ leagueId }: SquadSelectionProps) {
                     <Select
                       value={selectedCupPlayers[0]?.id || ''}
                       onChange={(e) => handleDropdownChange(0, e.target.value, 'cup')}
-                      disabled={isGameweekLocked}
+                      disabled={!!isGameweekLocked}
                       className="text-sm h-10"
                     >
                       <option value="">Wybierz zawodnika</option>
@@ -633,7 +633,7 @@ export default function SquadSelection({ leagueId }: SquadSelectionProps) {
                     <Select
                       value={selectedCupPlayers[1]?.id || ''}
                       onChange={(e) => handleDropdownChange(1, e.target.value, 'cup')}
-                      disabled={isGameweekLocked}
+                      disabled={!!isGameweekLocked}
                       className="text-sm h-10"
                     >
                       <option value="">Wybierz zawodnika</option>
@@ -653,7 +653,7 @@ export default function SquadSelection({ leagueId }: SquadSelectionProps) {
                     <Select
                       value={selectedCupPlayers[2]?.id || ''}
                       onChange={(e) => handleDropdownChange(2, e.target.value, 'cup')}
-                      disabled={isGameweekLocked}
+                      disabled={!!isGameweekLocked}
                       className="text-sm h-10"
                     >
                       <option value="">Wybierz zawodnika</option>
