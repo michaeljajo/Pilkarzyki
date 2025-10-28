@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { supabaseAdmin } from '@/lib/supabase'
 import { Badge } from '@/components/ui/Badge'
-import { Trophy, Target, BarChart3, Settings, ArrowLeft } from 'lucide-react'
+import { Trophy, Target, BarChart3, Settings, ArrowLeft, Table } from 'lucide-react'
 import Image from 'next/image'
 
 interface LeagueDashboardPageProps {
@@ -61,6 +61,15 @@ export default async function LeagueDashboardPage({ params }: LeagueDashboardPag
   if (!isAdmin && !isManager) {
     redirect('/dashboard')
   }
+
+  // Check if league has a cup
+  const { data: cup } = await supabaseAdmin
+    .from('cups')
+    .select('id, name, stage')
+    .eq('league_id', leagueId)
+    .single()
+
+  const hasCup = !!cup
 
   return (
     <div className="min-h-screen bg-white">
@@ -135,11 +144,33 @@ export default async function LeagueDashboardPage({ params }: LeagueDashboardPag
             <Link href={`/dashboard/leagues/${leagueId}/standings`}>
               <div className="bg-white rounded-2xl border border-gray-200 hover-lift hover:shadow-xl group cursor-pointer min-w-[200px] text-center transition-shadow duration-200" style={{ padding: '40px 32px' }}>
                 <div className="w-16 h-16 mx-auto rounded-xl bg-[#10B981]/10 flex items-center justify-center group-hover:scale-110 transition-transform" style={{ marginBottom: '24px' }}>
-                  <Trophy size={32} className="text-[#10B981]" />
+                  <Table size={32} className="text-[#10B981]" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900" style={{ marginBottom: '8px' }}>Tabela</h3>
               </div>
             </Link>
+
+            {hasCup && (
+              <>
+                <Link href={`/dashboard/leagues/${leagueId}/cup/results`}>
+                  <div className="bg-white rounded-2xl border border-amber-200 hover-lift hover:shadow-xl group cursor-pointer min-w-[200px] text-center transition-shadow duration-200" style={{ padding: '40px 32px' }}>
+                    <div className="w-16 h-16 mx-auto rounded-xl bg-amber-600/10 flex items-center justify-center group-hover:scale-110 transition-transform" style={{ marginBottom: '24px' }}>
+                      <Trophy size={32} className="text-amber-600" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900" style={{ marginBottom: '8px' }}>🏆 Wyniki Pucharu</h3>
+                  </div>
+                </Link>
+
+                <Link href={`/dashboard/leagues/${leagueId}/cup/standings`}>
+                  <div className="bg-white rounded-2xl border border-amber-200 hover-lift hover:shadow-xl group cursor-pointer min-w-[200px] text-center transition-shadow duration-200" style={{ padding: '40px 32px' }}>
+                    <div className="w-16 h-16 mx-auto rounded-xl bg-amber-600/10 flex items-center justify-center group-hover:scale-110 transition-transform" style={{ marginBottom: '24px' }}>
+                      <Trophy size={32} className="text-amber-600" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900" style={{ marginBottom: '8px' }}>🏆 Tabela Pucharu</h3>
+                  </div>
+                </Link>
+              </>
+            )}
 
             {isAdmin && (
               <Link href={`/dashboard/admin/leagues/${leagueId}`}>
