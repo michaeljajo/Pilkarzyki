@@ -217,13 +217,6 @@ export function LeagueNavigation({
             aria-label="Mobile navigation menu"
           >
             <div className="p-4 space-y-3">
-              {/* User Info */}
-              <div className="pb-3 border-b border-gray-200">
-                <p className="text-sm font-medium text-gray-900">
-                  {user?.firstName || user?.emailAddresses[0]?.emailAddress}
-                </p>
-              </div>
-
               {/* Navigation Links */}
               <nav className="space-y-3">
                 {filteredTabs.map((tab) => {
