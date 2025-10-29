@@ -1,9 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
-import { Badge } from '@/components/ui/Badge'
 import { CheckCircle2, XCircle, Edit, ArrowLeft, Trophy } from 'lucide-react'
 import { AdminCupLineupPicker } from '@/components/admin/AdminCupLineupPicker'
 import toast from 'react-hot-toast'
@@ -54,23 +53,7 @@ export default function AdminCupLineupsPage() {
   const [selectedManager, setSelectedManager] = useState<Manager | null>(null)
   const [showPicker, setShowPicker] = useState(false)
 
-  useEffect(() => {
-    loadCup()
-  }, [leagueId])
-
-  useEffect(() => {
-    if (cup?.id) {
-      loadCupGameweeks()
-    }
-  }, [cup])
-
-  useEffect(() => {
-    if (selectedCupGameweek && cup?.id) {
-      loadLineups()
-    }
-  }, [selectedCupGameweek, cup])
-
-  const loadCup = async () => {
+  const loadCup = useCallback(async () => {
     try {
       const response = await fetch(`/api/cups?leagueId=${leagueId}`)
       if (response.ok) {
@@ -85,15 +68,16 @@ export default function AdminCupLineupsPage() {
       console.error('Error loading cup:', error)
       toast.error('Błąd podczas ładowania pucharu')
     }
-  }
+  }, [leagueId])
 
-  const loadCupGameweeks = async () => {
+  const loadCupGameweeks = useCallback(async () => {
     try {
       const response = await fetch(`/api/cups/${cup!.id}/schedule`)
       if (response.ok) {
         const data = await response.json()
         // Extract cup gameweeks from schedule
         const gameweeks: CupGameweek[] = []
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         data.schedule?.forEach((item: any) => {
           if (item.cupGameweek) {
             gameweeks.push(item.cupGameweek)
@@ -105,9 +89,9 @@ export default function AdminCupLineupsPage() {
       console.error('Error loading cup gameweeks:', error)
       toast.error('Błąd podczas ładowania kolejek pucharowych')
     }
-  }
+  }, [cup])
 
-  const loadLineups = async () => {
+  const loadLineups = useCallback(async () => {
     setLoading(true)
     try {
       const response = await fetch(`/api/admin/cups/${cup!.id}/lineups?cupGameweekId=${selectedCupGameweek}`)
@@ -122,7 +106,23 @@ export default function AdminCupLineupsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [cup, selectedCupGameweek])
+
+  useEffect(() => {
+    loadCup()
+  }, [loadCup])
+
+  useEffect(() => {
+    if (cup?.id) {
+      loadCupGameweeks()
+    }
+  }, [cup, loadCupGameweeks])
+
+  useEffect(() => {
+    if (selectedCupGameweek && cup?.id) {
+      loadLineups()
+    }
+  }, [selectedCupGameweek, cup, loadLineups])
 
   const hasLineup = (managerId: string) => {
     return lineups.some(lineup => lineup.manager_id === managerId)
