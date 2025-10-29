@@ -8,7 +8,7 @@ import { Alert } from '@/components/ui/Alert'
 import { Modal } from '@/components/ui/Modal'
 import { Input } from '@/components/ui/Input'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { Trophy, Plus, Trash2, Users, Calendar, Award } from 'lucide-react'
+import { Trophy, Plus, Trash2, Users, Calendar, Award, Edit3 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { CupWithLeague } from '@/types'
 
@@ -350,6 +350,34 @@ export default function CupOverviewPage() {
                     icon={<Calendar size={18} />}
                   >
                     {stats.scheduleGenerated ? 'Zobacz Harmonogram' : 'Generuj Harmonogram'}
+                  </Button>
+                </motion.div>
+
+                {/* Step 3: Manage Cup Lineups */}
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="flex justify-between items-center p-6 bg-[var(--background-tertiary)] rounded-xl hover:bg-[var(--background-tertiary)]/90 transition-colors"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold bg-[var(--mineral-green)]/20 text-[var(--mineral-green)]">
+                      3
+                    </div>
+                    <div>
+                      <div className="font-semibold text-lg">Zarządzaj Składami Pucharowymi</div>
+                      <div className="text-sm text-[var(--foreground-secondary)]">
+                        Twórz i edytuj składy pucharowe dla menedżerów
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => router.push(`/dashboard/admin/leagues/${params.id}/cup-lineups`)}
+                    disabled={!stats.scheduleGenerated}
+                    variant="secondary"
+                    icon={<Edit3 size={18} />}
+                  >
+                    Zarządzaj Składami
                   </Button>
                 </motion.div>
               </div>
