@@ -415,6 +415,24 @@ export default function SquadSelection({ leagueId }: SquadSelectionProps) {
           </div>
         ) : (
           <div className="space-y-4 pb-4">
+            {/* Save Button */}
+            <div className="px-4">
+              <Button
+                onClick={saveLineups}
+                disabled={!isValid || isGameweekLocked || saving}
+                loading={saving}
+                className="w-full"
+              >
+                {isGameweekLocked ? (
+                  <>🔒 Zablokowane</>
+                ) : squadData.isDualGameweek ? (
+                  <>⚽ Zapisz oba składy</>
+                ) : (
+                  <>⚽ Zapisz</>
+                )}
+              </Button>
+            </div>
+
             {/* League Lineup */}
             <Card className="bg-[#F2F2F2] border-gray-300">
               <CardHeader className="px-4 py-3">
@@ -695,24 +713,6 @@ export default function SquadSelection({ leagueId }: SquadSelectionProps) {
                 </ul>
               </div>
             )}
-
-            {/* Save Button */}
-            <div className="px-4">
-              <Button
-                onClick={saveLineups}
-                disabled={!isValid || isGameweekLocked || saving}
-                loading={saving}
-                className="w-full"
-              >
-                {isGameweekLocked ? (
-                  <>🔒 Zablokowane</>
-                ) : squadData.isDualGameweek ? (
-                  <>⚽ Zapisz oba składy</>
-                ) : (
-                  <>⚽ Zapisz</>
-                )}
-              </Button>
-            </div>
           </div>
         )}
       </div>
