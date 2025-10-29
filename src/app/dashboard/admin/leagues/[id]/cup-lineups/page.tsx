@@ -75,14 +75,8 @@ export default function AdminCupLineupsPage() {
       const response = await fetch(`/api/cups/${cup!.id}/schedule`)
       if (response.ok) {
         const data = await response.json()
-        // Extract cup gameweeks from schedule
-        const gameweeks: CupGameweek[] = []
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        data.schedule?.forEach((item: any) => {
-          if (item.cupGameweek) {
-            gameweeks.push(item.cupGameweek)
-          }
-        })
+        // The schedule array items ARE the cup gameweeks
+        const gameweeks: CupGameweek[] = data.schedule || []
         setCupGameweeks(gameweeks)
       }
     } catch (error) {
