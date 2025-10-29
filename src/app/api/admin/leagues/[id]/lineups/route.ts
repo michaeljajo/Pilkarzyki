@@ -90,8 +90,6 @@ export async function POST(
         .from('lineups')
         .update({
           player_ids: playerIds,
-          created_by_admin: true,
-          admin_creator_id: adminUser.id,
           updated_at: new Date().toISOString()
         })
         .eq('id', existingLineup.id)
@@ -115,8 +113,6 @@ export async function POST(
           manager_id: managerId,
           gameweek_id: gameweekId,
           player_ids: playerIds,
-          created_by_admin: true,
-          admin_creator_id: adminUser.id,
           is_locked: false,
           total_goals: 0
         })
