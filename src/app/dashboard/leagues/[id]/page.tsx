@@ -89,17 +89,6 @@ export default async function LeagueDashboardPage({ params }: LeagueDashboardPag
               </Link>
             </div>
             <div className="flex items-center gap-4">
-              {isAdmin && (
-                <Badge variant="info" size="sm">
-                  <Settings size={12} />
-                  Administrator
-                </Badge>
-              )}
-              {isManager && (
-                <Badge variant="success" size="sm">
-                  Menedżer
-                </Badge>
-              )}
               <UserButton afterSignOutUrl="/" />
             </div>
           </div>
@@ -107,81 +96,139 @@ export default async function LeagueDashboardPage({ params }: LeagueDashboardPag
       </nav>
 
       {/* Main Content */}
-      <main className="max-w-[1400px] mx-auto" style={{ paddingLeft: '48px', paddingRight: '48px', paddingTop: '64px', paddingBottom: '96px' }}>
-        {/* League Header */}
-        <div className="animate-fade-in-up mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight">
-            {league.name}
-          </h1>
-          {league.season && (
-            <p className="text-lg text-gray-600 leading-relaxed">Sezon {league.season}</p>
-          )}
-        </div>
-
+      <main className="max-w-[1400px] mx-auto px-4 md:px-12 py-16 md:py-24">
         {/* Navigation Cards */}
-        <div className="flex items-center justify-center min-h-[50vh] animate-fade-in-up">
-          <div className="flex flex-col sm:flex-row items-center justify-center flex-wrap max-w-5xl gap-6">
-            {isManager && (
-              <Link href={`/dashboard/leagues/${leagueId}/squad`}>
-                <div className="bg-white rounded-2xl border border-gray-200 hover-lift hover:shadow-xl group cursor-pointer min-w-[200px] text-center transition-shadow duration-200" style={{ padding: '40px 32px' }}>
-                  <div className="w-16 h-16 mx-auto rounded-xl bg-[#29544D]/10 flex items-center justify-center group-hover:scale-110 transition-transform" style={{ marginBottom: '24px' }}>
-                    <Target size={32} className="text-[#29544D]" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900" style={{ marginBottom: '8px' }}>Wybierz drużynę</h3>
-                </div>
-              </Link>
-            )}
-
-            <Link href={`/dashboard/leagues/${leagueId}/results`}>
-              <div className="bg-white rounded-2xl border border-gray-200 hover-lift hover:shadow-xl group cursor-pointer min-w-[200px] text-center transition-shadow duration-200" style={{ padding: '40px 32px' }}>
-                <div className="w-16 h-16 mx-auto rounded-xl bg-[#3B82F6]/10 flex items-center justify-center group-hover:scale-110 transition-transform" style={{ marginBottom: '24px' }}>
-                  <BarChart3 size={32} className="text-[#3B82F6]" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900" style={{ marginBottom: '8px' }}>Wyniki</h3>
-              </div>
-            </Link>
-
-            <Link href={`/dashboard/leagues/${leagueId}/standings`}>
-              <div className="bg-white rounded-2xl border border-gray-200 hover-lift hover:shadow-xl group cursor-pointer min-w-[200px] text-center transition-shadow duration-200" style={{ padding: '40px 32px' }}>
-                <div className="w-16 h-16 mx-auto rounded-xl bg-[#10B981]/10 flex items-center justify-center group-hover:scale-110 transition-transform" style={{ marginBottom: '24px' }}>
-                  <Table size={32} className="text-[#10B981]" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900" style={{ marginBottom: '8px' }}>Tabela</h3>
-              </div>
-            </Link>
-
-            {hasCup && (
-              <>
-                <Link href={`/dashboard/leagues/${leagueId}/cup/results`}>
-                  <div className="bg-white rounded-2xl border border-amber-200 hover-lift hover:shadow-xl group cursor-pointer min-w-[200px] text-center transition-shadow duration-200" style={{ padding: '40px 32px' }}>
-                    <div className="w-16 h-16 mx-auto rounded-xl bg-amber-600/10 flex items-center justify-center group-hover:scale-110 transition-transform" style={{ marginBottom: '24px' }}>
-                      <Trophy size={32} className="text-amber-600" />
+        <div className="flex items-center justify-center animate-fade-in-up">
+          <div className="w-full max-w-5xl">
+            {/* Mobile: Compact List Layout */}
+            <div className="flex flex-col gap-3 md:hidden">
+              {isManager && (
+                <Link href={`/dashboard/leagues/${leagueId}/squad`} className="mx-2">
+                  <div className="bg-white rounded-xl border border-gray-200 hover:shadow-lg group cursor-pointer transition-shadow duration-200 p-4 flex items-center gap-4">
+                    <div className="w-12 h-12 shrink-0 rounded-lg bg-[#29544D]/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Target size={24} className="text-[#29544D]" />
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900" style={{ marginBottom: '8px' }}>🏆 Wyniki Pucharu</h3>
+                    <h3 className="text-base font-bold text-gray-900">Wybierz drużynę</h3>
                   </div>
                 </Link>
+              )}
 
-                <Link href={`/dashboard/leagues/${leagueId}/cup/standings`}>
-                  <div className="bg-white rounded-2xl border border-amber-200 hover-lift hover:shadow-xl group cursor-pointer min-w-[200px] text-center transition-shadow duration-200" style={{ padding: '40px 32px' }}>
-                    <div className="w-16 h-16 mx-auto rounded-xl bg-amber-600/10 flex items-center justify-center group-hover:scale-110 transition-transform" style={{ marginBottom: '24px' }}>
-                      <Trophy size={32} className="text-amber-600" />
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900" style={{ marginBottom: '8px' }}>🏆 Tabela Pucharu</h3>
+              <Link href={`/dashboard/leagues/${leagueId}/results`} className="mx-2">
+                <div className="bg-white rounded-xl border border-gray-200 hover:shadow-lg group cursor-pointer transition-shadow duration-200 p-4 flex items-center gap-4">
+                  <div className="w-12 h-12 shrink-0 rounded-lg bg-[#3B82F6]/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <BarChart3 size={24} className="text-[#3B82F6]" />
                   </div>
-                </Link>
-              </>
-            )}
-
-            {isAdmin && (
-              <Link href={`/dashboard/admin/leagues/${leagueId}`}>
-                <div className="bg-white rounded-2xl border border-gray-200 hover-lift hover:shadow-xl group cursor-pointer min-w-[200px] text-center transition-shadow duration-200" style={{ padding: '40px 32px' }}>
-                  <div className="w-16 h-16 mx-auto rounded-xl bg-[#F59E0B]/10 flex items-center justify-center group-hover:scale-110 transition-transform" style={{ marginBottom: '24px' }}>
-                    <Settings size={32} className="text-[#F59E0B]" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900" style={{ marginBottom: '8px' }}>Zarządzaj Ligą</h3>
+                  <h3 className="text-base font-bold text-gray-900">Wyniki</h3>
                 </div>
               </Link>
-            )}
+
+              <Link href={`/dashboard/leagues/${leagueId}/standings`} className="mx-2">
+                <div className="bg-white rounded-xl border border-gray-200 hover:shadow-lg group cursor-pointer transition-shadow duration-200 p-4 flex items-center gap-4">
+                  <div className="w-12 h-12 shrink-0 rounded-lg bg-[#10B981]/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Table size={24} className="text-[#10B981]" />
+                  </div>
+                  <h3 className="text-base font-bold text-gray-900">Tabela</h3>
+                </div>
+              </Link>
+
+              {hasCup && (
+                <>
+                  <Link href={`/dashboard/leagues/${leagueId}/cup/results`} className="mx-2">
+                    <div className="bg-white rounded-xl border border-amber-200 hover:shadow-lg group cursor-pointer transition-shadow duration-200 p-4 flex items-center gap-4">
+                      <div className="w-12 h-12 shrink-0 rounded-lg bg-amber-600/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Trophy size={24} className="text-amber-600" />
+                      </div>
+                      <h3 className="text-base font-bold text-gray-900">🏆 Wyniki Pucharu</h3>
+                    </div>
+                  </Link>
+
+                  <Link href={`/dashboard/leagues/${leagueId}/cup/standings`} className="mx-2">
+                    <div className="bg-white rounded-xl border border-amber-200 hover:shadow-lg group cursor-pointer transition-shadow duration-200 p-4 flex items-center gap-4">
+                      <div className="w-12 h-12 shrink-0 rounded-lg bg-amber-600/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Trophy size={24} className="text-amber-600" />
+                      </div>
+                      <h3 className="text-base font-bold text-gray-900">🏆 Tabela Pucharu</h3>
+                    </div>
+                  </Link>
+                </>
+              )}
+
+              {isAdmin && (
+                <Link href={`/dashboard/admin/leagues/${leagueId}`} className="mx-2">
+                  <div className="bg-white rounded-xl border border-gray-200 hover:shadow-lg group cursor-pointer transition-shadow duration-200 p-4 flex items-center gap-4">
+                    <div className="w-12 h-12 shrink-0 rounded-lg bg-[#F59E0B]/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Settings size={24} className="text-[#F59E0B]" />
+                    </div>
+                    <h3 className="text-base font-bold text-gray-900">Zarządzaj Ligą</h3>
+                  </div>
+                </Link>
+              )}
+            </div>
+
+            {/* Desktop: Card Grid Layout */}
+            <div className="hidden md:flex flex-row items-center justify-center flex-wrap gap-6">
+              {isManager && (
+                <Link href={`/dashboard/leagues/${leagueId}/squad`}>
+                  <div className="bg-white rounded-2xl border border-gray-200 hover-lift hover:shadow-xl group cursor-pointer min-w-[200px] text-center transition-shadow duration-200" style={{ padding: '40px 32px' }}>
+                    <div className="w-16 h-16 mx-auto rounded-xl bg-[#29544D]/10 flex items-center justify-center group-hover:scale-110 transition-transform" style={{ marginBottom: '24px' }}>
+                      <Target size={32} className="text-[#29544D]" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900" style={{ marginBottom: '8px' }}>Wybierz drużynę</h3>
+                  </div>
+                </Link>
+              )}
+
+              <Link href={`/dashboard/leagues/${leagueId}/results`}>
+                <div className="bg-white rounded-2xl border border-gray-200 hover-lift hover:shadow-xl group cursor-pointer min-w-[200px] text-center transition-shadow duration-200" style={{ padding: '40px 32px' }}>
+                  <div className="w-16 h-16 mx-auto rounded-xl bg-[#3B82F6]/10 flex items-center justify-center group-hover:scale-110 transition-transform" style={{ marginBottom: '24px' }}>
+                    <BarChart3 size={32} className="text-[#3B82F6]" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900" style={{ marginBottom: '8px' }}>Wyniki</h3>
+                </div>
+              </Link>
+
+              <Link href={`/dashboard/leagues/${leagueId}/standings`}>
+                <div className="bg-white rounded-2xl border border-gray-200 hover-lift hover:shadow-xl group cursor-pointer min-w-[200px] text-center transition-shadow duration-200" style={{ padding: '40px 32px' }}>
+                  <div className="w-16 h-16 mx-auto rounded-xl bg-[#10B981]/10 flex items-center justify-center group-hover:scale-110 transition-transform" style={{ marginBottom: '24px' }}>
+                    <Table size={32} className="text-[#10B981]" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900" style={{ marginBottom: '8px' }}>Tabela</h3>
+                </div>
+              </Link>
+
+              {hasCup && (
+                <>
+                  <Link href={`/dashboard/leagues/${leagueId}/cup/results`}>
+                    <div className="bg-white rounded-2xl border border-amber-200 hover-lift hover:shadow-xl group cursor-pointer min-w-[200px] text-center transition-shadow duration-200" style={{ padding: '40px 32px' }}>
+                      <div className="w-16 h-16 mx-auto rounded-xl bg-amber-600/10 flex items-center justify-center group-hover:scale-110 transition-transform" style={{ marginBottom: '24px' }}>
+                        <Trophy size={32} className="text-amber-600" />
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900" style={{ marginBottom: '8px' }}>🏆 Wyniki Pucharu</h3>
+                    </div>
+                  </Link>
+
+                  <Link href={`/dashboard/leagues/${leagueId}/cup/standings`}>
+                    <div className="bg-white rounded-2xl border border-amber-200 hover-lift hover:shadow-xl group cursor-pointer min-w-[200px] text-center transition-shadow duration-200" style={{ padding: '40px 32px' }}>
+                      <div className="w-16 h-16 mx-auto rounded-xl bg-amber-600/10 flex items-center justify-center group-hover:scale-110 transition-transform" style={{ marginBottom: '24px' }}>
+                        <Trophy size={32} className="text-amber-600" />
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900" style={{ marginBottom: '8px' }}>🏆 Tabela Pucharu</h3>
+                    </div>
+                  </Link>
+                </>
+              )}
+
+              {isAdmin && (
+                <Link href={`/dashboard/admin/leagues/${leagueId}`}>
+                  <div className="bg-white rounded-2xl border border-gray-200 hover-lift hover:shadow-xl group cursor-pointer min-w-[200px] text-center transition-shadow duration-200" style={{ padding: '40px 32px' }}>
+                    <div className="w-16 h-16 mx-auto rounded-xl bg-[#F59E0B]/10 flex items-center justify-center group-hover:scale-110 transition-transform" style={{ marginBottom: '24px' }}>
+                      <Settings size={32} className="text-[#F59E0B]" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900" style={{ marginBottom: '8px' }}>Zarządzaj Ligą</h3>
+                  </div>
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       </main>

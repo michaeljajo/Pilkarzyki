@@ -115,6 +115,33 @@ export default function LeagueResultsPage({ params }: LeagueResultsPageProps) {
     }
   }, [leagueId])
 
+  // Auto-select current active gameweek when gameweeks are loaded
+  useEffect(() => {
+    if (gameweeks.length > 0 && !selectedGameweek) {
+      // Find the last completed gameweek
+      const completedGameweeks = gameweeks.filter(gw => gw.is_completed)
+      const sortedGameweeks = [...gameweeks].sort((a, b) => a.week - b.week)
+
+      let activeGameweek: Gameweek | undefined
+
+      if (completedGameweeks.length > 0) {
+        // Find the highest completed gameweek number
+        const maxCompletedWeek = Math.max(...completedGameweeks.map(gw => gw.week))
+        // Get the next gameweek after the last completed one
+        activeGameweek = sortedGameweeks.find(gw => gw.week === maxCompletedWeek + 1)
+      }
+
+      // If no active gameweek found (e.g., no completed gameweeks yet), default to first gameweek
+      if (!activeGameweek) {
+        activeGameweek = sortedGameweeks[0]
+      }
+
+      if (activeGameweek) {
+        setSelectedGameweek(activeGameweek.id)
+      }
+    }
+  }, [gameweeks, selectedGameweek])
+
   useEffect(() => {
     if (selectedGameweek) {
       fetchMatchData()
@@ -214,7 +241,7 @@ export default function LeagueResultsPage({ params }: LeagueResultsPageProps) {
               <option value="">Wybierz kolejkę...</option>
               {gameweeks.map((gameweek) => (
                 <option key={gameweek.id} value={gameweek.id}>
-                  Kolejka {gameweek.week}{gameweek.is_completed ? ' (Final)' : ''}
+                  Kolejka {gameweek.week}{gameweek.is_completed ? ' (Zakończona)' : ''}
                 </option>
               ))}
             </select>
@@ -276,11 +303,11 @@ export default function LeagueResultsPage({ params }: LeagueResultsPageProps) {
                                 const goals = player.goals_scored || 0
                                 return (
                                   <div key={player.id} className="flex items-baseline gap-2 h-[20px]">
-                                    <p className={`text-sm leading-5 ${goals > 0 ? 'font-bold text-[#061852]' : 'text-gray-600'}`}>
+                                    <p className={`text-sm leading-5 truncate ${goals > 0 ? 'font-bold text-[#061852]' : 'text-gray-600'}`}>
                                       {player.name} {player.surname}
                                     </p>
                                     {goals > 0 && (
-                                      <div className="flex items-center gap-1">
+                                      <div className="flex items-center gap-1 shrink-0">
                                         {Array.from({ length: goals }).map((_, i) => (
                                           <Icon key={i} iconNode={soccerBall} size={12} className="text-[#061852]" strokeWidth={2} />
                                         ))}
@@ -304,13 +331,13 @@ export default function LeagueResultsPage({ params }: LeagueResultsPageProps) {
                                 return (
                                   <div key={player.id} className="flex items-baseline justify-end gap-2 h-[20px]">
                                     {goals > 0 && (
-                                      <div className="flex items-center gap-1">
+                                      <div className="flex items-center gap-1 shrink-0">
                                         {Array.from({ length: goals }).map((_, i) => (
                                           <Icon key={i} iconNode={soccerBall} size={12} className="text-[#061852]" strokeWidth={2} />
                                         ))}
                                       </div>
                                     )}
-                                    <p className={`text-sm leading-5 ${goals > 0 ? 'font-bold text-[#061852]' : 'text-gray-600'}`}>
+                                    <p className={`text-sm leading-5 truncate ${goals > 0 ? 'font-bold text-[#061852]' : 'text-gray-600'}`}>
                                       {player.name} {player.surname}
                                     </p>
                                   </div>
