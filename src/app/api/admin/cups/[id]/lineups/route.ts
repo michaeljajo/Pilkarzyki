@@ -199,9 +199,9 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized - not league admin' }, { status: 403 })
     }
 
-    // Get all managers in the cup (those with squads in the league)
-    const { data: squads } = await supabaseAdmin
-      .from('squads')
+    // Get all managers in the cup (those assigned to cup groups)
+    const { data: cupGroups } = await supabaseAdmin
+      .from('cup_groups')
       .select(`
         manager_id,
         users!inner (
@@ -211,14 +211,14 @@ export async function GET(
           email
         )
       `)
-      .eq('league_id', cupWithLeague.league_id)
+      .eq('cup_id', cupId)
 
-    if (!squads) {
+    if (!cupGroups) {
       return NextResponse.json({ managers: [] })
     }
 
     // Type assertion for Supabase joined data
-    type SquadWithUser = {
+    type CupGroupWithUser = {
       manager_id: string;
       users: Array<{
         id: string;
@@ -228,11 +228,11 @@ export async function GET(
       }>;
     };
 
-    const managers = (squads as SquadWithUser[]).map(squad => ({
-      id: squad.users[0].id,
-      firstName: squad.users[0].first_name,
-      lastName: squad.users[0].last_name,
-      email: squad.users[0].email
+    const managers = (cupGroups as CupGroupWithUser[]).map(group => ({
+      id: group.users[0].id,
+      firstName: group.users[0].first_name,
+      lastName: group.users[0].last_name,
+      email: group.users[0].email
     }))
 
     // If cupGameweekId is provided, get lineups for that cup gameweek
