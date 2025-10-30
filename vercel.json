@@ -17,7 +17,7 @@
   "crons": [
     {
       "path": "/api/cron/complete-gameweeks",
-      "schedule": "*/15 * * * *"
+      "schedule": "0 0 * * *"
     }
   ]
 }
