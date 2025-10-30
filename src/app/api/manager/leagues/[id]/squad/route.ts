@@ -216,12 +216,14 @@ export async function GET(
       }
     }
 
-    // Get current gameweek for the league
+    // Get the next incomplete gameweek for the league (sorted by week)
     const { data: currentGameweek } = await supabaseAdmin
       .from('gameweeks')
       .select('*')
       .eq('league_id', leagueId)
-      .eq('week', league.current_gameweek)
+      .eq('is_completed', false)
+      .order('week', { ascending: true })
+      .limit(1)
       .single()
 
     // Get existing lineup if any
