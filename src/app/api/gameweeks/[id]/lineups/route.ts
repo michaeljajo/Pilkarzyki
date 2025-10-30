@@ -302,6 +302,103 @@ export async function PUT(
       }
     }
 
+    // Update cup match scores
+    const { data: cupGameweeks } = await supabaseAdmin
+      .from('cup_gameweeks')
+      .select('id, cup_id')
+      .eq('league_gameweek_id', gameweekId)
+
+    if (cupGameweeks && cupGameweeks.length > 0) {
+      for (const cupGameweek of cupGameweeks) {
+        // Get cup matches for this cup gameweek
+        const { data: cupMatches } = await supabaseAdmin
+          .from('cup_matches')
+          .select('id, home_manager_id, away_manager_id')
+          .eq('cup_gameweek_id', cupGameweek.id)
+
+        if (cupMatches && cupMatches.length > 0) {
+          // Get cup lineups for this cup gameweek
+          const { data: cupLineups } = await supabaseAdmin
+            .from('cup_lineups')
+            .select('manager_id, player_ids')
+            .eq('cup_gameweek_id', cupGameweek.id)
+
+          const cupLineupsMapByManager = new Map(
+            cupLineups?.map(l => [l.manager_id, l]) || []
+          )
+
+          // Reuse the resultsMap from above
+          const { data: allResults } = await supabaseAdmin
+            .from('results')
+            .select('player_id, goals')
+            .eq('gameweek_id', gameweekId)
+
+          const resultsMap = new Map(allResults?.map(r => [r.player_id, r.goals]) || [])
+
+          // Calculate cup match scores
+          const cupMatchUpdates = cupMatches.map(match => {
+            const homeLineup = cupLineupsMapByManager.get(match.home_manager_id)
+            const awayLineup = cupLineupsMapByManager.get(match.away_manager_id)
+
+            let homeScore = 0
+            let awayScore = 0
+
+            if (homeLineup?.player_ids && homeLineup.player_ids.length > 0) {
+              homeScore = homeLineup.player_ids.reduce((sum: number, playerId: string) => {
+                return sum + (resultsMap.get(playerId) || 0)
+              }, 0)
+            }
+
+            if (awayLineup?.player_ids && awayLineup.player_ids.length > 0) {
+              awayScore = awayLineup.player_ids.reduce((sum: number, playerId: string) => {
+                return sum + (resultsMap.get(playerId) || 0)
+              }, 0)
+            }
+
+            return {
+              id: match.id,
+              home_score: homeScore,
+              away_score: awayScore,
+              is_completed: true
+            }
+          })
+
+          // Batch update all cup matches
+          for (const update of cupMatchUpdates) {
+            const { error } = await supabaseAdmin
+              .from('cup_matches')
+              .update({
+                home_score: update.home_score,
+                away_score: update.away_score,
+                is_completed: update.is_completed
+              })
+              .eq('id', update.id)
+
+            if (error) {
+              console.error('Error updating cup match score:', error)
+            }
+          }
+
+          // Update cup lineup total_goals
+          if (cupLineups && cupLineups.length > 0) {
+            for (const lineup of cupLineups) {
+              if (lineup.player_ids && lineup.player_ids.length > 0) {
+                const totalGoals = lineup.player_ids.reduce((sum: number, playerId: string) => {
+                  return sum + (resultsMap.get(playerId) || 0)
+                }, 0)
+
+                await supabaseAdmin
+                  .from('cup_lineups')
+                  .update({ total_goals: totalGoals })
+                  .eq('cup_gameweek_id', cupGameweek.id)
+                  .eq('manager_id', lineup.manager_id)
+              }
+            }
+          }
+        }
+      }
+    }
+
     // Recalculate league standings after updating match results
     try {
       // Get the league ID from the gameweek

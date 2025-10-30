@@ -292,6 +292,7 @@ export default function LeagueResultsPage() {
       if (response.ok) {
         alert('All results saved successfully! Match scores and standings updated.')
         await fetchMatchData()
+        await fetchCupMatches()
       } else {
         const error = await response.json()
         alert(`Error saving results: ${error.error}`)
@@ -309,7 +310,20 @@ export default function LeagueResultsPage() {
     setSaving(true)
 
     try {
-      const match = matchData.matches.find(m => m.id === matchId)
+      // Try to find match in league matches first
+      let match = matchData.matches.find(m => m.id === matchId)
+
+      // If not found, search in cup matches
+      if (!match) {
+        for (const cupGameweek of cupGameweeks) {
+          const cupMatch = cupGameweek.matches.find(m => m.id === matchId)
+          if (cupMatch) {
+            match = cupMatch
+            break
+          }
+        }
+      }
+
       if (!match) return
 
       const matchPlayerIds = [
@@ -333,6 +347,7 @@ export default function LeagueResultsPage() {
       if (response.ok) {
         alert('Match results saved successfully!')
         await fetchMatchData()
+        await fetchCupMatches()
       } else {
         const error = await response.json()
         alert(`Error saving match results: ${error.error}`)
