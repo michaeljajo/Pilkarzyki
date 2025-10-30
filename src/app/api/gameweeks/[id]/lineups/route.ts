@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
-import { recalculateLeagueStandings } from '@/utils/standings-calculator'
+import { recalculateLeagueStandings, recalculateCupGroupStandings } from '@/utils/standings-calculator'
 
 export async function GET(
   request: NextRequest,
@@ -309,7 +309,12 @@ export async function PUT(
       .eq('league_gameweek_id', gameweekId)
 
     if (cupGameweeks && cupGameweeks.length > 0) {
+      // Collect unique cup IDs for standings recalculation
+      const cupIds = new Set<string>()
+
       for (const cupGameweek of cupGameweeks) {
+        cupIds.add(cupGameweek.cup_id)
+
         // Get cup matches for this cup gameweek
         const { data: cupMatches } = await supabaseAdmin
           .from('cup_matches')
@@ -395,6 +400,18 @@ export async function PUT(
               }
             }
           }
+        }
+      }
+
+      // Recalculate cup group standings after updating all cup match results
+      for (const cupId of cupIds) {
+        try {
+          console.log('Recalculating cup group standings for cup:', cupId)
+          await recalculateCupGroupStandings(cupId)
+          console.log('Cup group standings updated successfully')
+        } catch (cupStandingsError) {
+          console.error('Error updating cup group standings:', cupStandingsError)
+          // Don't fail the entire request if standings update fails
         }
       }
     }

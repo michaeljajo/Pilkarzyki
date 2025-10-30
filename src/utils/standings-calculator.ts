@@ -335,3 +335,165 @@ export async function recalculateLeagueStandings(leagueId: string): Promise<Mana
   await updateStandingsTable(leagueId, standings)
   return standings
 }
+
+/**
+ * Calculate and update cup group standings for a specific cup
+ */
+export async function recalculateCupGroupStandings(cupId: string): Promise<void> {
+  // Get all groups in this cup
+  const { data: cupGroups } = await supabaseAdmin
+    .from('cup_groups')
+    .select('group_name, manager_id')
+    .eq('cup_id', cupId)
+
+  if (!cupGroups || cupGroups.length === 0) {
+    return
+  }
+
+  // Get all cup matches for this cup that are completed
+  const { data: cupMatches } = await supabaseAdmin
+    .from('cup_matches')
+    .select(`
+      id,
+      home_manager_id,
+      away_manager_id,
+      home_score,
+      away_score,
+      is_completed,
+      group_name,
+      stage
+    `)
+    .eq('cup_id', cupId)
+    .eq('stage', 'group_stage')
+    .eq('is_completed', true)
+
+  // Group managers by their group
+  const groupsByName: Record<string, string[]> = {}
+  cupGroups.forEach(group => {
+    if (!groupsByName[group.group_name]) {
+      groupsByName[group.group_name] = []
+    }
+    groupsByName[group.group_name].push(group.manager_id)
+  })
+
+  // Calculate standings for each group
+  const allStandings: Array<{
+    cup_id: string
+    group_name: string
+    manager_id: string
+    played: number
+    won: number
+    drawn: number
+    lost: number
+    goals_for: number
+    goals_against: number
+    goal_difference: number
+    points: number
+    position: number
+    qualified: boolean
+  }> = []
+
+  for (const [groupName, managerIds] of Object.entries(groupsByName)) {
+    // Initialize stats for all managers in this group
+    const groupStats: Record<string, ManagerStats> = {}
+    managerIds.forEach(managerId => {
+      groupStats[managerId] = {
+        managerId,
+        managerName: '',
+        email: '',
+        played: 0,
+        won: 0,
+        drawn: 0,
+        lost: 0,
+        goalsFor: 0,
+        goalsAgainst: 0,
+        goalDifference: 0,
+        points: 0
+      }
+    })
+
+    // Process matches for this group
+    const groupMatches = cupMatches?.filter(m => m.group_name === groupName) || []
+    groupMatches.forEach(match => {
+      if (match.home_score !== null && match.away_score !== null) {
+        const homeStats = groupStats[match.home_manager_id]
+        const awayStats = groupStats[match.away_manager_id]
+
+        if (homeStats && awayStats) {
+          // Update games played
+          homeStats.played++
+          awayStats.played++
+
+          // Update goals
+          homeStats.goalsFor += match.home_score
+          homeStats.goalsAgainst += match.away_score
+          awayStats.goalsFor += match.away_score
+          awayStats.goalsAgainst += match.home_score
+
+          // Determine result
+          if (match.home_score > match.away_score) {
+            homeStats.won++
+            homeStats.points += 3
+            awayStats.lost++
+          } else if (match.away_score > match.home_score) {
+            awayStats.won++
+            awayStats.points += 3
+            homeStats.lost++
+          } else {
+            homeStats.drawn++
+            awayStats.drawn++
+            homeStats.points += 1
+            awayStats.points += 1
+          }
+        }
+      }
+    })
+
+    // Calculate goal difference and sort
+    Object.values(groupStats).forEach(stats => {
+      stats.goalDifference = stats.goalsFor - stats.goalsAgainst
+    })
+
+    const sorted = sortStandingsWithTiebreakers(Object.values(groupStats), groupMatches)
+
+    // Convert to cup standings format
+    sorted.forEach((stats, index) => {
+      allStandings.push({
+        cup_id: cupId,
+        group_name: groupName,
+        manager_id: stats.managerId,
+        played: stats.played,
+        won: stats.won,
+        drawn: stats.drawn,
+        lost: stats.lost,
+        goals_for: stats.goalsFor,
+        goals_against: stats.goalsAgainst,
+        goal_difference: stats.goalDifference,
+        points: stats.points,
+        position: index + 1,
+        qualified: index < 2 // Top 2 qualify
+      })
+    })
+  }
+
+  // Update database
+  // First delete existing standings for this cup
+  await supabaseAdmin
+    .from('cup_group_standings')
+    .delete()
+    .eq('cup_id', cupId)
+
+  // Insert new standings
+  if (allStandings.length > 0) {
+    const { error } = await supabaseAdmin
+      .from('cup_group_standings')
+      .insert(allStandings)
+
+    if (error) {
+      console.error('Error updating cup group standings:', error)
+      throw error
+    }
+  }
+
+  console.log(`Successfully updated cup group standings for cup ${cupId}`)
+}
