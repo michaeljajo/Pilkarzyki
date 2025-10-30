@@ -188,8 +188,27 @@ export default function LeagueResultsPage() {
   }
 
   const handlePlayerGoalsChange = (playerId: string, value: string) => {
-    // Parse the value, treating empty string as 0
-    const goals = value === '' ? 0 : parseInt(value) || 0
+    // Only allow single digit 0-9
+    // If value is empty or contains non-numeric characters, default to 0
+    // If value is multiple digits, take only the last digit
+    let goals = 0
+
+    if (value === '') {
+      goals = 0
+    } else {
+      // Remove any non-digit characters
+      const cleaned = value.replace(/\D/g, '')
+      if (cleaned.length === 0) {
+        goals = 0
+      } else {
+        // Take only the last digit if multiple digits are entered
+        const lastDigit = cleaned.slice(-1)
+        goals = parseInt(lastDigit)
+        // Ensure it's between 0-9
+        goals = Math.min(Math.max(goals, 0), 9)
+      }
+    }
+
     setPlayerGoals(prev => ({
       ...prev,
       [playerId]: goals
@@ -199,6 +218,17 @@ export default function LeagueResultsPage() {
   const handlePlayerGoalsFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     // Select all text when input is focused to allow easy replacement
     e.target.select()
+  }
+
+  const handlePlayerGoalsInput = (e: React.FormEvent<HTMLInputElement>) => {
+    // Immediately restrict input to single digit
+    const input = e.currentTarget
+    const value = input.value
+
+    if (value.length > 1) {
+      // Take only the last character
+      input.value = value.slice(-1)
+    }
   }
 
   const updateGameweekStatus = async (isCompleted: boolean) => {
@@ -474,9 +504,10 @@ export default function LeagueResultsPage() {
                                 <input
                                   type="number"
                                   min="0"
-                                  max="10"
+                                  max="9"
                                   value={goals}
                                   onChange={(e) => handlePlayerGoalsChange(player.id, e.target.value)}
+                                  onInput={handlePlayerGoalsInput}
                                   onFocus={handlePlayerGoalsFocus}
                                   disabled={saving}
                                   className="w-12 px-1 py-0.5 text-xs text-center border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#29544D] disabled:bg-gray-100"
@@ -521,9 +552,10 @@ export default function LeagueResultsPage() {
                                 <input
                                   type="number"
                                   min="0"
-                                  max="10"
+                                  max="9"
                                   value={goals}
                                   onChange={(e) => handlePlayerGoalsChange(player.id, e.target.value)}
+                                  onInput={handlePlayerGoalsInput}
                                   onFocus={handlePlayerGoalsFocus}
                                   disabled={saving}
                                   className="w-12 px-1 py-0.5 text-xs text-center border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#29544D] disabled:bg-gray-100"
@@ -628,10 +660,11 @@ export default function LeagueResultsPage() {
                                         <input
                                           type="number"
                                           min="0"
-                                          max="10"
+                                          max="9"
                                           value={goals}
                                           onChange={(e) => handlePlayerGoalsChange(player.id, e.target.value)}
-                                  onFocus={handlePlayerGoalsFocus}
+                                          onInput={handlePlayerGoalsInput}
+                                          onFocus={handlePlayerGoalsFocus}
                                           disabled={saving}
                                           className="w-12 px-1 py-0.5 text-xs text-center border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-yellow-600 disabled:bg-gray-100"
                                         />
@@ -675,10 +708,11 @@ export default function LeagueResultsPage() {
                                         <input
                                           type="number"
                                           min="0"
-                                          max="10"
+                                          max="9"
                                           value={goals}
                                           onChange={(e) => handlePlayerGoalsChange(player.id, e.target.value)}
-                                  onFocus={handlePlayerGoalsFocus}
+                                          onInput={handlePlayerGoalsInput}
+                                          onFocus={handlePlayerGoalsFocus}
                                           disabled={saving}
                                           className="w-12 px-1 py-0.5 text-xs text-center border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-yellow-600 disabled:bg-gray-100"
                                         />
