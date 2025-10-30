@@ -187,11 +187,18 @@ export default function LeagueResultsPage() {
     }
   }
 
-  const handlePlayerGoalsChange = (playerId: string, goals: number) => {
+  const handlePlayerGoalsChange = (playerId: string, value: string) => {
+    // Parse the value, treating empty string as 0
+    const goals = value === '' ? 0 : parseInt(value) || 0
     setPlayerGoals(prev => ({
       ...prev,
       [playerId]: goals
     }))
+  }
+
+  const handlePlayerGoalsFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    // Select all text when input is focused to allow easy replacement
+    e.target.select()
   }
 
   const updateGameweekStatus = async (isCompleted: boolean) => {
@@ -469,7 +476,8 @@ export default function LeagueResultsPage() {
                                   min="0"
                                   max="10"
                                   value={goals}
-                                  onChange={(e) => handlePlayerGoalsChange(player.id, parseInt(e.target.value) || 0)}
+                                  onChange={(e) => handlePlayerGoalsChange(player.id, e.target.value)}
+                                  onFocus={handlePlayerGoalsFocus}
                                   disabled={saving}
                                   className="w-12 px-1 py-0.5 text-xs text-center border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#29544D] disabled:bg-gray-100"
                                 />
@@ -515,7 +523,8 @@ export default function LeagueResultsPage() {
                                   min="0"
                                   max="10"
                                   value={goals}
-                                  onChange={(e) => handlePlayerGoalsChange(player.id, parseInt(e.target.value) || 0)}
+                                  onChange={(e) => handlePlayerGoalsChange(player.id, e.target.value)}
+                                  onFocus={handlePlayerGoalsFocus}
                                   disabled={saving}
                                   className="w-12 px-1 py-0.5 text-xs text-center border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#29544D] disabled:bg-gray-100"
                                 />
@@ -621,7 +630,8 @@ export default function LeagueResultsPage() {
                                           min="0"
                                           max="10"
                                           value={goals}
-                                          onChange={(e) => handlePlayerGoalsChange(player.id, parseInt(e.target.value) || 0)}
+                                          onChange={(e) => handlePlayerGoalsChange(player.id, e.target.value)}
+                                  onFocus={handlePlayerGoalsFocus}
                                           disabled={saving}
                                           className="w-12 px-1 py-0.5 text-xs text-center border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-yellow-600 disabled:bg-gray-100"
                                         />
@@ -667,7 +677,8 @@ export default function LeagueResultsPage() {
                                           min="0"
                                           max="10"
                                           value={goals}
-                                          onChange={(e) => handlePlayerGoalsChange(player.id, parseInt(e.target.value) || 0)}
+                                          onChange={(e) => handlePlayerGoalsChange(player.id, e.target.value)}
+                                  onFocus={handlePlayerGoalsFocus}
                                           disabled={saving}
                                           className="w-12 px-1 py-0.5 text-xs text-center border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-yellow-600 disabled:bg-gray-100"
                                         />
