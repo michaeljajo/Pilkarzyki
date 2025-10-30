@@ -121,11 +121,11 @@ export function CupMatchCard({ match }: CupMatchCardProps) {
               const goals = player.goals_scored || 0
               return (
                 <div key={player.id} className="flex items-baseline gap-2 h-[20px]">
-                  <p className={`text-sm leading-5 ${goals > 0 ? 'font-bold text-amber-900' : 'text-gray-600'}`}>
+                  <p className={`text-sm leading-5 truncate ${goals > 0 ? 'font-bold text-amber-900' : 'text-gray-600'}`}>
                     {player.name} {player.surname}
                   </p>
                   {goals > 0 && (
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 shrink-0">
                       {Array.from({ length: goals }).map((_, i) => (
                         <Icon key={i} iconNode={soccerBall} size={12} className="text-amber-900" strokeWidth={2} />
                       ))}
@@ -149,13 +149,13 @@ export function CupMatchCard({ match }: CupMatchCardProps) {
               return (
                 <div key={player.id} className="flex items-baseline justify-end gap-2 h-[20px]">
                   {goals > 0 && (
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 shrink-0">
                       {Array.from({ length: goals }).map((_, i) => (
                         <Icon key={i} iconNode={soccerBall} size={12} className="text-amber-900" strokeWidth={2} />
                       ))}
                     </div>
                   )}
-                  <p className={`text-sm leading-5 ${goals > 0 ? 'font-bold text-amber-900' : 'text-gray-600'}`}>
+                  <p className={`text-sm leading-5 truncate ${goals > 0 ? 'font-bold text-amber-900' : 'text-gray-600'}`}>
                     {player.name} {player.surname}
                   </p>
                 </div>
