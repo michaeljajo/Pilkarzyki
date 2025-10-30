@@ -204,7 +204,7 @@ export async function GET(
       .from('cup_groups')
       .select(`
         manager_id,
-        users!inner (
+        users!cup_groups_manager_id_fkey (
           id,
           first_name,
           last_name,
@@ -213,27 +213,32 @@ export async function GET(
       `)
       .eq('cup_id', cupId)
 
-    if (!cupGroups) {
-      return NextResponse.json({ managers: [] })
+    if (!cupGroups || cupGroups.length === 0) {
+      return NextResponse.json({ managers: [], lineups: [] })
     }
 
-    // Type assertion for Supabase joined data
-    type CupGroupWithUser = {
-      manager_id: string;
-      users: Array<{
-        id: string;
-        first_name: string;
-        last_name: string;
-        email: string;
-      }>;
+    // Extract unique managers from cup groups
+    type CupGroupUser = {
+      id: string;
+      first_name: string;
+      last_name: string;
+      email: string;
     };
 
-    const managers = (cupGroups as CupGroupWithUser[]).map(group => ({
-      id: group.users[0].id,
-      firstName: group.users[0].first_name,
-      lastName: group.users[0].last_name,
-      email: group.users[0].email
-    }))
+    type CupGroupWithUsers = {
+      manager_id: string;
+      users: CupGroupUser;
+    };
+
+    const managers = (cupGroups as unknown as CupGroupWithUsers[])
+      .map((group) => group.users)
+      .filter((user): user is CupGroupUser => user !== null && user !== undefined)
+      .map((user) => ({
+        id: user.id,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        email: user.email
+      }))
 
     // If cupGameweekId is provided, get lineups for that cup gameweek
     if (cupGameweekId) {
