@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { GameweekMatchData, MatchWithLineups, PlayerWithResult } from '@/types'
-import { Icon } from 'lucide-react'
+import { Icon, Trophy } from 'lucide-react'
 import { soccerBall } from '@lucide/lab'
 
 interface League {
@@ -23,12 +23,32 @@ interface Gameweek {
   leagues?: League
 }
 
+interface Cup {
+  id: string
+  name: string
+  league_id: string
+}
+
+interface CupGameweek {
+  id: string
+  cup_week: number
+  stage: string
+  leg: number
+  gameweek: {
+    id: string
+    week: number
+  }
+  matches: MatchWithLineups[]
+}
+
 export default function LeagueResultsPage() {
   const params = useParams()
   const leagueId = params.id as string
 
   const [gameweeks, setGameweeks] = useState<Gameweek[]>([])
   const [matchData, setMatchData] = useState<GameweekMatchData | null>(null)
+  const [cup, setCup] = useState<Cup | null>(null)
+  const [cupGameweeks, setCupGameweeks] = useState<CupGameweek[]>([])
   const [selectedGameweek, setSelectedGameweek] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -37,16 +57,19 @@ export default function LeagueResultsPage() {
 
   useEffect(() => {
     fetchGameweeks()
+    fetchCup()
   }, [leagueId])
 
   useEffect(() => {
     if (selectedGameweek) {
       fetchMatchData()
+      fetchCupMatches()
     } else {
       setMatchData(null)
+      setCupGameweeks([])
       setPlayerGoals({})
     }
-  }, [selectedGameweek])
+  }, [selectedGameweek, cup])
 
   const fetchGameweeks = async () => {
     try {
@@ -78,6 +101,56 @@ export default function LeagueResultsPage() {
       console.error('Failed to fetch gameweeks:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchCup = async () => {
+    try {
+      const response = await fetch(`/api/cups?leagueId=${leagueId}`)
+      if (response.ok) {
+        const data = await response.json()
+        if (data.cup) {
+          setCup(data.cup)
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch cup:', error)
+    }
+  }
+
+  const fetchCupMatches = async () => {
+    if (!cup || !selectedGameweek) return
+
+    try {
+      const response = await fetch(`/api/cups/${cup.id}/results`)
+      if (response.ok) {
+        const data = await response.json()
+        // Find cup gameweeks that match the selected league gameweek
+        const matchingCupGameweeks = (data.gameweeks || []).filter(
+          (cgw: CupGameweek) => cgw.gameweek?.id === selectedGameweek
+        )
+        setCupGameweeks(matchingCupGameweeks)
+
+        // Add cup match players to playerGoals state
+        matchingCupGameweeks.forEach((cgw: CupGameweek) => {
+          cgw.matches?.forEach((match: MatchWithLineups) => {
+            match.home_lineup?.players?.forEach((player: PlayerWithResult) => {
+              setPlayerGoals(prev => ({
+                ...prev,
+                [player.id]: player.goals_scored || 0
+              }))
+            })
+            match.away_lineup?.players?.forEach((player: PlayerWithResult) => {
+              setPlayerGoals(prev => ({
+                ...prev,
+                [player.id]: player.goals_scored || 0
+              }))
+            })
+          })
+        })
+      }
+    } catch (error) {
+      console.error('Failed to fetch cup matches:', error)
     }
   }
 
@@ -320,7 +393,7 @@ export default function LeagueResultsPage() {
           </div>
 
           {/* Matches */}
-          {matchData.matches.length === 0 ? (
+          {matchData.matches.length === 0 && cupGameweeks.length === 0 ? (
             <div className="text-center py-16">
               <div className="text-gray-400">
                 <div className="text-3xl mb-2">⚽</div>
@@ -329,7 +402,12 @@ export default function LeagueResultsPage() {
             </div>
           ) : (
             <div className="space-y-6">
-              {matchData.matches.map((match) => {
+              {/* League Matches */}
+              {matchData.matches.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">Mecze Ligowe</h3>
+                  <div className="space-y-6">
+                    {matchData.matches.map((match) => {
                 const homeGoals = match.home_lineup?.players?.reduce((sum, p) => sum + (playerGoals[p.id] || 0), 0) || 0
                 const awayGoals = match.away_lineup?.players?.reduce((sum, p) => sum + (playerGoals[p.id] || 0), 0) || 0
                 const homePlayers = match.home_lineup?.players || []
@@ -450,6 +528,162 @@ export default function LeagueResultsPage() {
                           </div>
                         )}
                       </div>
+                    </div>
+                  </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Cup Matches */}
+              {cupGameweeks.length > 0 && cupGameweeks.map((cupGameweek) => {
+                const getStageLabel = (stage: string) => {
+                  const labels: Record<string, string> = {
+                    'group_stage': 'Faza Grupowa',
+                    'round_of_16': '1/8 Finału',
+                    'quarter_final': 'Ćwierćfinał',
+                    'semi_final': 'Półfinał',
+                    'final': 'Finał'
+                  }
+                  return labels[stage] || stage
+                }
+
+                return (
+                  <div key={cupGameweek.id} className="mt-8">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Trophy size={20} className="text-yellow-600" />
+                      <h3 className="text-lg font-semibold text-gray-800">
+                        Mecze Pucharowe - {getStageLabel(cupGameweek.stage)}
+                        {cupGameweek.leg === 2 ? ' (Rewanż)' : ''}
+                      </h3>
+                    </div>
+                    <div className="space-y-6">
+                      {cupGameweek.matches.map((match) => {
+                        const homeGoals = match.home_lineup?.players?.reduce((sum, p) => sum + (playerGoals[p.id] || 0), 0) || 0
+                        const awayGoals = match.away_lineup?.players?.reduce((sum, p) => sum + (playerGoals[p.id] || 0), 0) || 0
+                        const homePlayers = match.home_lineup?.players || []
+                        const awayPlayers = match.away_lineup?.players || []
+
+                        const getManagerDisplayName = (manager: { first_name?: string; last_name?: string; email: string }) => {
+                          if (manager?.first_name && manager?.last_name) {
+                            return `${manager.first_name} ${manager.last_name}`
+                          }
+                          if (manager?.first_name) {
+                            return manager.first_name
+                          }
+                          return manager?.email || 'Unknown Manager'
+                        }
+
+                        return (
+                          <div key={match.id} className="bg-white border-2 border-yellow-600 rounded-2xl hover:shadow-lg transition-shadow duration-200" style={{ padding: '20px' }}>
+                            {/* Save Button */}
+                            <div className="flex justify-end mb-3">
+                              <button
+                                onClick={() => saveIndividualMatch(match.id)}
+                                disabled={saving}
+                                className="px-4 py-1 text-sm bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:opacity-50"
+                              >
+                                {saving ? 'Zapisywanie...' : 'Zapisz wynik'}
+                              </button>
+                            </div>
+
+                            {/* Match Score Header */}
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex-1" style={{ paddingRight: '24px' }}>
+                                <p className="text-lg font-semibold text-yellow-700">
+                                  {getManagerDisplayName(match.home_manager)}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-4 px-8">
+                                <span className="text-3xl font-bold text-[#061852]">{homeGoals}</span>
+                                <span className="text-2xl font-medium text-gray-400">-</span>
+                                <span className="text-3xl font-bold text-[#061852]">{awayGoals}</span>
+                              </div>
+                              <div className="flex-1 text-right" style={{ paddingLeft: '24px' }}>
+                                <p className="text-lg font-semibold text-yellow-700">
+                                  {getManagerDisplayName(match.away_manager)}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Player Details */}
+                            <div className="flex items-start justify-between pt-3 border-t-2 border-yellow-200">
+                              {/* Home Team Players */}
+                              <div className="flex-1 space-y-1" style={{ paddingRight: '32px' }}>
+                                {homePlayers.length > 0 ? (
+                                  homePlayers.map((player) => {
+                                    const goals = playerGoals[player.id] || 0
+                                    return (
+                                      <div key={player.id} className="flex items-baseline gap-2 h-[20px]">
+                                        <input
+                                          type="number"
+                                          min="0"
+                                          max="10"
+                                          value={goals}
+                                          onChange={(e) => handlePlayerGoalsChange(player.id, parseInt(e.target.value) || 0)}
+                                          disabled={saving}
+                                          className="w-12 px-1 py-0.5 text-xs text-center border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-yellow-600 disabled:bg-gray-100"
+                                        />
+                                        <p className={`text-sm leading-5 ${goals > 0 ? 'font-bold text-[#061852]' : 'text-gray-600'}`}>
+                                          {player.name} {player.surname}
+                                        </p>
+                                        {goals > 0 && (
+                                          <div className="flex items-center gap-1">
+                                            {Array.from({ length: goals }).map((_, i) => (
+                                              <Icon key={i} iconNode={soccerBall} size={12} className="text-[#061852]" strokeWidth={2} />
+                                            ))}
+                                          </div>
+                                        )}
+                                      </div>
+                                    )
+                                  })
+                                ) : (
+                                  <div className="flex items-baseline gap-2 h-[20px]">
+                                    <p className="text-sm text-gray-400 italic leading-5">Nie ustawiono składu</p>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Away Team Players */}
+                              <div className="flex-1 text-right space-y-1" style={{ paddingLeft: '32px' }}>
+                                {awayPlayers.length > 0 ? (
+                                  awayPlayers.map((player) => {
+                                    const goals = playerGoals[player.id] || 0
+                                    return (
+                                      <div key={player.id} className="flex items-baseline justify-end gap-2 h-[20px]">
+                                        {goals > 0 && (
+                                          <div className="flex items-center gap-1">
+                                            {Array.from({ length: goals }).map((_, i) => (
+                                              <Icon key={i} iconNode={soccerBall} size={12} className="text-[#061852]" strokeWidth={2} />
+                                            ))}
+                                          </div>
+                                        )}
+                                        <p className={`text-sm leading-5 ${goals > 0 ? 'font-bold text-[#061852]' : 'text-gray-600'}`}>
+                                          {player.name} {player.surname}
+                                        </p>
+                                        <input
+                                          type="number"
+                                          min="0"
+                                          max="10"
+                                          value={goals}
+                                          onChange={(e) => handlePlayerGoalsChange(player.id, parseInt(e.target.value) || 0)}
+                                          disabled={saving}
+                                          className="w-12 px-1 py-0.5 text-xs text-center border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-yellow-600 disabled:bg-gray-100"
+                                        />
+                                      </div>
+                                    )
+                                  })
+                                ) : (
+                                  <div className="flex items-baseline justify-end gap-2 h-[20px]">
+                                    <p className="text-sm text-gray-400 italic leading-5">Nie ustawiono składu</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })}
                     </div>
                   </div>
                 )
