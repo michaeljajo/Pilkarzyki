@@ -216,7 +216,6 @@ export async function GET(
         .from('lineups')
         .select('*')
         .eq('gameweek_id', gameweekId)
-        .in('manager_id', managers.map(m => m.id))
 
       return NextResponse.json({ managers, lineups: lineups || [] })
     }
