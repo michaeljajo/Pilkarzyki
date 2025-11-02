@@ -150,7 +150,15 @@ export function AdminLineupsManager({ leagueId, gameweeks, managers }: AdminLine
                           {getManagerName(manager)}
                         </div>
                         <div className="text-sm text-gray-600">
-                          {manager.email}
+                          {hasSubmitted ? (
+                            <>
+                              <span className="text-green-600">Skład utworzony</span>
+                              {' • '}
+                              {lineup?.player_ids.length || 0} zawodników
+                            </>
+                          ) : (
+                            <span className="text-gray-500">Brak składu</span>
+                          )}
                         </div>
                       </div>
                       {lineup?.created_by_admin && (
@@ -160,21 +168,14 @@ export function AdminLineupsManager({ leagueId, gameweeks, managers }: AdminLine
                       )}
                     </div>
 
-                    <div className="flex items-center gap-3">
-                      {hasSubmitted && (
-                        <span className="text-sm text-gray-600">
-                          {lineup?.player_ids.length || 0} zawodników
-                        </span>
-                      )}
-                      <Button
-                        variant={hasSubmitted ? 'outline' : 'primary'}
-                        size="sm"
-                        icon={<Edit size={16} />}
-                        onClick={() => handleEditLineup(manager)}
-                      >
-                        {hasSubmitted ? 'Edytuj' : 'Utwórz'}
-                      </Button>
-                    </div>
+                    <Button
+                      variant={hasSubmitted ? 'outline' : 'primary'}
+                      size="sm"
+                      icon={<Edit size={16} />}
+                      onClick={() => handleEditLineup(manager)}
+                    >
+                      {hasSubmitted ? 'Edytuj' : 'Utwórz'}
+                    </Button>
                   </div>
                 )
               })}
