@@ -218,6 +218,32 @@ export default function CupSchedulePage() {
     }
   }
 
+  async function advanceCup() {
+    if (!cup || !confirm('Advance cup to knockout stage? This will generate semi-final matches based on group standings.')) {
+      return
+    }
+
+    try {
+      setSaving(true)
+      const response = await fetch(`/api/cups/${cup.id}/advance`, {
+        method: 'POST'
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to advance cup')
+      }
+
+      setSuccess(`Cup advanced successfully! ${data.matchesCreated} knockout matches created.`)
+      await fetchData()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to advance cup')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="animate-pulse space-y-8">
@@ -263,14 +289,24 @@ export default function CupSchedulePage() {
           </p>
         </div>
         {hasSchedule && (
-          <Button
-            onClick={deleteSchedule}
-            loading={saving}
-            variant="danger"
-            icon={<Trash2 size={18} />}
-          >
-            Delete Schedule
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              onClick={advanceCup}
+              loading={saving}
+              variant="primary"
+              icon={<Trophy size={18} />}
+            >
+              Advance to Knockout
+            </Button>
+            <Button
+              onClick={deleteSchedule}
+              loading={saving}
+              variant="danger"
+              icon={<Trash2 size={18} />}
+            >
+              Delete Schedule
+            </Button>
+          </div>
         )}
       </motion.div>
 

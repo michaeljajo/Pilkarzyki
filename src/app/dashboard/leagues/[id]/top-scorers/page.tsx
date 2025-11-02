@@ -118,38 +118,28 @@ export default function TopScorersPage({ params }: TopScorersPageProps) {
         style={{ paddingTop: '48px', paddingBottom: '64px' }}
       >
         <div className="w-full max-w-4xl px-6">
-          {/* Page Header */}
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Najlepsi Strzelcy
-            </h1>
-            <p className="text-gray-600">
-              Statystyki strzeleckie zawodników
-            </p>
-          </div>
-
           {/* Competition Type Toggle */}
           {!checkingCup && hasCup && (
-            <div className="mb-6 inline-flex rounded-lg border border-gray-200 bg-white p-1">
+            <div className="mb-8 inline-flex rounded-lg border border-gray-200 bg-white p-1.5 shadow-sm">
               <button
                 onClick={() => setCompetitionType('league')}
-                className={`px-6 py-2 text-sm font-medium rounded-md transition-all ${
+                className={`px-16 py-3 text-base font-semibold rounded-md transition-all flex items-center justify-center min-w-[140px] ${
                   competitionType === 'league'
                     ? 'bg-[#061852] text-white shadow-sm'
-                    : 'text-gray-700 hover:text-gray-900'
+                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
                 }`}
               >
                 Liga
               </button>
               <button
                 onClick={() => setCompetitionType('cup')}
-                className={`px-6 py-2 text-sm font-medium rounded-md transition-all ${
+                className={`px-16 py-3 text-base font-semibold rounded-md transition-all flex items-center justify-center min-w-[140px] ${
                   competitionType === 'cup'
                     ? 'bg-amber-600 text-white shadow-sm'
-                    : 'text-gray-700 hover:text-gray-900'
+                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
                 }`}
               >
-                🏆 Puchar
+                Puchar
               </button>
             </div>
           )}

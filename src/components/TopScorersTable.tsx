@@ -168,24 +168,25 @@ export function TopScorersTable({
       ) : (
         <>
           {/* Desktop Table */}
-          <div className="hidden md:block bg-white rounded-lg border border-gray-200 overflow-hidden">
-            <table className="w-full">
+          <div className="hidden md:block bg-white rounded-lg border border-gray-200">
+            <div className="overflow-x-auto px-4">
+              <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
                     #
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
                     Nazwisko
+                  </th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Bramki
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Pozycja
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Manager
-                  </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Bramki
                   </th>
                 </tr>
               </thead>
@@ -195,13 +196,18 @@ export function TopScorersTable({
                     key={scorer.playerId}
                     className="hover:bg-gray-50 transition-colors"
                   >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <td className="py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-center">
                       {index + 1}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-2 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
                         {scorer.playerName} {scorer.playerSurname}
                       </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[#061852] text-white font-bold text-sm">
+                        {scorer.totalGoals}
+                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
@@ -215,15 +221,11 @@ export function TopScorersTable({
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                       {scorer.managerName}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[#061852] text-white font-bold text-sm">
-                        {scorer.totalGoals}
-                      </span>
-                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
 
           {/* Mobile Cards */}
