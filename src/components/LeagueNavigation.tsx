@@ -229,13 +229,13 @@ export function LeagueNavigation({
                 </Link>
               )}
 
-              {/* Wróć */}
+              {/* <-Powrót */}
               <Link
                 href={`/dashboard/leagues/${leagueId}`}
                 className="min-h-[44px] py-3 text-sm font-medium rounded-xl transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 whitespace-nowrap inline-flex items-center justify-center bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-300"
                 style={{ paddingLeft: '2em', paddingRight: '2em' }}
               >
-                Wróć
+                &lt;-Powrót
               </Link>
             </div>
 
@@ -364,7 +364,7 @@ export function LeagueNavigation({
                     <div className="w-12 h-12 shrink-0 rounded-lg bg-gray-100 flex items-center justify-center">
                       <ArrowLeft size={24} className="text-gray-600" />
                     </div>
-                    <h3 className="text-base font-bold text-gray-900">Wróć</h3>
+                    <h3 className="text-base font-bold text-gray-900">&lt;-Powrót</h3>
                   </div>
                 </Link>
               </div>
