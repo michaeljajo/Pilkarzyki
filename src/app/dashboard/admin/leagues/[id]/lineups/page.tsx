@@ -69,7 +69,7 @@ export default async function AdminLineupsPage({
     }>;
   };
 
-  const managers = (squads as SquadWithUser[] || []).map(squad => ({
+  const managers = ((squads || []) as SquadWithUser[]).map(squad => ({
     id: squad.users[0].id,
     firstName: squad.users[0].first_name || '',
     lastName: squad.users[0].last_name || '',
