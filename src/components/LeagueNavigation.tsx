@@ -3,14 +3,14 @@
 import Link from 'next/link'
 import { useUser } from '@clerk/nextjs'
 import { UserButton } from '@clerk/nextjs'
-import { ArrowLeft, Menu, X, Target, BarChart3, Table, Trophy, Settings } from 'lucide-react'
+import { ArrowLeft, Menu, X, Target, BarChart3, Table, Trophy, Settings, Award, ChevronDown } from 'lucide-react'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
 
 interface LeagueNavigationProps {
   leagueId: string
   leagueName: string
-  currentPage: 'squad' | 'results' | 'standings' | 'cup-results' | 'cup-standings'
+  currentPage: 'squad' | 'results' | 'standings' | 'top-scorers' | 'cup-results' | 'cup-standings'
   showSquadTab?: boolean // Some leagues might not have squad access for certain users
 }
 
@@ -18,6 +18,7 @@ const navigationTabs = [
   { id: 'squad', label: 'Skład', href: (leagueId: string) => `/dashboard/leagues/${leagueId}/squad`, isCup: false },
   { id: 'results', label: 'Wyniki', href: (leagueId: string) => `/dashboard/leagues/${leagueId}/results`, isCup: false },
   { id: 'standings', label: 'Tabela', href: (leagueId: string) => `/dashboard/leagues/${leagueId}/standings`, isCup: false },
+  { id: 'top-scorers', label: 'Strzelcy', href: (leagueId: string) => `/dashboard/leagues/${leagueId}/top-scorers`, isCup: false },
   { id: 'cup-results', label: '🏆 Wyniki Pucharu', href: (leagueId: string) => `/dashboard/leagues/${leagueId}/cup/results`, isCup: true },
   { id: 'cup-standings', label: '🏆 Tabela Pucharu', href: (leagueId: string) => `/dashboard/leagues/${leagueId}/cup/standings`, isCup: true },
 ] as const
@@ -129,50 +130,118 @@ export function LeagueNavigation({
 
             {/* Center: Navigation Tabs (Desktop Only) */}
             <div className="hidden md:flex items-center gap-1">
-              {filteredTabs.map((tab) => {
-                const isActive = tab.id === currentPage
-                const isCupTab = tab.isCup
-                return (
+              {/* Skład */}
+              {showSquadTab && (
+                <Link
+                  href={`/dashboard/leagues/${leagueId}/squad`}
+                  className={`min-h-[44px] py-3 text-sm font-medium rounded-xl transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 whitespace-nowrap inline-flex items-center justify-center ${
+                    currentPage === 'squad'
+                      ? 'bg-[#061852] text-white shadow-sm hover:bg-[#0a2475] hover:shadow-md focus:ring-[#061852]'
+                      : 'bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-300'
+                  }`}
+                  style={{ paddingLeft: '2em', paddingRight: '2em' }}
+                >
+                  Skład
+                </Link>
+              )}
+
+              {/* Liga Dropdown */}
+              <div className="relative group">
+                <button
+                  className={`min-h-[44px] py-3 text-sm font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 whitespace-nowrap inline-flex items-center justify-center gap-1 ${
+                    currentPage === 'results' || currentPage === 'standings'
+                      ? 'bg-[#061852] text-white shadow-sm hover:bg-[#0a2475] hover:shadow-md focus:ring-[#061852]'
+                      : 'bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-300'
+                  }`}
+                  style={{ paddingLeft: '2em', paddingRight: '2em' }}
+                >
+                  Liga
+                  <ChevronDown size={16} className="transition-transform group-hover:rotate-180" />
+                </button>
+                <div className="absolute left-0 mt-1 w-full bg-white rounded-xl shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                   <Link
-                    key={tab.id}
-                    href={tab.href(leagueId)}
-                    className={`min-h-[44px] py-3 text-sm font-medium rounded-xl transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 whitespace-nowrap inline-flex items-center justify-center ${
-                      isActive
-                        ? isCupTab
-                          ? 'bg-amber-600 text-white shadow-sm hover:bg-amber-700 hover:shadow-md focus:ring-amber-600'
-                          : 'bg-[#061852] text-white shadow-sm hover:bg-[#0a2475] hover:shadow-md focus:ring-[#061852]'
+                    href={`/dashboard/leagues/${leagueId}/results`}
+                    className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 first:rounded-t-xl transition-colors text-center"
+                  >
+                    Wyniki
+                  </Link>
+                  <Link
+                    href={`/dashboard/leagues/${leagueId}/standings`}
+                    className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 last:rounded-b-xl transition-colors text-center"
+                  >
+                    Tabela
+                  </Link>
+                </div>
+              </div>
+
+              {/* Puchar Dropdown */}
+              {hasCup && (
+                <div className="relative group">
+                  <button
+                    className={`min-h-[44px] py-3 text-sm font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 whitespace-nowrap inline-flex items-center justify-center gap-1 ${
+                      currentPage === 'cup-results' || currentPage === 'cup-standings'
+                        ? 'bg-[#061852] text-white shadow-sm hover:bg-[#0a2475] hover:shadow-md focus:ring-[#061852]'
                         : 'bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-300'
                     }`}
                     style={{ paddingLeft: '2em', paddingRight: '2em' }}
                   >
-                    {tab.label}
-                  </Link>
-                )
-              })}
+                    Puchar
+                    <ChevronDown size={16} className="transition-transform group-hover:rotate-180" />
+                  </button>
+                  <div className="absolute left-0 mt-1 w-full bg-white rounded-xl shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                    <Link
+                      href={`/dashboard/leagues/${leagueId}/cup/results`}
+                      className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 first:rounded-t-xl transition-colors text-center"
+                    >
+                      Wyniki
+                    </Link>
+                    <Link
+                      href={`/dashboard/leagues/${leagueId}/cup/standings`}
+                      className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 last:rounded-b-xl transition-colors text-center"
+                    >
+                      Tabela
+                    </Link>
+                  </div>
+                </div>
+              )}
 
-              {/* Admin: Manage League Button */}
+              {/* Strzelcy */}
+              <Link
+                href={`/dashboard/leagues/${leagueId}/top-scorers`}
+                className={`min-h-[44px] py-3 text-sm font-medium rounded-xl transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 whitespace-nowrap inline-flex items-center justify-center ${
+                  currentPage === 'top-scorers'
+                    ? 'bg-[#061852] text-white shadow-sm hover:bg-[#0a2475] hover:shadow-md focus:ring-[#061852]'
+                    : 'bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-300'
+                }`}
+                style={{ paddingLeft: '2em', paddingRight: '2em' }}
+              >
+                Strzelcy
+              </Link>
+
+              {/* Admin */}
               {isAdmin && (
                 <Link
                   href={`/dashboard/admin/leagues/${leagueId}`}
-                  className="min-h-[44px] py-3 text-sm font-medium rounded-xl transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 whitespace-nowrap inline-flex items-center justify-center gap-2 bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-300"
+                  className="min-h-[44px] py-3 text-sm font-medium rounded-xl transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 whitespace-nowrap inline-flex items-center justify-center bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-300"
                   style={{ paddingLeft: '2em', paddingRight: '2em' }}
                 >
-                  <Settings size={16} />
-                  Zarządzaj Ligą
+                  Admin
                 </Link>
               )}
-            </div>
 
-            {/* Right: Back Button and User Profile (Desktop) / Hamburger Menu (Mobile) */}
-            <div className="flex items-center gap-3">
-              {/* Desktop: Back Button and User Info */}
+              {/* Wróć */}
               <Link
                 href={`/dashboard/leagues/${leagueId}`}
-                className="hidden md:inline-flex items-center gap-2 text-sm text-gray-600 hover:text-[#29544D] transition-colors font-medium"
+                className="min-h-[44px] py-3 text-sm font-medium rounded-xl transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 whitespace-nowrap inline-flex items-center justify-center bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-300"
+                style={{ paddingLeft: '2em', paddingRight: '2em' }}
               >
-                <ArrowLeft size={16} />
-                <span>Wróć</span>
+                Wróć
               </Link>
+            </div>
+
+            {/* Right: User Profile (Desktop) / Hamburger Menu (Mobile) */}
+            <div className="flex items-center gap-3">
+              {/* Desktop: User Info */}
               <div className="hidden md:flex items-center gap-3">
                 <span className="text-sm text-gray-700">
                   {user?.firstName || user?.emailAddresses[0]?.emailAddress}
@@ -230,7 +299,9 @@ export function LeagueNavigation({
                       ? 'bg-[#29544D]/10'
                       : tab.id === 'results'
                         ? 'bg-[#3B82F6]/10'
-                        : 'bg-[#10B981]/10'
+                        : tab.id === 'top-scorers'
+                          ? 'bg-[#F59E0B]/10'
+                          : 'bg-[#10B981]/10'
 
                   const iconColor = isCupTab
                     ? 'text-amber-600'
@@ -238,7 +309,9 @@ export function LeagueNavigation({
                       ? 'text-[#29544D]'
                       : tab.id === 'results'
                         ? 'text-[#3B82F6]'
-                        : 'text-[#10B981]'
+                        : tab.id === 'top-scorers'
+                          ? 'text-[#F59E0B]'
+                          : 'text-[#10B981]'
 
                   const borderColor = isCupTab ? 'border-amber-200' : 'border-gray-200'
 
@@ -254,6 +327,7 @@ export function LeagueNavigation({
                           {tab.id === 'squad' && <Target size={24} className={iconColor} />}
                           {tab.id === 'results' && <BarChart3 size={24} className={iconColor} />}
                           {tab.id === 'standings' && <Table size={24} className={iconColor} />}
+                          {tab.id === 'top-scorers' && <Award size={24} className={iconColor} />}
                           {tab.isCup && <Trophy size={24} className={iconColor} />}
                         </div>
                         <h3 className="text-base font-bold text-gray-900">{tab.label}</h3>
@@ -273,7 +347,7 @@ export function LeagueNavigation({
                       <div className="w-12 h-12 shrink-0 rounded-lg bg-[#F59E0B]/10 flex items-center justify-center">
                         <Settings size={24} className="text-[#F59E0B]" />
                       </div>
-                      <h3 className="text-base font-bold text-gray-900">Zarządzaj Ligą</h3>
+                      <h3 className="text-base font-bold text-gray-900">Admin</h3>
                     </div>
                   </Link>
                 )}

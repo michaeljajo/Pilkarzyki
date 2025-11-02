@@ -432,3 +432,16 @@ export interface DualLineupData {
   gameweekId: string
   cupGameweekId: string
 }
+
+// Top Scorer types
+
+export interface TopScorer {
+  playerId: string
+  playerName: string
+  playerSurname: string
+  position: Position
+  managerId: string
+  managerName: string
+  totalGoals: number
+  gamesPlayed: number
+}

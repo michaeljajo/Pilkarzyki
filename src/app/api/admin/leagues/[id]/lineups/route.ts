@@ -192,22 +192,22 @@ export async function GET(
     }
 
     // Type assertion for Supabase joined data
-    // Note: !inner join returns users as array with single element
+    // Note: !inner join returns a single object, not an array
     type SquadWithUser = {
       manager_id: string;
-      users: Array<{
+      users: {
         id: string;
         first_name: string;
         last_name: string;
         email: string;
-      }>;
+      };
     };
 
-    const managers = (squads as SquadWithUser[]).map(squad => ({
-      id: squad.users[0].id,
-      firstName: squad.users[0].first_name,
-      lastName: squad.users[0].last_name,
-      email: squad.users[0].email
+    const managers = (squads as unknown as SquadWithUser[]).map(squad => ({
+      id: squad.users.id,
+      firstName: squad.users.first_name,
+      lastName: squad.users.last_name,
+      email: squad.users.email
     }))
 
     // If gameweekId is provided, get lineups for that gameweek
