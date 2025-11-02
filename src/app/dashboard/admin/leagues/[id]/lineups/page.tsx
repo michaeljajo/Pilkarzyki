@@ -44,18 +44,37 @@ export default async function AdminLineupsPage({
     .eq('league_id', leagueId)
     .order('week', { ascending: true })
 
-  // Get all users - any user can have lineups created for them
-  const { data: allUsers } = await supabaseAdmin
-    .from('users')
-    .select('id, first_name, last_name, email')
-    .order('first_name', { ascending: true })
+  // Get all managers with squads in this league
+  const { data: squads } = await supabaseAdmin
+    .from('squads')
+    .select(`
+      manager_id,
+      users!inner (
+        id,
+        first_name,
+        last_name,
+        email
+      )
+    `)
+    .eq('league_id', leagueId)
 
-  const managers = allUsers?.map(user => ({
-    id: user.id,
-    firstName: user.first_name || '',
-    lastName: user.last_name || '',
-    email: user.email
-  })) || []
+  // Type assertion for Supabase joined data
+  type SquadWithUser = {
+    manager_id: string;
+    users: Array<{
+      id: string;
+      first_name: string;
+      last_name: string;
+      email: string;
+    }>;
+  };
+
+  const managers = (squads as SquadWithUser[] || []).map(squad => ({
+    id: squad.users[0].id,
+    firstName: squad.users[0].first_name || '',
+    lastName: squad.users[0].last_name || '',
+    email: squad.users[0].email
+  }))
 
   return (
     <div>
