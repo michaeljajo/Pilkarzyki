@@ -107,6 +107,7 @@ export interface Result {
   gameweekId: string
   playerId: string
   goals: number
+  hasPlayed: boolean
   createdAt: Date
 }
 
@@ -162,6 +163,7 @@ export interface PlayerWithResult {
   position: Position
   manager_id?: string
   goals_scored?: number
+  has_played?: boolean
 }
 
 export interface ManagerLineup {
@@ -262,6 +264,7 @@ export interface GameweekWithLeague {
 export interface PlayerResult {
   player_id: string
   goals: number
+  has_played?: boolean
 }
 
 export interface GameweekResultsUpdate {

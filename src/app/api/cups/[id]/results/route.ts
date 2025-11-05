@@ -168,12 +168,12 @@ export async function GET(
     if (allPlayerIds.length > 0 && leagueGameweekIds.length > 0) {
       const { data: results } = await supabaseAdmin
         .from('results')
-        .select('player_id, gameweek_id, goals')
+        .select('player_id, gameweek_id, goals, has_played')
         .in('gameweek_id', leagueGameweekIds)
         .in('player_id', allPlayerIds)
 
       results?.forEach(r => {
-        resultsMap.set(`${r.gameweek_id}_${r.player_id}`, r.goals)
+        resultsMap.set(`${r.gameweek_id}_${r.player_id}`, { goals: r.goals, has_played: r.has_played })
       })
     }
 
@@ -192,10 +192,11 @@ export async function GET(
               const player = playersMap.get(playerId)
               if (!player) return null
 
-              const goals = resultsMap.get(`${gameweek?.id}_${playerId}`) || 0
+              const result = resultsMap.get(`${gameweek?.id}_${playerId}`)
               return {
                 ...player,
-                goals_scored: goals
+                goals_scored: result?.goals || 0,
+                has_played: result?.has_played || false
               }
             })
             .filter(Boolean)
@@ -214,10 +215,11 @@ export async function GET(
               const player = playersMap.get(playerId)
               if (!player) return null
 
-              const goals = resultsMap.get(`${gameweek?.id}_${playerId}`) || 0
+              const result = resultsMap.get(`${gameweek?.id}_${playerId}`)
               return {
                 ...player,
-                goals_scored: goals
+                goals_scored: result?.goals || 0,
+                has_played: result?.has_played || false
               }
             })
             .filter(Boolean)

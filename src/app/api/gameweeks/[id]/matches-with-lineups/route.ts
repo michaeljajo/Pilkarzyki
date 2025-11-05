@@ -121,14 +121,14 @@ export async function GET(
     if (allPlayerIds.length > 0) {
       const { data: results, error: resultsError } = await supabaseAdmin
         .from('results')
-        .select('player_id, goals')
+        .select('player_id, goals, has_played')
         .eq('gameweek_id', gameweekId)
         .in('player_id', allPlayerIds)
 
       if (resultsError) {
         console.error('Error fetching results:', resultsError)
       } else {
-        resultsMap = new Map(results?.map(r => [r.player_id, r.goals]) || [])
+        resultsMap = new Map(results?.map(r => [r.player_id, { goals: r.goals, has_played: r.has_played }]) || [])
       }
     }
 
@@ -145,9 +145,11 @@ export async function GET(
             const player = playersMap.get(playerId)
             if (!player) return null
 
+            const result = resultsMap.get(playerId)
             return {
               ...player,
-              goals_scored: resultsMap.get(playerId) || 0
+              goals_scored: result?.goals || 0,
+              has_played: result?.has_played || false
             }
           })
           .filter(Boolean)
@@ -166,9 +168,11 @@ export async function GET(
             const player = playersMap.get(playerId)
             if (!player) return null
 
+            const result = resultsMap.get(playerId)
             return {
               ...player,
-              goals_scored: resultsMap.get(playerId) || 0
+              goals_scored: result?.goals || 0,
+              has_played: result?.has_played || false
             }
           })
           .filter(Boolean)

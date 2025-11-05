@@ -273,12 +273,16 @@ export default function LeagueResultsPage({ params }: LeagueResultsPageProps) {
                     const homePlayers = match.home_lineup?.players || []
                     const awayPlayers = match.away_lineup?.players || []
 
+                    // Check if managers have players yet to play
+                    const homeHasPlayersYetToPlay = homePlayers.some(p => !p.has_played)
+                    const awayHasPlayersYetToPlay = awayPlayers.some(p => !p.has_played)
+
                     return (
                       <div key={match.id} className="bg-white border-2 border-[#29544D] rounded-2xl hover:shadow-lg transition-shadow duration-200" style={{ padding: '20px' }}>
                         {/* Match Score Header */}
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex-1" style={{ paddingRight: '24px' }}>
-                            <p className="text-lg font-semibold text-[#29544D]">
+                            <p className={`text-lg font-semibold text-[#29544D] ${homeHasPlayersYetToPlay ? 'italic' : ''}`}>
                               {getManagerDisplayName(match.home_manager)}
                             </p>
                           </div>
@@ -288,7 +292,7 @@ export default function LeagueResultsPage({ params }: LeagueResultsPageProps) {
                             <span className="text-3xl font-bold text-[#061852]">{awayGoals}</span>
                           </div>
                           <div className="flex-1 text-right" style={{ paddingLeft: '24px' }}>
-                            <p className="text-lg font-semibold text-[#29544D]">
+                            <p className={`text-lg font-semibold text-[#29544D] ${awayHasPlayersYetToPlay ? 'italic' : ''}`}>
                               {getManagerDisplayName(match.away_manager)}
                             </p>
                           </div>
@@ -301,9 +305,11 @@ export default function LeagueResultsPage({ params }: LeagueResultsPageProps) {
                             {homePlayers.length > 0 ? (
                               homePlayers.map((player) => {
                                 const goals = player.goals_scored || 0
+                                const hasPlayed = player.has_played || false
+                                const shouldBeItalic = !hasPlayed
                                 return (
                                   <div key={player.id} className="flex items-baseline gap-2 h-[20px]">
-                                    <p className={`text-sm leading-5 truncate ${goals > 0 ? 'font-bold text-[#061852]' : 'text-gray-600'}`}>
+                                    <p className={`text-sm leading-5 truncate ${goals > 0 ? 'font-bold text-[#061852]' : 'text-gray-600'} ${shouldBeItalic ? 'italic' : ''}`}>
                                       {player.name} {player.surname}
                                     </p>
                                     {goals > 0 && (
@@ -328,6 +334,8 @@ export default function LeagueResultsPage({ params }: LeagueResultsPageProps) {
                             {awayPlayers.length > 0 ? (
                               awayPlayers.map((player) => {
                                 const goals = player.goals_scored || 0
+                                const hasPlayed = player.has_played || false
+                                const shouldBeItalic = !hasPlayed
                                 return (
                                   <div key={player.id} className="flex items-baseline justify-end gap-2 h-[20px]">
                                     {goals > 0 && (
@@ -337,7 +345,7 @@ export default function LeagueResultsPage({ params }: LeagueResultsPageProps) {
                                         ))}
                                       </div>
                                     )}
-                                    <p className={`text-sm leading-5 truncate ${goals > 0 ? 'font-bold text-[#061852]' : 'text-gray-600'}`}>
+                                    <p className={`text-sm leading-5 truncate ${goals > 0 ? 'font-bold text-[#061852]' : 'text-gray-600'} ${shouldBeItalic ? 'italic' : ''}`}>
                                       {player.name} {player.surname}
                                     </p>
                                   </div>

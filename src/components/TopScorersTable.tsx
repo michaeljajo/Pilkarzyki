@@ -51,10 +51,10 @@ export function TopScorersTable({
   }
 
   const positionLabels: Record<Position, string> = {
-    Goalkeeper: 'BR',
-    Defender: 'OBR',
-    Midfielder: 'POŚ',
-    Forward: 'NAP',
+    Goalkeeper: 'Bramkarz',
+    Defender: 'Obrońca',
+    Midfielder: 'Pomocnik',
+    Forward: 'Napastnik',
   }
 
   return (
@@ -205,16 +205,12 @@ export function TopScorersTable({
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[#061852] text-white font-bold text-sm">
+                      <span className="text-sm font-medium text-gray-900">
                         {scorer.totalGoals}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          positionColors[scorer.position]
-                        }`}
-                      >
+                      <span className="text-sm font-medium text-gray-900">
                         {positionLabels[scorer.position]}
                       </span>
                     </td>
@@ -249,21 +245,13 @@ export function TopScorersTable({
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center justify-center w-12 h-12 rounded-full bg-[#061852] text-white font-bold text-lg">
+                  <div className="text-sm font-medium text-gray-900">
                     {scorer.totalGoals}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      positionColors[scorer.position]
-                    }`}
-                  >
+                  <span className="text-sm font-medium text-gray-900">
                     {positionLabels[scorer.position]}
-                  </span>
-                  <span className="text-xs text-gray-500">
-                    {scorer.gamesPlayed}{' '}
-                    {scorer.gamesPlayed === 1 ? 'mecz' : 'mecze'}
                   </span>
                 </div>
               </div>

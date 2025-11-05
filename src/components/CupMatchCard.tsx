@@ -7,6 +7,7 @@ interface Player {
   surname: string
   position: string
   goals_scored?: number
+  has_played?: boolean
 }
 
 interface Lineup {
@@ -71,6 +72,10 @@ export function CupMatchCard({ match }: CupMatchCardProps) {
   const homePlayers = match.home_lineup?.players || []
   const awayPlayers = match.away_lineup?.players || []
 
+  // Check if managers have players yet to play
+  const homeHasPlayersYetToPlay = homePlayers.some(p => !p.has_played)
+  const awayHasPlayersYetToPlay = awayPlayers.some(p => !p.has_played)
+
   const showAggregate = match.stage !== 'group_stage' && match.stage !== 'final' && match.leg === 2
 
   return (
@@ -87,7 +92,7 @@ export function CupMatchCard({ match }: CupMatchCardProps) {
       {/* Match Score Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex-1" style={{ paddingRight: '24px' }}>
-          <p className="text-lg font-semibold text-amber-800">
+          <p className={`text-lg font-semibold text-amber-800 ${homeHasPlayersYetToPlay ? 'italic' : ''}`}>
             {getManagerDisplayName(match.home_manager)}
           </p>
         </div>
@@ -97,7 +102,7 @@ export function CupMatchCard({ match }: CupMatchCardProps) {
           <span className="text-3xl font-bold text-amber-900">{awayGoals}</span>
         </div>
         <div className="flex-1 text-right" style={{ paddingLeft: '24px' }}>
-          <p className="text-lg font-semibold text-amber-800">
+          <p className={`text-lg font-semibold text-amber-800 ${awayHasPlayersYetToPlay ? 'italic' : ''}`}>
             {getManagerDisplayName(match.away_manager)}
           </p>
         </div>
@@ -119,9 +124,11 @@ export function CupMatchCard({ match }: CupMatchCardProps) {
           {homePlayers.length > 0 ? (
             homePlayers.map((player) => {
               const goals = player.goals_scored || 0
+              const hasPlayed = player.has_played || false
+              const shouldBeItalic = !hasPlayed
               return (
                 <div key={player.id} className="flex items-baseline gap-2 h-[20px]">
-                  <p className={`text-sm leading-5 truncate ${goals > 0 ? 'font-bold text-amber-900' : 'text-gray-600'}`}>
+                  <p className={`text-sm leading-5 truncate ${goals > 0 ? 'font-bold text-amber-900' : 'text-gray-600'} ${shouldBeItalic ? 'italic' : ''}`}>
                     {player.name} {player.surname}
                   </p>
                   {goals > 0 && (
@@ -146,6 +153,8 @@ export function CupMatchCard({ match }: CupMatchCardProps) {
           {awayPlayers.length > 0 ? (
             awayPlayers.map((player) => {
               const goals = player.goals_scored || 0
+              const hasPlayed = player.has_played || false
+              const shouldBeItalic = !hasPlayed
               return (
                 <div key={player.id} className="flex items-baseline justify-end gap-2 h-[20px]">
                   {goals > 0 && (
@@ -155,7 +164,7 @@ export function CupMatchCard({ match }: CupMatchCardProps) {
                       ))}
                     </div>
                   )}
-                  <p className={`text-sm leading-5 truncate ${goals > 0 ? 'font-bold text-amber-900' : 'text-gray-600'}`}>
+                  <p className={`text-sm leading-5 truncate ${goals > 0 ? 'font-bold text-amber-900' : 'text-gray-600'} ${shouldBeItalic ? 'italic' : ''}`}>
                     {player.name} {player.surname}
                   </p>
                 </div>

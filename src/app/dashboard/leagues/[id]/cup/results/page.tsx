@@ -159,9 +159,33 @@ export default function CupResultsPage({ params }: CupResultsPageProps) {
         const data = await response.json()
         setCupData(data)
 
-        // Auto-select the first gameweek if none selected
+        // Auto-select current active gameweek when gameweeks are loaded
         if (data.gameweeks && data.gameweeks.length > 0 && !selectedGameweek) {
-          setSelectedGameweek(data.gameweeks[0].id)
+          // Find the last completed gameweek
+          const completedGameweeks = data.gameweeks.filter((cgw: CupGameweek) => cgw.gameweek?.is_completed)
+          const sortedGameweeks = [...data.gameweeks].sort((a: CupGameweek, b: CupGameweek) =>
+            (a.gameweek?.week || 0) - (b.gameweek?.week || 0)
+          )
+
+          let activeGameweek: CupGameweek | undefined
+
+          if (completedGameweeks.length > 0) {
+            // Find the highest completed gameweek number
+            const maxCompletedWeek = Math.max(...completedGameweeks.map((cgw: CupGameweek) => cgw.gameweek?.week || 0))
+            // Get the next gameweek after the last completed one
+            activeGameweek = sortedGameweeks.find((cgw: CupGameweek) =>
+              cgw.gameweek?.week === maxCompletedWeek + 1
+            )
+          }
+
+          // If no active gameweek found (e.g., no completed gameweeks yet), default to first gameweek
+          if (!activeGameweek) {
+            activeGameweek = sortedGameweeks[0]
+          }
+
+          if (activeGameweek) {
+            setSelectedGameweek(activeGameweek.id)
+          }
         }
       } else {
         const errorData = await response.json().catch(() => ({}))

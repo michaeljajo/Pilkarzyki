@@ -137,7 +137,7 @@ export function LeagueNavigation({
                   className={`min-h-[44px] py-3 text-sm font-medium rounded-xl transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 whitespace-nowrap inline-flex items-center justify-center ${
                     currentPage === 'squad'
                       ? 'bg-[#061852] text-white shadow-sm hover:bg-[#0a2475] hover:shadow-md focus:ring-[#061852]'
-                      : 'bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-300'
+                      : 'bg-transparent text-[#29544D] hover:bg-gray-100 focus:ring-gray-300'
                   }`}
                   style={{ paddingLeft: '2em', paddingRight: '2em' }}
                 >
@@ -151,12 +151,16 @@ export function LeagueNavigation({
                   className={`min-h-[44px] py-3 text-sm font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 whitespace-nowrap inline-flex items-center justify-center gap-1 ${
                     currentPage === 'results' || currentPage === 'standings'
                       ? 'bg-[#061852] text-white shadow-sm hover:bg-[#0a2475] hover:shadow-md focus:ring-[#061852]'
-                      : 'bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-300'
+                      : 'bg-transparent text-[#29544D] hover:bg-gray-100 focus:ring-gray-300'
                   }`}
                   style={{ paddingLeft: '2em', paddingRight: '2em' }}
                 >
                   Liga
-                  <ChevronDown size={16} className="transition-transform group-hover:rotate-180" />
+                  <ChevronDown size={16} className={`transition-transform group-hover:rotate-180 ${
+                    currentPage === 'results' || currentPage === 'standings'
+                      ? 'text-white'
+                      : 'text-[#29544D]'
+                  }`} />
                 </button>
                 <div className="absolute left-0 mt-1 w-full bg-white rounded-xl shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                   <Link
@@ -181,12 +185,16 @@ export function LeagueNavigation({
                     className={`min-h-[44px] py-3 text-sm font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 whitespace-nowrap inline-flex items-center justify-center gap-1 ${
                       currentPage === 'cup-results' || currentPage === 'cup-standings'
                         ? 'bg-[#061852] text-white shadow-sm hover:bg-[#0a2475] hover:shadow-md focus:ring-[#061852]'
-                        : 'bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-300'
+                        : 'bg-transparent text-[#29544D] hover:bg-gray-100 focus:ring-gray-300'
                     }`}
                     style={{ paddingLeft: '2em', paddingRight: '2em' }}
                   >
                     Puchar
-                    <ChevronDown size={16} className="transition-transform group-hover:rotate-180" />
+                    <ChevronDown size={16} className={`transition-transform group-hover:rotate-180 ${
+                      currentPage === 'cup-results' || currentPage === 'cup-standings'
+                        ? 'text-white'
+                        : 'text-[#29544D]'
+                    }`} />
                   </button>
                   <div className="absolute left-0 mt-1 w-full bg-white rounded-xl shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                     <Link
@@ -211,7 +219,7 @@ export function LeagueNavigation({
                 className={`min-h-[44px] py-3 text-sm font-medium rounded-xl transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 whitespace-nowrap inline-flex items-center justify-center ${
                   currentPage === 'top-scorers'
                     ? 'bg-[#061852] text-white shadow-sm hover:bg-[#0a2475] hover:shadow-md focus:ring-[#061852]'
-                    : 'bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-300'
+                    : 'bg-transparent text-[#29544D] hover:bg-gray-100 focus:ring-gray-300'
                 }`}
                 style={{ paddingLeft: '2em', paddingRight: '2em' }}
               >
@@ -222,7 +230,7 @@ export function LeagueNavigation({
               {isAdmin && (
                 <Link
                   href={`/dashboard/admin/leagues/${leagueId}`}
-                  className="min-h-[44px] py-3 text-sm font-medium rounded-xl transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 whitespace-nowrap inline-flex items-center justify-center bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-300"
+                  className="min-h-[44px] py-3 text-sm font-medium rounded-xl transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 whitespace-nowrap inline-flex items-center justify-center bg-transparent text-[#29544D] hover:bg-gray-100 focus:ring-gray-300"
                   style={{ paddingLeft: '2em', paddingRight: '2em' }}
                 >
                   Admin
@@ -232,7 +240,7 @@ export function LeagueNavigation({
               {/* <-Powrót */}
               <Link
                 href={`/dashboard/leagues/${leagueId}`}
-                className="min-h-[44px] py-3 text-sm font-medium rounded-xl transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 whitespace-nowrap inline-flex items-center justify-center bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-300"
+                className="min-h-[44px] py-3 text-sm font-medium rounded-xl transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 whitespace-nowrap inline-flex items-center justify-center bg-transparent text-[#29544D] hover:bg-gray-100 focus:ring-gray-300"
                 style={{ paddingLeft: '2em', paddingRight: '2em' }}
               >
                 &lt;-Powrót

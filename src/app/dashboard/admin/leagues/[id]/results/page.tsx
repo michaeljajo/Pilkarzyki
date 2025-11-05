@@ -54,6 +54,7 @@ export default function LeagueResultsPage() {
   const [saving, setSaving] = useState(false)
   const [updatingStatus, setUpdatingStatus] = useState(false)
   const [playerGoals, setPlayerGoals] = useState<{[key: string]: number}>({})
+  const [playerHasPlayed, setPlayerHasPlayed] = useState<{[key: string]: boolean}>({})
 
   useEffect(() => {
     fetchGameweeks()
@@ -68,6 +69,7 @@ export default function LeagueResultsPage() {
       setMatchData(null)
       setCupGameweeks([])
       setPlayerGoals({})
+      setPlayerHasPlayed({})
     }
   }, [selectedGameweek, cup])
 
@@ -131,7 +133,7 @@ export default function LeagueResultsPage() {
         )
         setCupGameweeks(matchingCupGameweeks)
 
-        // Add cup match players to playerGoals state
+        // Add cup match players to playerGoals and playerHasPlayed state
         matchingCupGameweeks.forEach((cgw: CupGameweek) => {
           cgw.matches?.forEach((match: MatchWithLineups) => {
             match.home_lineup?.players?.forEach((player: PlayerWithResult) => {
@@ -139,11 +141,19 @@ export default function LeagueResultsPage() {
                 ...prev,
                 [player.id]: player.goals_scored || 0
               }))
+              setPlayerHasPlayed(prev => ({
+                ...prev,
+                [player.id]: player.has_played || false
+              }))
             })
             match.away_lineup?.players?.forEach((player: PlayerWithResult) => {
               setPlayerGoals(prev => ({
                 ...prev,
                 [player.id]: player.goals_scored || 0
+              }))
+              setPlayerHasPlayed(prev => ({
+                ...prev,
+                [player.id]: player.has_played || false
               }))
             })
           })
@@ -164,17 +174,21 @@ export default function LeagueResultsPage() {
         const data = await response.json()
         setMatchData(data)
 
-        // Initialize playerGoals state with existing results
+        // Initialize playerGoals and playerHasPlayed state with existing results
         const goalsMap: {[key: string]: number} = {}
+        const hasPlayedMap: {[key: string]: boolean} = {}
         data.matches?.forEach((match: MatchWithLineups) => {
           match.home_lineup?.players?.forEach((player: PlayerWithResult) => {
             goalsMap[player.id] = player.goals_scored || 0
+            hasPlayedMap[player.id] = player.has_played || false
           })
           match.away_lineup?.players?.forEach((player: PlayerWithResult) => {
             goalsMap[player.id] = player.goals_scored || 0
+            hasPlayedMap[player.id] = player.has_played || false
           })
         })
         setPlayerGoals(goalsMap)
+        setPlayerHasPlayed(hasPlayedMap)
       } else {
         console.error('Failed to fetch match data')
         setMatchData(null)
@@ -278,7 +292,8 @@ export default function LeagueResultsPage() {
     try {
       const results = Object.entries(playerGoals).map(([player_id, goals]) => ({
         player_id,
-        goals
+        goals,
+        has_played: playerHasPlayed[player_id] || false
       }))
 
       const response = await fetch(`/api/gameweeks/${selectedGameweek}/lineups`, {
@@ -333,7 +348,8 @@ export default function LeagueResultsPage() {
 
       const results = matchPlayerIds.map(playerId => ({
         player_id: playerId,
-        goals: playerGoals[playerId] || 0
+        goals: playerGoals[playerId] || 0,
+        has_played: playerHasPlayed[playerId] || false
       }))
 
       const response = await fetch(`/api/gameweeks/${selectedGameweek}/lineups`, {
@@ -514,8 +530,17 @@ export default function LeagueResultsPage() {
                         {homePlayers.length > 0 ? (
                           homePlayers.map((player) => {
                             const goals = playerGoals[player.id] || 0
+                            const hasPlayed = playerHasPlayed[player.id] || false
                             return (
                               <div key={player.id} className="flex items-baseline gap-2 h-[20px]">
+                                <input
+                                  type="checkbox"
+                                  checked={hasPlayed}
+                                  onChange={(e) => setPlayerHasPlayed(prev => ({ ...prev, [player.id]: e.target.checked }))}
+                                  disabled={saving}
+                                  className="w-4 h-4 cursor-pointer disabled:cursor-not-allowed"
+                                  title="Oznacz, że zawodnik rozegrał mecz"
+                                />
                                 <input
                                   type="number"
                                   min="0"
@@ -552,6 +577,7 @@ export default function LeagueResultsPage() {
                         {awayPlayers.length > 0 ? (
                           awayPlayers.map((player) => {
                             const goals = playerGoals[player.id] || 0
+                            const hasPlayed = playerHasPlayed[player.id] || false
                             return (
                               <div key={player.id} className="flex items-baseline justify-end gap-2 h-[20px]">
                                 {goals > 0 && (
@@ -574,6 +600,14 @@ export default function LeagueResultsPage() {
                                   onFocus={handlePlayerGoalsFocus}
                                   disabled={saving}
                                   className="w-12 px-1 py-0.5 text-xs text-center border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#29544D] disabled:bg-gray-100"
+                                />
+                                <input
+                                  type="checkbox"
+                                  checked={hasPlayed}
+                                  onChange={(e) => setPlayerHasPlayed(prev => ({ ...prev, [player.id]: e.target.checked }))}
+                                  disabled={saving}
+                                  className="w-4 h-4 cursor-pointer disabled:cursor-not-allowed"
+                                  title="Oznacz, że zawodnik rozegrał mecz"
                                 />
                               </div>
                             )
@@ -670,8 +704,17 @@ export default function LeagueResultsPage() {
                                 {homePlayers.length > 0 ? (
                                   homePlayers.map((player) => {
                                     const goals = playerGoals[player.id] || 0
+                                    const hasPlayed = playerHasPlayed[player.id] || false
                                     return (
                                       <div key={player.id} className="flex items-baseline gap-2 h-[20px]">
+                                        <input
+                                          type="checkbox"
+                                          checked={hasPlayed}
+                                          onChange={(e) => setPlayerHasPlayed(prev => ({ ...prev, [player.id]: e.target.checked }))}
+                                          disabled={saving}
+                                          className="w-4 h-4 cursor-pointer disabled:cursor-not-allowed"
+                                          title="Oznacz, że zawodnik rozegrał mecz"
+                                        />
                                         <input
                                           type="number"
                                           min="0"
@@ -708,6 +751,7 @@ export default function LeagueResultsPage() {
                                 {awayPlayers.length > 0 ? (
                                   awayPlayers.map((player) => {
                                     const goals = playerGoals[player.id] || 0
+                                    const hasPlayed = playerHasPlayed[player.id] || false
                                     return (
                                       <div key={player.id} className="flex items-baseline justify-end gap-2 h-[20px]">
                                         {goals > 0 && (
@@ -730,6 +774,14 @@ export default function LeagueResultsPage() {
                                           onFocus={handlePlayerGoalsFocus}
                                           disabled={saving}
                                           className="w-12 px-1 py-0.5 text-xs text-center border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-yellow-600 disabled:bg-gray-100"
+                                        />
+                                        <input
+                                          type="checkbox"
+                                          checked={hasPlayed}
+                                          onChange={(e) => setPlayerHasPlayed(prev => ({ ...prev, [player.id]: e.target.checked }))}
+                                          disabled={saving}
+                                          className="w-4 h-4 cursor-pointer disabled:cursor-not-allowed"
+                                          title="Oznacz, że zawodnik rozegrał mecz"
                                         />
                                       </div>
                                     )
