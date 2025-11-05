@@ -30,6 +30,7 @@ interface Player {
   surname: string
   position: string
   goals_scored?: number
+  has_played?: boolean
 }
 
 interface Lineup {
