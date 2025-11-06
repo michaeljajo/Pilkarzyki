@@ -227,6 +227,19 @@ export function LeagueNavigation({
                 Strzelcy
               </Link>
 
+              {/* Ustawienia */}
+              <Link
+                href={`/dashboard/leagues/${leagueId}/settings`}
+                className={`min-h-[44px] py-3 text-sm font-medium rounded-xl transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 whitespace-nowrap inline-flex items-center justify-center ${
+                  currentPage === 'settings'
+                    ? 'bg-[#061852] text-white shadow-sm hover:bg-[#0a2475] hover:shadow-md focus:ring-[#061852]'
+                    : 'bg-transparent text-[#29544D] hover:bg-gray-100 focus:ring-gray-300'
+                }`}
+                style={{ paddingLeft: '2em', paddingRight: '2em' }}
+              >
+                Ustawienia
+              </Link>
+
               {/* Admin */}
               {isAdmin && (
                 <Link
@@ -310,7 +323,9 @@ export function LeagueNavigation({
                         ? 'bg-[#3B82F6]/10'
                         : tab.id === 'top-scorers'
                           ? 'bg-[#F59E0B]/10'
-                          : 'bg-[#10B981]/10'
+                          : tab.id === 'settings'
+                            ? 'bg-gray-600/10'
+                            : 'bg-[#10B981]/10'
 
                   const iconColor = isCupTab
                     ? 'text-amber-600'
@@ -320,7 +335,9 @@ export function LeagueNavigation({
                         ? 'text-[#3B82F6]'
                         : tab.id === 'top-scorers'
                           ? 'text-[#F59E0B]'
-                          : 'text-[#10B981]'
+                          : tab.id === 'settings'
+                            ? 'text-gray-600'
+                            : 'text-[#10B981]'
 
                   const borderColor = isCupTab ? 'border-amber-200' : 'border-gray-200'
 
@@ -337,6 +354,7 @@ export function LeagueNavigation({
                           {tab.id === 'results' && <BarChart3 size={24} className={iconColor} />}
                           {tab.id === 'standings' && <Table size={24} className={iconColor} />}
                           {tab.id === 'top-scorers' && <Award size={24} className={iconColor} />}
+                          {tab.id === 'settings' && <Settings size={24} className={iconColor} />}
                           {tab.isCup && <Trophy size={24} className={iconColor} />}
                         </div>
                         <h3 className="text-base font-bold text-gray-900">{tab.label}</h3>
