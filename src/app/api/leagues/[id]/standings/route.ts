@@ -63,17 +63,25 @@ export async function GET(
           first_name,
           last_name,
           email
-        ),
-        squads!inner(team_name)
+        )
       `)
       .eq('league_id', leagueId)
-      .eq('squads.league_id', leagueId)
       .order('position', { ascending: true })
 
     if (standingsError) {
       console.error('Error fetching standings:', standingsError)
       return NextResponse.json({ error: 'Failed to fetch standings' }, { status: 500 })
     }
+
+    // Fetch squad team names for this league
+    const managerIds = standingsData?.map(s => s.manager_id) || []
+    const { data: squads } = await supabaseAdmin
+      .from('squads')
+      .select('manager_id, team_name')
+      .eq('league_id', leagueId)
+      .in('manager_id', managerIds)
+
+    const squadMap = new Map(squads?.map(s => [s.manager_id, s]) || [])
 
     // If no standings exist, calculate them (with race condition protection)
     if (!standingsData || standingsData.length === 0) {
@@ -142,7 +150,7 @@ export async function GET(
 
     // Transform database standings to response format
     const standings = standingsData.map(standing => {
-      const squad = Array.isArray(standing.squads) ? standing.squads[0] : standing.squads
+      const squad = squadMap.get(standing.manager_id)
       return {
         position: standing.position,
         managerId: standing.manager_id,
