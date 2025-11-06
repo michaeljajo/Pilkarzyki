@@ -7,6 +7,7 @@ import { LeagueNavigation } from '@/components/LeagueNavigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Icon } from 'lucide-react'
 import { soccerBall } from '@lucide/lab'
+import { getTeamOrManagerName } from '@/utils/team-name-resolver'
 
 interface League {
   id: string
@@ -197,14 +198,15 @@ export default function LeagueResultsPage({ params }: LeagueResultsPageProps) {
     }
   }
 
-  const getManagerDisplayName = (manager: { first_name?: string; last_name?: string; email: string }) => {
-    if (manager?.first_name && manager?.last_name) {
-      return `${manager.first_name} ${manager.last_name}`
-    }
-    if (manager?.first_name) {
-      return manager.first_name
-    }
-    return manager?.email || 'Unknown Manager'
+  const getManagerDisplayName = (manager: { first_name?: string; last_name?: string; email: string; squad?: { team_name?: string } }) => {
+    return getTeamOrManagerName({
+      manager: {
+        first_name: manager.first_name,
+        last_name: manager.last_name,
+        email: manager.email
+      },
+      squad: manager.squad
+    })
   }
 
   const isUserManager = (managerId: string) => {

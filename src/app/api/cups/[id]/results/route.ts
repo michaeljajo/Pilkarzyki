@@ -110,13 +110,21 @@ export async function GET(
       })
     })
 
-    // Fetch user data for all managers
+    // Fetch user data for all managers with their squad team names
     const { data: users } = await supabaseAdmin
       .from('users')
       .select('id, first_name, last_name, email')
       .in('id', Array.from(managerIds))
 
-    const userMap = new Map(users?.map(u => [u.id, u]) || [])
+    // Fetch squad team names for this league
+    const { data: squads } = await supabaseAdmin
+      .from('squads')
+      .select('manager_id, team_name')
+      .eq('league_id', cup.league_id)
+      .in('manager_id', Array.from(managerIds))
+
+    const squadMap = new Map(squads?.map(s => [s.manager_id, s]) || [])
+    const userMap = new Map(users?.map(u => [u.id, { ...u, squad: squadMap.get(u.id) }]) || [])
 
     // Fetch all cup lineups for this cup
     const cupGameweekIds = cupGameweeks?.map((gw) => gw.id) || []

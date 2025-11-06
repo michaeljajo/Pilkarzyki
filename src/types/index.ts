@@ -60,6 +60,7 @@ export interface Squad {
   id: string
   managerId: string
   leagueId: string
+  teamName?: string
   players: Player[]
   createdAt: Date
   updatedAt: Date
@@ -330,6 +331,24 @@ export interface CupLineup {
   playerIds: string[]
   isLocked: boolean
   totalGoals: number
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface DefaultLineup {
+  id: string
+  managerId: string
+  leagueId: string
+  playerIds: string[]
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface DefaultCupLineup {
+  id: string
+  managerId: string
+  cupId: string
+  playerIds: string[]
   createdAt: Date
   updatedAt: Date
 }

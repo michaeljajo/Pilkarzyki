@@ -3,6 +3,7 @@
 import { useMemo } from 'react'
 import { MatchWithLineups } from '@/types'
 import { PlayerGoalInput } from './PlayerGoalInput'
+import { getTeamOrManagerName } from '@/utils/team-name-resolver'
 
 interface MatchResultCardProps {
   match: MatchWithLineups
@@ -33,18 +34,19 @@ export function MatchResultCard({
     }, 0)
   }, [match.away_lineup?.players, playerGoals])
 
-  const getManagerDisplayName = (manager: { first_name?: string; last_name?: string; email: string }) => {
-    if (manager?.first_name && manager?.last_name) {
-      return `${manager.first_name} ${manager.last_name}`
-    }
-    if (manager?.first_name) {
-      return manager.first_name
-    }
-    return manager?.email || 'Unknown Manager'
+  const getManagerDisplayName = (manager: { first_name?: string; last_name?: string; email: string; squad?: { team_name?: string } }) => {
+    return getTeamOrManagerName({
+      manager: {
+        first_name: manager.first_name,
+        last_name: manager.last_name,
+        email: manager.email
+      },
+      squad: manager.squad
+    })
   }
 
   const renderManagerSide = (
-    manager: { first_name?: string; last_name?: string; email: string },
+    manager: { first_name?: string; last_name?: string; email: string; squad?: { team_name?: string } },
     lineup: typeof match.home_lineup,
     score: number
   ) => (

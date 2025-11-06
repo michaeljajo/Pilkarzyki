@@ -63,9 +63,11 @@ export async function GET(
           first_name,
           last_name,
           email
-        )
+        ),
+        squads!inner(team_name)
       `)
       .eq('league_id', leagueId)
+      .eq('squads.league_id', leagueId)
       .order('position', { ascending: true })
 
     if (standingsError) {
@@ -139,20 +141,24 @@ export async function GET(
     }
 
     // Transform database standings to response format
-    const standings = standingsData.map(standing => ({
-      position: standing.position,
-      managerId: standing.manager_id,
-      managerName: standing.users ? `${standing.users.first_name || ''} ${standing.users.last_name || ''}`.trim() || 'Unknown' : 'Unknown',
-      email: standing.users?.email || '',
-      played: standing.played,
-      won: standing.won,
-      drawn: standing.drawn,
-      lost: standing.lost,
-      goalsFor: standing.goals_for,
-      goalsAgainst: standing.goals_against,
-      goalDifference: standing.goal_difference,
-      points: standing.points
-    }))
+    const standings = standingsData.map(standing => {
+      const squad = Array.isArray(standing.squads) ? standing.squads[0] : standing.squads
+      return {
+        position: standing.position,
+        managerId: standing.manager_id,
+        managerName: standing.users ? `${standing.users.first_name || ''} ${standing.users.last_name || ''}`.trim() || 'Unknown' : 'Unknown',
+        teamName: squad?.team_name || null,
+        email: standing.users?.email || '',
+        played: standing.played,
+        won: standing.won,
+        drawn: standing.drawn,
+        lost: standing.lost,
+        goalsFor: standing.goals_for,
+        goalsAgainst: standing.goals_against,
+        goalDifference: standing.goal_difference,
+        points: standing.points
+      }
+    })
 
     return NextResponse.json({
       league,

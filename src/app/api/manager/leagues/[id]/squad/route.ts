@@ -239,6 +239,19 @@ export async function GET(
       currentLineup = lineup
     }
 
+    // Get default lineup for this league
+    let defaultLineup = null
+    if (targetUserId) {
+      const { data: defLineup } = await supabaseAdmin
+        .from('default_lineups')
+        .select('*')
+        .eq('manager_id', targetUserId)
+        .eq('league_id', leagueId)
+        .single()
+
+      defaultLineup = defLineup
+    }
+
     // Check if there's a cup gameweek for this league gameweek
     let currentCupGameweek = null
     let currentCupLineup = null
@@ -282,14 +295,29 @@ export async function GET(
       }
     }
 
+    // Get default cup lineup if cup exists
+    let defaultCupLineup = null
+    if (cup && targetUserId) {
+      const { data: defCupLineup } = await supabaseAdmin
+        .from('default_cup_lineups')
+        .select('*')
+        .eq('manager_id', targetUserId)
+        .eq('cup_id', cup.id)
+        .single()
+
+      defaultCupLineup = defCupLineup
+    }
+
     return NextResponse.json({
       league,
       players: players || [],
       currentGameweek,
       currentLineup,
+      defaultLineup,
       cup,
       currentCupGameweek,
       currentCupLineup,
+      defaultCupLineup,
       isDualGameweek: !!(currentGameweek && currentCupGameweek)
     })
   } catch (error) {

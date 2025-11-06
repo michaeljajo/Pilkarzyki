@@ -84,6 +84,22 @@ export async function GET(
       .order('gameweek_id', { ascending: false })
       .limit(5)
 
+    // Get unique manager IDs from matches (opponents)
+    const opponentIds = new Set<string>()
+    recentMatches?.forEach(match => {
+      const opponentId = match.home_manager_id === user.id ? match.away_manager_id : match.home_manager_id
+      if (opponentId) opponentIds.add(opponentId)
+    })
+
+    // Fetch squad team names for opponents
+    const { data: opponentSquads } = await supabaseAdmin
+      .from('squads')
+      .select('manager_id, team_name')
+      .eq('league_id', leagueId)
+      .in('manager_id', Array.from(opponentIds))
+
+    const opponentSquadMap = new Map(opponentSquads?.map(s => [s.manager_id, s]) || [])
+
     // Get user's goal scoring history by gameweek
     const { data: goalHistory } = await supabaseAdmin
       .from('results')
@@ -147,9 +163,20 @@ export async function GET(
         }
 
         const opponentManager = isHome ? match.away_manager : match.home_manager
-        const opponentName = opponentManager
-          ? `${opponentManager.first_name || ''} ${opponentManager.last_name || ''}`.trim() || 'Unknown'
-          : 'Unknown'
+        const opponentId = isHome ? match.away_manager_id : match.home_manager_id
+        const opponentSquad = opponentId ? opponentSquadMap.get(opponentId) : null
+
+        // Priority: team_name → first_name+last_name → email → 'Unknown'
+        let opponentName = 'Unknown'
+        if (opponentManager) {
+          if (opponentSquad?.team_name) {
+            opponentName = opponentSquad.team_name
+          } else if (opponentManager.first_name || opponentManager.last_name) {
+            opponentName = `${opponentManager.first_name || ''} ${opponentManager.last_name || ''}`.trim()
+          } else {
+            opponentName = opponentManager.email
+          }
+        }
 
         return {
           gameweek: match.gameweeks?.week || 0,

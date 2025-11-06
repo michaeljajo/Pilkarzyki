@@ -1,5 +1,6 @@
 import { Icon } from 'lucide-react'
 import { soccerBall } from '@lucide/lab'
+import { getTeamOrManagerName } from '@/utils/team-name-resolver'
 
 interface Player {
   id: string
@@ -23,6 +24,9 @@ interface Manager {
   first_name?: string
   last_name?: string
   email: string
+  squad?: {
+    team_name?: string
+  }
 }
 
 interface CupMatch {
@@ -47,13 +51,14 @@ interface CupMatchCardProps {
 
 export function CupMatchCard({ match }: CupMatchCardProps) {
   const getManagerDisplayName = (manager: Manager) => {
-    if (manager?.first_name && manager?.last_name) {
-      return `${manager.first_name} ${manager.last_name}`
-    }
-    if (manager?.first_name) {
-      return manager.first_name
-    }
-    return manager?.email || 'Unknown Manager'
+    return getTeamOrManagerName({
+      manager: {
+        first_name: manager.first_name,
+        last_name: manager.last_name,
+        email: manager.email
+      },
+      squad: manager.squad
+    })
   }
 
   const getStageLabel = (stage: string) => {
@@ -79,10 +84,10 @@ export function CupMatchCard({ match }: CupMatchCardProps) {
   const showAggregate = match.stage !== 'group_stage' && match.stage !== 'final' && match.leg === 2
 
   return (
-    <div className="bg-white border-2 border-amber-600 rounded-2xl hover:shadow-lg transition-shadow duration-200" style={{ padding: '20px' }}>
+    <div className="bg-white border-2 border-[#29544D] rounded-2xl hover:shadow-lg transition-shadow duration-200" style={{ padding: '20px' }}>
       {/* Stage Badge */}
       <div className="mb-3 flex items-center justify-between">
-        <div className="inline-flex items-center px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-semibold">
+        <div className="inline-flex items-center px-3 py-1 rounded-full bg-[#DECF99] text-[#29544D] text-xs font-semibold">
           {getStageLabel(match.stage)}
           {match.group_name && ` - ${match.group_name}`}
           {match.stage !== 'group_stage' && match.stage !== 'final' && ` - Mecz ${match.leg}`}
@@ -92,17 +97,17 @@ export function CupMatchCard({ match }: CupMatchCardProps) {
       {/* Match Score Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex-1" style={{ paddingRight: '24px' }}>
-          <p className={`text-lg font-semibold text-amber-800 ${homeHasPlayersYetToPlay ? 'italic' : ''}`}>
+          <p className={`text-lg font-semibold text-[#29544D] ${homeHasPlayersYetToPlay ? 'italic' : ''}`}>
             {getManagerDisplayName(match.home_manager)}
           </p>
         </div>
         <div className="flex items-center gap-4 px-8">
-          <span className="text-3xl font-bold text-amber-900">{homeGoals}</span>
+          <span className="text-3xl font-bold text-[#061852]">{homeGoals}</span>
           <span className="text-2xl font-medium text-gray-400">-</span>
-          <span className="text-3xl font-bold text-amber-900">{awayGoals}</span>
+          <span className="text-3xl font-bold text-[#061852]">{awayGoals}</span>
         </div>
         <div className="flex-1 text-right" style={{ paddingLeft: '24px' }}>
-          <p className={`text-lg font-semibold text-amber-800 ${awayHasPlayersYetToPlay ? 'italic' : ''}`}>
+          <p className={`text-lg font-semibold text-[#29544D] ${awayHasPlayersYetToPlay ? 'italic' : ''}`}>
             {getManagerDisplayName(match.away_manager)}
           </p>
         </div>
@@ -118,7 +123,7 @@ export function CupMatchCard({ match }: CupMatchCardProps) {
       )}
 
       {/* Player Details */}
-      <div className="flex items-start justify-between pt-3 border-t-2 border-amber-200">
+      <div className="flex items-start justify-between pt-3 border-t-2 border-[#DECF99]">
         {/* Home Team Players */}
         <div className="flex-1 space-y-1" style={{ paddingRight: '32px' }}>
           {homePlayers.length > 0 ? (
@@ -128,13 +133,13 @@ export function CupMatchCard({ match }: CupMatchCardProps) {
               const shouldBeItalic = !hasPlayed
               return (
                 <div key={player.id} className="flex items-baseline gap-2 h-[20px]">
-                  <p className={`text-sm leading-5 truncate ${goals > 0 ? 'font-bold text-amber-900' : 'text-gray-600'} ${shouldBeItalic ? 'italic' : ''}`}>
+                  <p className={`text-sm leading-5 truncate ${goals > 0 ? 'font-bold text-[#061852]' : 'text-gray-600'} ${shouldBeItalic ? 'italic' : ''}`}>
                     {player.name} {player.surname}
                   </p>
                   {goals > 0 && (
                     <div className="flex items-center gap-1 shrink-0">
                       {Array.from({ length: goals }).map((_, i) => (
-                        <Icon key={i} iconNode={soccerBall} size={12} className="text-amber-900" strokeWidth={2} />
+                        <Icon key={i} iconNode={soccerBall} size={12} className="text-[#061852]" strokeWidth={2} />
                       ))}
                     </div>
                   )}
@@ -160,11 +165,11 @@ export function CupMatchCard({ match }: CupMatchCardProps) {
                   {goals > 0 && (
                     <div className="flex items-center gap-1 shrink-0">
                       {Array.from({ length: goals }).map((_, i) => (
-                        <Icon key={i} iconNode={soccerBall} size={12} className="text-amber-900" strokeWidth={2} />
+                        <Icon key={i} iconNode={soccerBall} size={12} className="text-[#061852]" strokeWidth={2} />
                       ))}
                     </div>
                   )}
-                  <p className={`text-sm leading-5 truncate ${goals > 0 ? 'font-bold text-amber-900' : 'text-gray-600'} ${shouldBeItalic ? 'italic' : ''}`}>
+                  <p className={`text-sm leading-5 truncate ${goals > 0 ? 'font-bold text-[#061852]' : 'text-gray-600'} ${shouldBeItalic ? 'italic' : ''}`}>
                     {player.name} {player.surname}
                   </p>
                 </div>
