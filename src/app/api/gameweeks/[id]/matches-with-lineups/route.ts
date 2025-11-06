@@ -65,6 +65,21 @@ export async function GET(
       return NextResponse.json({ error: matchError.message }, { status: 500 })
     }
 
+    // Fetch squads for all managers in these matches to get team names
+    const managerIds = Array.from(
+      new Set(
+        (matches || []).flatMap(m => [m.home_manager_id, m.away_manager_id])
+      )
+    )
+
+    const { data: squads } = await supabaseAdmin
+      .from('squads')
+      .select('manager_id, team_name')
+      .eq('league_id', gameweek.league_id)
+      .in('manager_id', managerIds)
+
+    const squadMap = new Map(squads?.map(s => [s.manager_id, s]) || [])
+
     // OPTIMIZED: Batch fetch all lineups, players, and results to avoid N+1 queries
     // Fetch all lineups for this gameweek once
     const { data: allLineups, error: lineupsError } = await supabaseAdmin
@@ -183,8 +198,20 @@ export async function GET(
         }
       }
 
+      // Add squad data to managers
+      const homeSquad = squadMap.get(match.home_manager_id)
+      const awaySquad = squadMap.get(match.away_manager_id)
+
       return {
         ...match,
+        home_manager: {
+          ...match.home_manager,
+          squad: homeSquad || null
+        },
+        away_manager: {
+          ...match.away_manager,
+          squad: awaySquad || null
+        },
         home_lineup: homeLineupWithPlayers,
         away_lineup: awayLineupWithPlayers
       }
