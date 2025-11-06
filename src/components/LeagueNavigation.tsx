@@ -10,7 +10,7 @@ import { useState, useEffect } from 'react'
 interface LeagueNavigationProps {
   leagueId: string
   leagueName: string
-  currentPage: 'squad' | 'results' | 'standings' | 'top-scorers' | 'cup-results' | 'cup-standings'
+  currentPage: 'squad' | 'results' | 'standings' | 'top-scorers' | 'cup-results' | 'cup-standings' | 'settings'
   showSquadTab?: boolean // Some leagues might not have squad access for certain users
 }
 
@@ -21,6 +21,7 @@ const navigationTabs = [
   { id: 'top-scorers', label: 'Strzelcy', href: (leagueId: string) => `/dashboard/leagues/${leagueId}/top-scorers`, isCup: false },
   { id: 'cup-results', label: '🏆 Wyniki Pucharu', href: (leagueId: string) => `/dashboard/leagues/${leagueId}/cup/results`, isCup: true },
   { id: 'cup-standings', label: '🏆 Tabela Pucharu', href: (leagueId: string) => `/dashboard/leagues/${leagueId}/cup/standings`, isCup: true },
+  { id: 'settings', label: 'Ustawienia', href: (leagueId: string) => `/dashboard/leagues/${leagueId}/settings`, isCup: false },
 ] as const
 
 export function LeagueNavigation({
