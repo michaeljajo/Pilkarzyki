@@ -90,6 +90,7 @@ export async function GET(
         gameweek_id,
         player_ids,
         total_goals,
+        is_from_default,
         manager:users!lineups_manager_id_fkey(
           id,
           email,

@@ -135,7 +135,8 @@ export async function GET(
         manager_id,
         cup_gameweek_id,
         player_ids,
-        total_goals
+        total_goals,
+        is_from_default
       `)
       .in('cup_gameweek_id', cupGameweekIds)
 

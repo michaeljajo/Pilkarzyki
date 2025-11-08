@@ -1,11 +1,8 @@
-import { getTeamOrManagerName } from '@/utils/team-name-resolver'
-
 interface Manager {
   id: string
   first_name?: string
   last_name?: string
   email: string
-  squad?: { team_name?: string }
 }
 
 interface KnockoutMatch {
@@ -26,14 +23,13 @@ interface KnockoutBracketProps {
 
 export function KnockoutBracket({ matches }: KnockoutBracketProps) {
   const getManagerDisplayName = (manager: Manager) => {
-    return getTeamOrManagerName({
-      manager: {
-        first_name: manager.first_name,
-        last_name: manager.last_name,
-        email: manager.email
-      },
-      squad: manager.squad
-    })
+    if (manager?.first_name && manager?.last_name) {
+      return `${manager.first_name} ${manager.last_name}`
+    }
+    if (manager?.first_name) {
+      return manager.first_name
+    }
+    return manager?.email || 'Unknown Manager'
   }
 
   const getStageLabel = (stage: string) => {

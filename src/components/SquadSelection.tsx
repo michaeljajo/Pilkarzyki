@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Select'
 import { PlayerJersey } from '@/components/ui/PlayerJersey'
 import { FootballField } from '@/components/ui/FootballField'
-import { Player, League, Gameweek, Lineup, Cup, CupGameweek, CupLineup, DefaultLineup, DefaultCupLineup } from '@/types'
+import { Player, League, Gameweek, Lineup, Cup, CupGameweek, CupLineup } from '@/types'
 import { validateLineup, validateDualLineups } from '@/utils/validation'
 
 interface SquadData {
@@ -14,17 +14,14 @@ interface SquadData {
   players: Player[]
   currentGameweek: Gameweek | null
   currentLineup: Lineup | null
-  defaultLineup?: DefaultLineup | null
   cup?: Cup
   currentCupGameweek?: CupGameweek
   currentCupLineup?: CupLineup
-  defaultCupLineup?: DefaultCupLineup | null
   isDualGameweek: boolean
 }
 
 interface SquadSelectionProps {
   leagueId: string
-  isDefaultMode?: boolean
 }
 
 interface DropZoneProps {
@@ -74,7 +71,7 @@ function DropZone({ onDrop, onDragOver, onRemove, onDragStart, player, index, is
   )
 }
 
-export default function SquadSelection({ leagueId, isDefaultMode = false }: SquadSelectionProps) {
+export default function SquadSelection({ leagueId }: SquadSelectionProps) {
   const [squadData, setSquadData] = useState<SquadData | null>(null)
   const [selectedPlayers, setSelectedPlayers] = useState<(Player | null)[]>([null, null, null])
   const [selectedCupPlayers, setSelectedCupPlayers] = useState<(Player | null)[]>([null, null, null])
@@ -88,7 +85,6 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
   const [cupValidationErrors, setCupValidationErrors] = useState<string[]>([])
   const [crossLineupErrors, setCrossLineupErrors] = useState<string[]>([])
   const [isMobile, setIsMobile] = useState(false)
-  const [defaultLoadedMessage, setDefaultLoadedMessage] = useState<string | null>(null)
 
   // Helper function to safely get lock date
   const getLockDate = (gameweek: Gameweek | CupGameweek | null | undefined): Date | null => {
@@ -122,45 +118,20 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
         const data = await response.json()
         setSquadData(data)
 
-        // Helper to load players from IDs
-        const loadPlayersFromIds = (playerIds: string[]) =>
-          playerIds.map((playerId: string) =>
+        // If there's an existing league lineup, set the selected players
+        if (data.currentLineup?.player_ids) {
+          const lineupPlayers = data.currentLineup.player_ids.map((playerId: string) =>
             data.players.find((p: Player) => p.id === playerId) || null
           )
-
-        // DEFAULT MODE: Load default lineups for editing
-        if (isDefaultMode) {
-          if (data.defaultLineup?.player_ids) {
-            setSelectedPlayers(loadPlayersFromIds(data.defaultLineup.player_ids))
-          }
-          if (data.defaultCupLineup?.player_ids) {
-            setSelectedCupPlayers(loadPlayersFromIds(data.defaultCupLineup.player_ids))
-          }
+          setSelectedPlayers(lineupPlayers)
         }
-        // REGULAR MODE: Conditional pre-population based on lock status
-        else {
-          const now = new Date()
-          const lockDate = getLockDate(data.currentGameweek)
-          const isLocked = lockDate && now > lockDate
 
-          // League lineup handling
-          if (data.currentLineup?.player_ids) {
-            // Always load existing lineup
-            setSelectedPlayers(loadPlayersFromIds(data.currentLineup.player_ids))
-          } else if (isLocked && data.defaultLineup?.player_ids) {
-            // After lock: use default if no lineup exists
-            setSelectedPlayers(loadPlayersFromIds(data.defaultLineup.player_ids))
-            setDefaultLoadedMessage('Załadowano domyślny skład (żelazo)')
-          }
-          // Before lock: show empty (already initialized as [null, null, null])
-
-          // Cup lineup handling (same logic)
-          if (data.currentCupLineup?.player_ids) {
-            setSelectedCupPlayers(loadPlayersFromIds(data.currentCupLineup.player_ids))
-          } else if (isLocked && data.defaultCupLineup?.player_ids) {
-            setSelectedCupPlayers(loadPlayersFromIds(data.defaultCupLineup.player_ids))
-            setDefaultLoadedMessage('Załadowano domyślny skład (żelazo)')
-          }
+        // If there's an existing cup lineup, set the selected cup players
+        if (data.currentCupLineup?.player_ids) {
+          const cupLineupPlayers = data.currentCupLineup.player_ids.map((playerId: string) =>
+            data.players.find((p: Player) => p.id === playerId) || null
+          )
+          setSelectedCupPlayers(cupLineupPlayers)
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Nieznany błąd')
@@ -331,108 +302,64 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
   }
 
   const saveLineups = async () => {
-    // In default mode, we don't need a currentGameweek
-    if (!isDefaultMode && !squadData?.currentGameweek) return
+    if (!squadData?.currentGameweek) return
 
     setSaving(true)
     try {
       const leaguePlayerIds = selectedPlayers.filter(p => p !== null).map(p => p!.id)
 
-      // DEFAULT MODE: Save to default lineup APIs
-      if (isDefaultMode) {
+      if (squadData.isDualGameweek && squadData.currentCupGameweek) {
+        // Save both lineups atomically
         const cupPlayerIds = selectedCupPlayers.filter(p => p !== null).map(p => p!.id)
 
-        // Save league default lineup
-        const leagueResponse = await fetch('/api/default-lineups', {
+        // Save league lineup
+        const leagueResponse = await fetch('/api/lineups', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            leagueId: squadData?.league.id,
+            gameweekId: squadData.currentGameweek.id,
             playerIds: leaguePlayerIds
           }),
         })
 
         if (!leagueResponse.ok) {
           const errorData = await leagueResponse.json()
-          throw new Error(errorData.error || 'Nie udało się zapisać domyślnego składu ligowego')
+          throw new Error(errorData.error || 'Nie udało się zapisać składu ligowego')
         }
 
-        // Save cup default lineup if cup exists
-        if (squadData?.cup && cupPlayerIds.length > 0) {
-          const cupResponse = await fetch('/api/default-cup-lineups', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              cupId: squadData.cup.id,
-              playerIds: cupPlayerIds
-            }),
-          })
+        // Save cup lineup
+        const cupResponse = await fetch('/api/cup-lineups', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            cupGameweekId: squadData.currentCupGameweek.id,
+            playerIds: cupPlayerIds
+          }),
+        })
 
-          if (!cupResponse.ok) {
-            const errorData = await cupResponse.json()
-            throw new Error(errorData.error || 'Nie udało się zapisać domyślnego składu pucharowego')
-          }
-
-          alert('Domyślne składy (żelazo) zostały zapisane pomyślnie!')
-        } else {
-          alert('Domyślny skład (żelazo) został zapisany pomyślnie!')
+        if (!cupResponse.ok) {
+          const errorData = await cupResponse.json()
+          throw new Error(errorData.error || 'Nie udało się zapisać składu pucharowego')
         }
-      }
-      // REGULAR MODE: Save to regular lineup APIs
-      else {
-        if (squadData.isDualGameweek && squadData.currentCupGameweek) {
-          // Save both lineups atomically
-          const cupPlayerIds = selectedCupPlayers.filter(p => p !== null).map(p => p!.id)
 
-          // Save league lineup
-          const leagueResponse = await fetch('/api/lineups', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              gameweekId: squadData.currentGameweek!.id,
-              playerIds: leaguePlayerIds
-            }),
-          })
+        alert('Oba składy zostały zapisane pomyślnie!')
+      } else {
+        // Save league lineup only
+        const response = await fetch('/api/lineups', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            gameweekId: squadData.currentGameweek.id,
+            playerIds: leaguePlayerIds
+          }),
+        })
 
-          if (!leagueResponse.ok) {
-            const errorData = await leagueResponse.json()
-            throw new Error(errorData.error || 'Nie udało się zapisać składu ligowego')
-          }
-
-          // Save cup lineup
-          const cupResponse = await fetch('/api/cup-lineups', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              cupGameweekId: squadData.currentCupGameweek.id,
-              playerIds: cupPlayerIds
-            }),
-          })
-
-          if (!cupResponse.ok) {
-            const errorData = await cupResponse.json()
-            throw new Error(errorData.error || 'Nie udało się zapisać składu pucharowego')
-          }
-
-          alert('Oba składy zostały zapisane pomyślnie!')
-        } else {
-          // Save league lineup only
-          const response = await fetch('/api/lineups', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              gameweekId: squadData.currentGameweek!.id,
-              playerIds: leaguePlayerIds
-            }),
-          })
-
-          if (!response.ok) {
-            const errorData = await response.json()
-            throw new Error(errorData.error || 'Nie udało się zapisać składu')
-          }
-
-          alert('Skład został zapisany pomyślnie!')
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || 'Nie udało się zapisać składu')
         }
+
+        alert('Skład został zapisany pomyślnie!')
       }
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Nie udało się zapisać składu')
@@ -489,16 +416,14 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
         ) : (
           <div className="space-y-4 pb-4">
             {/* Save Button */}
-            <div className="px-4 space-y-2">
+            <div className="px-4">
               <Button
                 onClick={saveLineups}
-                disabled={!isValid || (isGameweekLocked && !isDefaultMode) || saving}
+                disabled={!isValid || isGameweekLocked || saving}
                 loading={saving}
                 className="w-full"
               >
-                {isDefaultMode ? (
-                  <>⚙️ Zapisz domyślny skład (żelazo)</>
-                ) : isGameweekLocked ? (
+                {isGameweekLocked ? (
                   <>🔒 Zablokowane</>
                 ) : squadData.isDualGameweek ? (
                   <>⚽ Zapisz oba składy</>
@@ -506,27 +431,14 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
                   <>⚽ Zapisz</>
                 )}
               </Button>
-
-              {/* "Ustaw żelazo" button - only in regular mode */}
-              {!isDefaultMode && (
-                <Button
-                  onClick={() => window.location.href = `/dashboard/leagues/${leagueId}/default-lineup`}
-                  variant="secondary"
-                  className="w-full"
-                >
-                  ⚙️ Ustaw żelazo
-                </Button>
-              )}
             </div>
 
             {/* League Lineup */}
-            <Card className={`border-gray-300 ${isDefaultMode ? 'bg-gray-50' : 'bg-[#F2F2F2]'}`}>
+            <Card className="bg-[#F2F2F2] border-gray-300">
               <CardHeader className="px-4 py-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">
-                    {isDefaultMode ? '⚙️ Żelazny skład ligowy' : 'Skład Ligowy'}
-                  </CardTitle>
-                  {!isDefaultMode && squadData.isDualGameweek && (
+                  <CardTitle className="text-base">Skład Ligowy</CardTitle>
+                  {squadData.isDualGameweek && (
                     <span className="text-[10px] font-semibold px-2 py-0.5 bg-blue-100 text-blue-700 rounded">
                       Kolejka {squadData.currentGameweek.week}
                     </span>
@@ -584,7 +496,7 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
                   <Select
                     value={selectedPlayers[0]?.id || ''}
                     onChange={(e) => handleDropdownChange(0, e.target.value, 'league')}
-                    disabled={!isDefaultMode && !!isGameweekLocked}
+                    disabled={!!isGameweekLocked}
                     className="text-sm h-10"
                   >
                     <option value="">Wybierz zawodnika</option>
@@ -604,7 +516,7 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
                   <Select
                     value={selectedPlayers[1]?.id || ''}
                     onChange={(e) => handleDropdownChange(1, e.target.value, 'league')}
-                    disabled={!isDefaultMode && !!isGameweekLocked}
+                    disabled={!!isGameweekLocked}
                     className="text-sm h-10"
                   >
                     <option value="">Wybierz zawodnika</option>
@@ -624,7 +536,7 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
                   <Select
                     value={selectedPlayers[2]?.id || ''}
                     onChange={(e) => handleDropdownChange(2, e.target.value, 'league')}
-                    disabled={!isDefaultMode && !!isGameweekLocked}
+                    disabled={!!isGameweekLocked}
                     className="text-sm h-10"
                   >
                     <option value="">Wybierz zawodnika</option>
@@ -654,20 +566,18 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
               </CardContent>
             </Card>
 
-            {/* Cup Lineup (Only shown if dual gameweek or default mode with cup) */}
-            {((squadData.isDualGameweek && squadData.currentCupGameweek) || (isDefaultMode && squadData.cup)) && (
-              <Card className={`border-yellow-500 border-2 ${isDefaultMode ? 'bg-gray-50' : 'bg-[#F2F2F2]'}`}>
-                <CardHeader className={`px-4 py-3 rounded-t-2xl ${isDefaultMode ? 'bg-gray-100' : 'bg-yellow-50'}`}>
+            {/* Cup Lineup (Only shown if dual gameweek) */}
+            {squadData.isDualGameweek && squadData.currentCupGameweek && (
+              <Card className="bg-[#F2F2F2] border-yellow-500 border-2">
+                <CardHeader className="px-4 py-3 bg-yellow-50 rounded-t-2xl">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-base flex items-center gap-2">
-                      {isDefaultMode ? '⚙️' : '🏆'}
-                      <span>{isDefaultMode ? 'Żelazny skład pucharowy' : 'Skład Pucharowy'}</span>
+                      <span>🏆</span>
+                      Skład Pucharowy
                     </CardTitle>
-                    {!isDefaultMode && squadData.currentCupGameweek && (
-                      <span className="text-[10px] font-semibold px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded">
-                        {squadData.cup?.name || 'Puchar'} - Kolejka {squadData.currentCupGameweek.cupWeek}
-                      </span>
-                    )}
+                    <span className="text-[10px] font-semibold px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded">
+                      {squadData.cup?.name || 'Puchar'} - Kolejka {squadData.currentCupGameweek.cupWeek}
+                    </span>
                   </div>
                 </CardHeader>
                 <CardContent className="px-4 py-2">
@@ -721,7 +631,7 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
                     <Select
                       value={selectedCupPlayers[0]?.id || ''}
                       onChange={(e) => handleDropdownChange(0, e.target.value, 'cup')}
-                      disabled={!isDefaultMode && !!isGameweekLocked}
+                      disabled={!!isGameweekLocked}
                       className="text-sm h-10"
                     >
                       <option value="">Wybierz zawodnika</option>
@@ -741,7 +651,7 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
                     <Select
                       value={selectedCupPlayers[1]?.id || ''}
                       onChange={(e) => handleDropdownChange(1, e.target.value, 'cup')}
-                      disabled={!isDefaultMode && !!isGameweekLocked}
+                      disabled={!!isGameweekLocked}
                       className="text-sm h-10"
                     >
                       <option value="">Wybierz zawodnika</option>
@@ -761,7 +671,7 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
                     <Select
                       value={selectedCupPlayers[2]?.id || ''}
                       onChange={(e) => handleDropdownChange(2, e.target.value, 'cup')}
-                      disabled={!isDefaultMode && !!isGameweekLocked}
+                      disabled={!!isGameweekLocked}
                       className="text-sm h-10"
                     >
                       <option value="">Wybierz zawodnika</option>
@@ -856,50 +766,32 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
               </Card>
 
               {/* Save Button */}
-              <div className="space-y-2">
-                <Button
-                  onClick={saveLineups}
-                  disabled={!isValid || (isGameweekLocked && !isDefaultMode) || saving}
-                  loading={saving}
-                  className="text-[11px] py-1.5"
-                  style={{ width: '100%' }}
-                >
-                  {isDefaultMode ? (
-                    <>⚙️ Zapisz domyślny skład (żelazo)</>
-                  ) : isGameweekLocked ? (
-                    <>🔒 Zablokowane</>
-                  ) : squadData.isDualGameweek ? (
-                    <>⚽ Zapisz oba składy</>
-                  ) : (
-                    <>⚽ Zapisz</>
-                  )}
-                </Button>
-
-                {/* "Ustaw żelazo" button - only in regular mode */}
-                {!isDefaultMode && (
-                  <Button
-                    onClick={() => window.location.href = `/dashboard/leagues/${leagueId}/default-lineup`}
-                    variant="secondary"
-                    className="text-[11px] py-1.5"
-                    style={{ width: '100%' }}
-                  >
-                    ⚙️ Ustaw żelazo
-                  </Button>
+              <Button
+                onClick={saveLineups}
+                disabled={!isValid || isGameweekLocked || saving}
+                loading={saving}
+                className="text-[11px] py-1.5"
+                style={{ width: '100%' }}
+              >
+                {isGameweekLocked ? (
+                  <>🔒 Zablokowane</>
+                ) : squadData.isDualGameweek ? (
+                  <>⚽ Zapisz oba składy</>
+                ) : (
+                  <>⚽ Zapisz</>
                 )}
-              </div>
+              </Button>
             </div>
           </div>
 
           {/* Pitches - Right Side */}
           <div className="xl:col-span-2 space-y-6">
             {/* League Pitch */}
-            <Card className={isDefaultMode ? "bg-gray-50 border-gray-300" : "bg-[#F2F2F2] border-gray-300"}>
+            <Card className="bg-[#F2F2F2] border-gray-300">
               <CardHeader style={{ padding: '12px 16px' }}>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">
-                    {isDefaultMode ? '⚙️ Żelazny skład ligowy' : 'Skład Ligowy'}
-                  </CardTitle>
-                  {!isDefaultMode && squadData.isDualGameweek && (
+                  <CardTitle className="text-lg">Skład Ligowy</CardTitle>
+                  {squadData.isDualGameweek && (
                     <span className="text-xs font-semibold px-2 py-1 bg-blue-100 text-blue-700 rounded">
                       Kolejka {squadData.currentGameweek.week}
                     </span>
@@ -952,18 +844,16 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
 
             {/* Cup Pitch (Only shown if dual gameweek) */}
             {squadData.isDualGameweek && squadData.currentCupGameweek && (
-              <Card className={isDefaultMode ? "bg-gray-50 border-yellow-500 border-2 overflow-hidden" : "bg-[#F2F2F2] border-yellow-500 border-2 overflow-hidden"}>
+              <Card className="bg-[#F2F2F2] border-yellow-500 border-2 overflow-hidden">
                 <CardHeader style={{ padding: '16px 24px' }} className="bg-yellow-50 rounded-t-2xl">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg flex items-center gap-2">
                       <span>🏆</span>
-                      {isDefaultMode ? 'Żelazny skład pucharowy' : 'Skład Pucharowy'}
+                      Skład Pucharowy
                     </CardTitle>
-                    {!isDefaultMode && (
-                      <span className="text-xs font-semibold px-2 py-1 bg-yellow-100 text-yellow-700 rounded">
-                        {squadData.cup?.name || 'Puchar'} - Kolejka {squadData.currentCupGameweek.cupWeek}
-                      </span>
-                    )}
+                    <span className="text-xs font-semibold px-2 py-1 bg-yellow-100 text-yellow-700 rounded">
+                      {squadData.cup?.name || 'Puchar'} - Kolejka {squadData.currentCupGameweek.cupWeek}
+                    </span>
                   </div>
                 </CardHeader>
                 <CardContent style={{ padding: '2px' }}>

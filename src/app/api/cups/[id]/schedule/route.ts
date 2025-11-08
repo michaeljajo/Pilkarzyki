@@ -99,13 +99,6 @@ export async function GET(
       })
     })
 
-    // Get cup details to fetch league_id
-    const { data: cup } = await supabaseAdmin
-      .from('cups')
-      .select('league_id')
-      .eq('id', cupId)
-      .single()
-
     // Fetch user data for all managers
     const { data: users, error: usersError} = await supabaseAdmin
       .from('users')
@@ -116,22 +109,10 @@ export async function GET(
       return NextResponse.json({ error: usersError.message }, { status: 500 })
     }
 
-    // Fetch squad team names for this league
-    const { data: squads } = cup ? await supabaseAdmin
-      .from('squads')
-      .select('manager_id, team_name')
-      .eq('league_id', cup.league_id)
-      .in('manager_id', Array.from(managerIds)) : { data: null }
-
-    const squadMap = new Map(squads?.map(s => [s.manager_id, s]) || [])
-
-    // Create user lookup map with squad data
-    const userMap: Record<string, UserData & { squad?: { team_name?: string } }> = {}
+    // Create user lookup map
+    const userMap: Record<string, UserData> = {}
     users?.forEach(user => {
-      userMap[user.id] = {
-        ...user,
-        squad: squadMap.get(user.id)
-      }
+      userMap[user.id] = user
     })
 
     // Merge user data into schedule

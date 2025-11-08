@@ -17,6 +17,7 @@ interface Lineup {
   cup_gameweek_id: string
   players: Player[]
   total_goals: number
+  is_from_default?: boolean
 }
 
 interface Manager {
@@ -77,9 +78,13 @@ export function CupMatchCard({ match }: CupMatchCardProps) {
   const homePlayers = match.home_lineup?.players || []
   const awayPlayers = match.away_lineup?.players || []
 
-  // Check if managers have players yet to play
-  const homeHasPlayersYetToPlay = homePlayers.some(p => !p.has_played)
-  const awayHasPlayersYetToPlay = awayPlayers.some(p => !p.has_played)
+  // Check if all players have played for each manager
+  const allHomePlayersPlayed = homePlayers.length > 0 && homePlayers.every(p => p.has_played === true)
+  const allAwayPlayersPlayed = awayPlayers.length > 0 && awayPlayers.every(p => p.has_played === true)
+
+  // Get name colors: navy if all played, green if some haven't
+  const homeNameColor = allHomePlayersPlayed ? 'text-[#061852]' : 'text-[#2E7D32]'
+  const awayNameColor = allAwayPlayersPlayed ? 'text-[#061852]' : 'text-[#2E7D32]'
 
   const showAggregate = match.stage !== 'group_stage' && match.stage !== 'final' && match.leg === 2
 
@@ -97,7 +102,7 @@ export function CupMatchCard({ match }: CupMatchCardProps) {
       {/* Match Score Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex-1" style={{ paddingRight: '24px' }}>
-          <p className={`text-lg font-semibold text-[#29544D] ${homeHasPlayersYetToPlay ? 'italic' : ''}`}>
+          <p className={`text-lg font-semibold ${homeNameColor}`}>
             {getManagerDisplayName(match.home_manager)}
           </p>
         </div>
@@ -107,7 +112,7 @@ export function CupMatchCard({ match }: CupMatchCardProps) {
           <span className="text-3xl font-bold text-[#061852]">{awayGoals}</span>
         </div>
         <div className="flex-1 text-right" style={{ paddingLeft: '24px' }}>
-          <p className={`text-lg font-semibold text-[#29544D] ${awayHasPlayersYetToPlay ? 'italic' : ''}`}>
+          <p className={`text-lg font-semibold ${awayNameColor}`}>
             {getManagerDisplayName(match.away_manager)}
           </p>
         </div>
@@ -131,10 +136,17 @@ export function CupMatchCard({ match }: CupMatchCardProps) {
               const goals = player.goals_scored || 0
               const hasPlayed = player.has_played || false
               const shouldBeItalic = !hasPlayed
+              const isOwnGoal = goals === -1
+              const isFromDefault = match.home_lineup?.is_from_default || false
               return (
                 <div key={player.id} className="flex items-baseline gap-2 h-[20px]">
-                  <p className={`text-sm leading-5 truncate ${goals > 0 ? 'font-bold text-[#061852]' : 'text-gray-600'} ${shouldBeItalic ? 'italic' : ''}`}>
+                  <p className={`text-sm leading-5 truncate ${
+                    isOwnGoal ? 'font-bold text-red-600' :
+                    goals > 0 ? 'font-bold text-[#061852]' :
+                    'text-gray-600'
+                  } ${shouldBeItalic ? 'italic' : ''} ${isFromDefault ? 'underline' : ''}`}>
                     {player.name} {player.surname}
+                    {isOwnGoal && <span className="ml-1">(OG)</span>}
                   </p>
                   {goals > 0 && (
                     <div className="flex items-center gap-1 shrink-0">
@@ -160,6 +172,8 @@ export function CupMatchCard({ match }: CupMatchCardProps) {
               const goals = player.goals_scored || 0
               const hasPlayed = player.has_played || false
               const shouldBeItalic = !hasPlayed
+              const isOwnGoal = goals === -1
+              const isFromDefault = match.away_lineup?.is_from_default || false
               return (
                 <div key={player.id} className="flex items-baseline justify-end gap-2 h-[20px]">
                   {goals > 0 && (
@@ -169,8 +183,13 @@ export function CupMatchCard({ match }: CupMatchCardProps) {
                       ))}
                     </div>
                   )}
-                  <p className={`text-sm leading-5 truncate ${goals > 0 ? 'font-bold text-[#061852]' : 'text-gray-600'} ${shouldBeItalic ? 'italic' : ''}`}>
+                  <p className={`text-sm leading-5 truncate ${
+                    isOwnGoal ? 'font-bold text-red-600' :
+                    goals > 0 ? 'font-bold text-[#061852]' :
+                    'text-gray-600'
+                  } ${shouldBeItalic ? 'italic' : ''} ${isFromDefault ? 'underline' : ''}`}>
                     {player.name} {player.surname}
+                    {isOwnGoal && <span className="ml-1">(OG)</span>}
                   </p>
                 </div>
               )

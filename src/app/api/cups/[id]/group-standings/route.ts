@@ -104,15 +104,7 @@ export async function GET(
       .select('id, first_name, last_name, email')
       .in('id', managerIds)
 
-    // Fetch squad team names for this league
-    const { data: squads } = await supabaseAdmin
-      .from('squads')
-      .select('manager_id, team_name')
-      .eq('league_id', cup.league_id)
-      .in('manager_id', managerIds)
-
-    const squadMap = new Map(squads?.map(s => [s.manager_id, s]) || [])
-    const userMap = new Map(users?.map(u => [u.id, { ...u, squad: squadMap.get(u.id) }]) || [])
+    const userMap = new Map(users?.map(u => [u.id, u]) || [])
 
     // Add manager details to standings
     const standingsWithManagers = standings.map(standing => ({

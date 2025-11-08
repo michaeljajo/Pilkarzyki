@@ -3,8 +3,6 @@
 import { useState, useEffect } from 'react'
 import { LeagueNavigation } from '@/components/LeagueNavigation'
 import LeagueTable from '@/components/LeagueTable'
-import { TeamNameModal } from '@/components/TeamNameModal'
-import { useTeamNameModal } from '@/hooks/useTeamNameModal'
 
 interface LeagueStandingsPageProps {
   params: Promise<{ id: string }>
@@ -13,14 +11,13 @@ interface LeagueStandingsPageProps {
 export default function LeagueStandingsPage({ params }: LeagueStandingsPageProps) {
   const [leagueId, setLeagueId] = useState<string>('')
   const [leagueName, setLeagueName] = useState<string>('')
-  const { squad, showModal, handleSuccess } = useTeamNameModal(leagueId)
 
   useEffect(() => {
     async function resolveParams() {
       const resolvedParams = await params
       setLeagueId(resolvedParams.id)
 
-      // Fetch league name
+      // Fetch league name for breadcrumb
       try {
         const response = await fetch(`/api/manager/leagues/${resolvedParams.id}`)
         if (response.ok) {
@@ -36,15 +33,6 @@ export default function LeagueStandingsPage({ params }: LeagueStandingsPageProps
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Team Name Modal - shows if team name not set */}
-      {showModal && squad && leagueName && (
-        <TeamNameModal
-          squadId={squad.id}
-          leagueName={leagueName}
-          onSuccess={handleSuccess}
-        />
-      )}
-
       <LeagueNavigation
         leagueId={leagueId}
         leagueName={leagueName}

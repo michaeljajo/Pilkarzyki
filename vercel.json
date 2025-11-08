@@ -18,6 +18,10 @@
     {
       "path": "/api/cron/complete-gameweeks",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/apply-default-lineups",
+      "schedule": "0 1 * * *"
     }
   ]
 }

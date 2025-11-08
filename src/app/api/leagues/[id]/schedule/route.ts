@@ -339,7 +339,7 @@ export async function GET(
     // Fetch user data for all managers
     const { data: users, error: usersError } = await supabaseAdmin
       .from('users')
-      .select('id, first_name, last_name, email')
+      .select('id, first_name, last_name')
       .in('id', Array.from(managerIds))
 
     console.log('GET users query result:', {
@@ -353,29 +353,11 @@ export async function GET(
       return NextResponse.json({ error: usersError.message }, { status: 500 })
     }
 
-    // Fetch squad team names for this league
-    const { data: squads, error: squadsError } = await supabaseAdmin
-      .from('squads')
-      .select('manager_id, team_name')
-      .eq('league_id', leagueId)
-      .in('manager_id', Array.from(managerIds))
-
-    if (squadsError) {
-      console.error('Squads GET error:', squadsError)
-      return NextResponse.json({ error: squadsError.message }, { status: 500 })
-    }
-
-    // Create squad lookup map
-    const squadMap = new Map(squads?.map(s => [s.manager_id, s]) || [])
-
-    // Create user lookup map with squad data
-    type UserData = { id: string; first_name: string | null; last_name: string | null; email: string; squad?: { team_name?: string } }
+    // Create user lookup map
+    type UserData = { id: string; first_name: string | null; last_name: string | null }
     const userMap: Record<string, UserData> = {}
-    users?.forEach((user) => {
-      userMap[user.id] = {
-        ...user,
-        squad: squadMap.get(user.id)
-      }
+    users?.forEach((user: UserData) => {
+      userMap[user.id] = user
     })
 
     // Merge user data into schedule

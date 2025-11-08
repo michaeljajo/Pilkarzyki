@@ -3,13 +3,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { getTeamOrManagerName } from '@/utils/team-name-resolver'
 
 interface Standing {
   position: number
   managerId: string
   managerName: string
-  teamName?: string | null
   email: string
   played: number
   won: number
@@ -38,15 +36,6 @@ export default function LeagueTable({ leagueId, showAdminControls = false }: Lea
   const [loading, setLoading] = useState(true)
   const [recalculating, setRecalculating] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  const getDisplayName = (standing: Standing) => {
-    // API already returns teamName if available, otherwise falls back to managerName
-    // But we use getTeamOrManagerName for consistency
-    if (standing.teamName) {
-      return standing.teamName
-    }
-    return standing.managerName || standing.email || 'Unknown'
-  }
 
   const fetchStandings = useCallback(async () => {
     try {
@@ -225,7 +214,7 @@ export default function LeagueTable({ leagueId, showAdminControls = false }: Lea
                     <span className="text-sm font-bold text-gray-900">{standing.position}</span>
                   </td>
                   <td className="py-4 px-6">
-                    <span className="font-semibold text-gray-900">{getDisplayName(standing)}</span>
+                    <span className="font-semibold text-gray-900">{standing.managerName}</span>
                   </td>
                   <td className="py-4 px-4 text-center text-gray-700">{standing.played}</td>
                   <td className="py-4 px-4 text-center text-gray-700">{standing.won}</td>

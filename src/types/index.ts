@@ -75,6 +75,7 @@ export interface Lineup {
   totalGoals: number
   createdByAdmin?: boolean
   adminCreatorId?: string
+  isFromDefault?: boolean
   createdAt: Date
   updatedAt: Date
 }
@@ -174,6 +175,7 @@ export interface ManagerLineup {
   player_ids: string[]
   players: PlayerWithResult[]
   total_goals: number
+  is_from_default?: boolean
   manager: {
     id: string
     first_name?: string
@@ -226,6 +228,7 @@ export interface GameweekLineup {
   player_ids: string[]
   is_locked: boolean
   total_goals: number
+  is_from_default?: boolean
   created_at: Date
   updated_at: Date
   users?: {
@@ -331,6 +334,7 @@ export interface CupLineup {
   playerIds: string[]
   isLocked: boolean
   totalGoals: number
+  isFromDefault?: boolean
   createdAt: Date
   updatedAt: Date
 }
@@ -466,4 +470,30 @@ export interface TopScorer {
   managerName: string
   totalGoals: number
   gamesPlayed: number
+}
+
+// Posts (Tablica) types
+
+export interface Post {
+  id: string
+  leagueId: string
+  userId: string
+  content: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface PostWithUser {
+  id: string
+  league_id: string
+  user_id: string
+  content: string
+  created_at: string
+  updated_at: string
+  users: {
+    id: string
+    first_name?: string
+    last_name?: string
+    email: string
+  }
 }
