@@ -9,7 +9,10 @@ export async function GET() {
     }
 
     const client = await clerkClient()
-    const users = await client.users.getUserList()
+    // Fetch ALL users by setting a high limit (Clerk max is 500 per request)
+    const users = await client.users.getUserList({
+      limit: 500
+    })
 
     console.log('🔍 Raw Clerk users response:', {
       totalCount: users.totalCount,
