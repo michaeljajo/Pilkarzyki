@@ -93,10 +93,26 @@ export async function POST(request: NextRequest) {
 
     // Get existing users from Clerk for manager matching
     const client = await clerkClient()
-    const clerkUsers = await client.users.getUserList()
+
+    // Fetch ALL users by paginating through all pages
+    let allClerkUsers: any[] = []
+    let offset = 0
+    const limit = 100 // Max limit per page
+
+    while (true) {
+      const clerkUsers = await client.users.getUserList({ limit, offset })
+      allClerkUsers = allClerkUsers.concat(clerkUsers.data)
+
+      // Break if we've fetched all users
+      if (allClerkUsers.length >= clerkUsers.totalCount) {
+        break
+      }
+
+      offset += limit
+    }
 
     // Transform Clerk users to match expected format
-    const existingUsers = clerkUsers.data.map(user => ({
+    const existingUsers = allClerkUsers.map(user => ({
       clerk_id: user.id,
       email: user.emailAddresses[0]?.emailAddress || '',
       first_name: user.firstName || '',
