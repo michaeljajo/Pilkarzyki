@@ -3,6 +3,7 @@ import { auth, clerkClient } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import * as XLSX from 'xlsx'
 import { Position, PlayerImport } from '@/types'
+import { validateTeamName, formatTeamName } from '@/utils/team-name-resolver'
 
 interface ImportResult {
   success: boolean
@@ -257,19 +258,50 @@ export async function POST(request: NextRequest) {
         if (manager) {
           const { data: existingSquad } = await supabaseAdmin
             .from('squads')
-            .select('id')
+            .select('id, team_name')
             .eq('manager_id', manager.id)
             .eq('league_id', leagueId)
             .single()
 
           let squadId = existingSquad?.id
 
+          // Process team name if provided
+          let teamName: string | null = null
+          if (row['Team Name'] && typeof row['Team Name'] === 'string' && row['Team Name'].trim()) {
+            const teamNameValue = row['Team Name'].trim()
+            const validation = validateTeamName(teamNameValue)
+
+            if (!validation.valid) {
+              result.errors.push(`Row ${rowNum}: Invalid team name - ${validation.error}`)
+              result.skipped++
+              continue
+            }
+
+            teamName = formatTeamName(teamNameValue)
+
+            // Check if team name is unique within the league
+            const { data: duplicateTeam } = await supabaseAdmin
+              .from('squads')
+              .select('id')
+              .eq('league_id', leagueId)
+              .eq('team_name', teamName)
+              .neq('manager_id', manager.id)
+              .single()
+
+            if (duplicateTeam) {
+              result.errors.push(`Row ${rowNum}: Team name "${teamName}" is already taken in this league`)
+              result.skipped++
+              continue
+            }
+          }
+
           if (!existingSquad) {
             const { data: newSquad, error: squadError } = await supabaseAdmin
               .from('squads')
               .insert({
                 manager_id: manager.id,
-                league_id: leagueId
+                league_id: leagueId,
+                team_name: teamName
               })
               .select()
               .single()
@@ -281,6 +313,16 @@ export async function POST(request: NextRequest) {
 
             squadId = newSquad.id
             result.details.squads.push(newSquad)
+          } else if (teamName && teamName !== existingSquad.team_name) {
+            // Update existing squad with team name if it's different
+            const { error: updateError } = await supabaseAdmin
+              .from('squads')
+              .update({ team_name: teamName })
+              .eq('id', existingSquad.id)
+
+            if (updateError) {
+              result.errors.push(`Row ${rowNum}: Failed to update team name - ${updateError.message}`)
+            }
           }
 
           // Add player to squad
@@ -344,21 +386,24 @@ export async function GET() {
         Position: 'Forward',
         Club: 'Inter Miami',
         League: 'MLS',
-        Manager: 'manager@example.com'
+        Manager: 'manager@example.com',
+        'Team Name': 'Miami Magic'
       },
       {
         Name: 'Virgil van Dijk',
         Position: 'Defender',
         Club: 'Liverpool FC',
         League: 'Premier League',
-        Manager: 'manager@example.com'
+        Manager: 'manager@example.com',
+        'Team Name': 'Miami Magic'
       },
       {
         Name: 'Luka Modric',
         Position: 'Midfielder',
         Club: 'Real Madrid',
         League: 'La Liga',
-        Manager: 'manager2@example.com'
+        Manager: 'manager2@example.com',
+        'Team Name': 'Real Stars'
       }
     ]
 
@@ -372,7 +417,8 @@ export async function GET() {
       { width: 12 }, // Position
       { width: 20 }, // Club
       { width: 20 }, // League
-      { width: 25 }  // Manager
+      { width: 25 }, // Manager
+      { width: 20 }  // Team Name
     ]
 
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Players')

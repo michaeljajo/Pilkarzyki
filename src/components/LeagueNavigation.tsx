@@ -10,7 +10,7 @@ import { useState, useEffect } from 'react'
 interface LeagueNavigationProps {
   leagueId: string
   leagueName: string
-  currentPage: 'squad' | 'results' | 'standings' | 'top-scorers' | 'cup-results' | 'cup-standings'
+  currentPage: 'squad' | 'results' | 'standings' | 'top-scorers' | 'cup-results' | 'cup-standings' | 'settings'
   showSquadTab?: boolean // Some leagues might not have squad access for certain users
 }
 
@@ -284,6 +284,7 @@ export function LeagueNavigation({
             className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
             onClick={() => setMobileMenuOpen(false)}
             aria-hidden="true"
+            style={{ top: '64px' }}
           />
 
           {/* Slide-out Menu */}
@@ -296,7 +297,26 @@ export function LeagueNavigation({
             <div className="p-4 space-y-3">
               {/* Navigation Links */}
               <nav className="space-y-3">
+                {/* Admin: Manage League Link - Show at top for mobile */}
+                {isAdmin && (
+                  <Link
+                    href={`/dashboard/admin/leagues/${leagueId}`}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block rounded-xl border-2 border-gray-200 hover:shadow-lg transition-shadow duration-200 p-4"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 shrink-0 rounded-lg bg-[#F59E0B]/10 flex items-center justify-center">
+                        <Settings size={24} className="text-[#F59E0B]" />
+                      </div>
+                      <h3 className="text-base font-bold text-gray-900">Zarządzaj ligą</h3>
+                    </div>
+                  </Link>
+                )}
+
                 {filteredTabs.map((tab) => {
+                  // Skip top-scorers in this map - we'll render it after cup tabs
+                  if (tab.id === 'top-scorers') return null
+
                   const isActive = tab.id === currentPage
                   const isCupTab = tab.isCup
 
@@ -307,9 +327,7 @@ export function LeagueNavigation({
                       ? 'bg-[#29544D]/10'
                       : tab.id === 'results'
                         ? 'bg-[#3B82F6]/10'
-                        : tab.id === 'top-scorers'
-                          ? 'bg-[#F59E0B]/10'
-                          : 'bg-[#10B981]/10'
+                        : 'bg-[#10B981]/10' // standings
 
                   const iconColor = isCupTab
                     ? 'text-amber-600'
@@ -317,9 +335,7 @@ export function LeagueNavigation({
                       ? 'text-[#29544D]'
                       : tab.id === 'results'
                         ? 'text-[#3B82F6]'
-                        : tab.id === 'top-scorers'
-                          ? 'text-[#F59E0B]'
-                          : 'text-[#10B981]'
+                        : 'text-[#10B981]' // standings
 
                   const borderColor = isCupTab ? 'border-amber-200' : 'border-gray-200'
 
@@ -335,7 +351,6 @@ export function LeagueNavigation({
                           {tab.id === 'squad' && <Target size={24} className={iconColor} />}
                           {tab.id === 'results' && <BarChart3 size={24} className={iconColor} />}
                           {tab.id === 'standings' && <Table size={24} className={iconColor} />}
-                          {tab.id === 'top-scorers' && <Award size={24} className={iconColor} />}
                           {tab.isCup && <Trophy size={24} className={iconColor} />}
                         </div>
                         <h3 className="text-base font-bold text-gray-900">{tab.label}</h3>
@@ -344,18 +359,18 @@ export function LeagueNavigation({
                   )
                 })}
 
-                {/* Admin: Manage League Link */}
-                {isAdmin && (
+                {/* Top Scorers - Show after cup tabs */}
+                {filteredTabs.find(tab => tab.id === 'top-scorers') && (
                   <Link
-                    href={`/dashboard/admin/leagues/${leagueId}`}
+                    href={`/dashboard/leagues/${leagueId}/top-scorers`}
                     onClick={() => setMobileMenuOpen(false)}
-                    className="block rounded-xl border-2 border-gray-200 hover:shadow-lg transition-shadow duration-200 p-4"
+                    className={`block rounded-xl border-2 ${currentPage === 'top-scorers' ? 'border-gray-200 shadow-md' : 'border-gray-200'} hover:shadow-lg transition-shadow duration-200 p-4`}
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 shrink-0 rounded-lg bg-[#F59E0B]/10 flex items-center justify-center">
-                        <Settings size={24} className="text-[#F59E0B]" />
+                        <Award size={24} className="text-[#F59E0B]" />
                       </div>
-                      <h3 className="text-base font-bold text-gray-900">Admin</h3>
+                      <h3 className="text-base font-bold text-gray-900">Strzelcy</h3>
                     </div>
                   </Link>
                 )}

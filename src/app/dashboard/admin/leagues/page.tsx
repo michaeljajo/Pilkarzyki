@@ -221,6 +221,11 @@ export default function LeaguesPage() {
           </p>
         </div>
         <div className="flex gap-4">
+          <Link href="/dashboard/admin/migration">
+            <Button variant="ghost" size="lg">
+              📊 Migracja Danych
+            </Button>
+          </Link>
           <Button onClick={fetchLeagues} variant="secondary" size="lg">
             Odśwież
           </Button>

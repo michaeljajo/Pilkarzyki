@@ -15,7 +15,7 @@ export function PlayerGoalInput({ player, goals, onChange, disabled = false }: P
 
   const handleChange = (value: string) => {
     const goalCount = parseInt(value) || 0
-    const clampedGoals = Math.max(0, Math.min(10, goalCount)) // Clamp between 0-10
+    const clampedGoals = Math.max(-1, Math.min(9, goalCount)) // Clamp between -1 to 9
     setLocalGoals(clampedGoals)
     onChange(player.id, clampedGoals)
   }
@@ -27,11 +27,20 @@ export function PlayerGoalInput({ player, goals, onChange, disabled = false }: P
     Forward: 'bg-red-100 text-red-800 border-red-200',
   }
 
+  const isOwnGoal = localGoals === -1
+
   return (
-    <div className="flex items-center justify-between p-2 bg-white border border-gray-200 rounded-lg">
+    <div className={`flex items-center justify-between p-2 border rounded-lg ${
+      isOwnGoal
+        ? 'bg-red-50 border-red-300'
+        : 'bg-white border-gray-200'
+    }`}>
       <div className="flex-1 min-w-0">
-        <div className="text-xs font-medium text-gray-900 truncate">
+        <div className={`text-xs font-medium truncate ${
+          isOwnGoal ? 'text-red-900' : 'text-gray-900'
+        }`}>
           {player.name} {player.surname}
+          {isOwnGoal && <span className="ml-1 text-red-600">(Own Goal)</span>}
         </div>
       </div>
 
@@ -39,12 +48,16 @@ export function PlayerGoalInput({ player, goals, onChange, disabled = false }: P
         <input
           id={`goals-${player.id}`}
           type="number"
-          min="0"
-          max="10"
+          min="-1"
+          max="9"
           value={localGoals}
           onChange={(e) => handleChange(e.target.value)}
           disabled={disabled}
-          className="w-12 px-1.5 py-1 text-xs text-center border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
+          className={`w-12 px-1.5 py-1 text-xs text-center border rounded focus:outline-none focus:ring-2 disabled:bg-gray-100 disabled:text-gray-500 ${
+            isOwnGoal
+              ? 'border-red-300 focus:ring-red-500 focus:border-red-500 text-red-700'
+              : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+          }`}
         />
         <span className="text-sm">⚽</span>
       </div>

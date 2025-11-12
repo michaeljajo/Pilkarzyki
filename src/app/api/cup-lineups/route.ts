@@ -156,13 +156,23 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Check if cup gameweek is locked via league gameweek
+    // Check if cup gameweek is locked via league gameweek and get league info
     const { data: cupGameweek } = await supabaseAdmin
       .from('cup_gameweeks')
       .select(`
         *,
         gameweeks (
-          lock_date
+          lock_date,
+          league_id,
+          leagues:league_id (
+            name
+          )
+        ),
+        cups (
+          league_id,
+          leagues:league_id (
+            name
+          )
         )
       `)
       .eq('id', cupGameweekId)
@@ -177,12 +187,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Cannot modify lineup after lock date' }, { status: 400 })
     }
 
+    // Get league name from cup or gameweek
+    const leagueName = (cupGameweek.cups as any)?.leagues?.name || (cupGameweek.gameweeks as any)?.leagues?.name
+
     // Validate lineup if playerIds provided
     if (playerIds.length > 0) {
+      // CRITICAL: Filter by league to prevent cross-league player confusion
       const { data: players } = await supabaseAdmin
         .from('players')
         .select('*')
         .in('id', playerIds)
+        .eq('league', leagueName)
 
       if (players) {
         const validation = validateLineup(players)

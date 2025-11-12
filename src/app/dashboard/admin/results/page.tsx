@@ -30,6 +30,7 @@ export default function ResultsPage() {
   const [saving, setSaving] = useState(false)
   const [updatingStatus, setUpdatingStatus] = useState(false)
   const [playerGoals, setPlayerGoals] = useState<{[key: string]: number}>({})
+  const [playerHasPlayed, setPlayerHasPlayed] = useState<{[key: string]: boolean}>({})
 
   useEffect(() => {
     fetchGameweeks()
@@ -41,6 +42,7 @@ export default function ResultsPage() {
     } else {
       setMatchData(null)
       setPlayerGoals({})
+      setPlayerHasPlayed({})
     }
   }, [selectedGameweek])
 
@@ -88,17 +90,21 @@ export default function ResultsPage() {
         const data = await response.json()
         setMatchData(data)
 
-        // Initialize playerGoals state with existing results
+        // Initialize playerGoals and playerHasPlayed state with existing results
         const goalsMap: {[key: string]: number} = {}
+        const hasPlayedMap: {[key: string]: boolean} = {}
         data.matches?.forEach((match: MatchWithLineups) => {
           match.home_lineup?.players?.forEach((player: PlayerWithResult) => {
             goalsMap[player.id] = player.goals_scored || 0
+            hasPlayedMap[player.id] = player.has_played || false
           })
           match.away_lineup?.players?.forEach((player: PlayerWithResult) => {
             goalsMap[player.id] = player.goals_scored || 0
+            hasPlayedMap[player.id] = player.has_played || false
           })
         })
         setPlayerGoals(goalsMap)
+        setPlayerHasPlayed(hasPlayedMap)
       } else {
         console.error('Failed to fetch match data')
         setMatchData(null)
@@ -169,7 +175,8 @@ export default function ResultsPage() {
       // Prepare results data for the existing API
       const results = Object.entries(playerGoals).map(([player_id, goals]) => ({
         player_id,
-        goals
+        goals,
+        has_played: playerHasPlayed[player_id] || false
       }))
 
       const response = await fetch(`/api/gameweeks/${selectedGameweek}/lineups`, {
@@ -213,7 +220,8 @@ export default function ResultsPage() {
       // Prepare results data only for this match's players
       const results = matchPlayerIds.map(playerId => ({
         player_id: playerId,
-        goals: playerGoals[playerId] || 0
+        goals: playerGoals[playerId] || 0,
+        has_played: playerHasPlayed[playerId] || false
       }))
 
       const response = await fetch(`/api/gameweeks/${selectedGameweek}/lineups`, {
@@ -341,14 +349,39 @@ export default function ResultsPage() {
                 const homePlayers = match.home_lineup?.players || []
                 const awayPlayers = match.away_lineup?.players || []
 
-                const getManagerDisplayName = (manager: { first_name?: string; last_name?: string; email: string }) => {
+                const getManagerDisplayName = (manager: { first_name?: string; last_name?: string; email: string; squad?: { team_name?: string } | null }) => {
+                  // Priority 1: Team name
+                  if (manager?.squad?.team_name) {
+                    return manager.squad.team_name
+                  }
+                  // Priority 2: First and last name
                   if (manager?.first_name && manager?.last_name) {
                     return `${manager.first_name} ${manager.last_name}`
                   }
+                  // Priority 3: First name only
                   if (manager?.first_name) {
                     return manager.first_name
                   }
+                  // Priority 4: Email
                   return manager?.email || 'Unknown Manager'
+                }
+
+                // Check if all players have played for a manager
+                const allPlayersHavePlayed = (players: PlayerWithResult[] | undefined) => {
+                  if (!players || players.length === 0) return false
+                  const result = players.every(p => playerHasPlayed[p.id] === true)
+                  // Debug logging
+                  console.log('Checking players:', players.map(p => ({
+                    name: `${p.name} ${p.surname}`,
+                    hasPlayed: playerHasPlayed[p.id],
+                    id: p.id
+                  })), 'All played:', result)
+                  return result
+                }
+
+                // Get name color based on whether all players have played
+                const getManagerNameColor = (players: PlayerWithResult[] | undefined) => {
+                  return allPlayersHavePlayed(players) ? 'text-[#061852]' : 'text-[#2E7D32]'
                 }
 
                 return (
@@ -367,7 +400,7 @@ export default function ResultsPage() {
                     {/* Match Score Header */}
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex-1" style={{ paddingRight: '24px' }}>
-                        <p className="text-lg font-semibold text-[#29544D]">
+                        <p className={`text-lg font-semibold ${getManagerNameColor(homePlayers)}`}>
                           {getManagerDisplayName(match.home_manager)}
                         </p>
                       </div>
@@ -377,7 +410,7 @@ export default function ResultsPage() {
                         <span className="text-3xl font-bold text-[#061852]">{awayGoals}</span>
                       </div>
                       <div className="flex-1 text-right" style={{ paddingLeft: '24px' }}>
-                        <p className="text-lg font-semibold text-[#29544D]">
+                        <p className={`text-lg font-semibold ${getManagerNameColor(awayPlayers)}`}>
                           {getManagerDisplayName(match.away_manager)}
                         </p>
                       </div>
@@ -390,8 +423,17 @@ export default function ResultsPage() {
                         {homePlayers.length > 0 ? (
                           homePlayers.map((player) => {
                             const goals = playerGoals[player.id] || 0
+                            const hasPlayed = playerHasPlayed[player.id] || false
                             return (
                               <div key={player.id} className="flex items-baseline gap-2 h-[20px]">
+                                <input
+                                  type="checkbox"
+                                  checked={hasPlayed}
+                                  onChange={(e) => setPlayerHasPlayed(prev => ({ ...prev, [player.id]: e.target.checked }))}
+                                  disabled={saving}
+                                  className="w-4 h-4 cursor-pointer disabled:cursor-not-allowed"
+                                  title="Oznacz, że zawodnik rozegrał mecz"
+                                />
                                 <input
                                   type="number"
                                   min="0"
@@ -426,6 +468,7 @@ export default function ResultsPage() {
                         {awayPlayers.length > 0 ? (
                           awayPlayers.map((player) => {
                             const goals = playerGoals[player.id] || 0
+                            const hasPlayed = playerHasPlayed[player.id] || false
                             return (
                               <div key={player.id} className="flex items-baseline justify-end gap-2 h-[20px]">
                                 {goals > 0 && (
@@ -446,6 +489,14 @@ export default function ResultsPage() {
                                   onChange={(e) => handlePlayerGoalsChange(player.id, parseInt(e.target.value) || 0)}
                                   disabled={saving}
                                   className="w-12 px-1 py-0.5 text-xs text-center border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#29544D] disabled:bg-gray-100"
+                                />
+                                <input
+                                  type="checkbox"
+                                  checked={hasPlayed}
+                                  onChange={(e) => setPlayerHasPlayed(prev => ({ ...prev, [player.id]: e.target.checked }))}
+                                  disabled={saving}
+                                  className="w-4 h-4 cursor-pointer disabled:cursor-not-allowed"
+                                  title="Oznacz, że zawodnik rozegrał mecz"
                                 />
                               </div>
                             )

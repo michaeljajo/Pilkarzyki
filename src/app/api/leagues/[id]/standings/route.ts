@@ -73,6 +73,16 @@ export async function GET(
       return NextResponse.json({ error: 'Failed to fetch standings' }, { status: 500 })
     }
 
+    // Fetch squad team names for this league
+    const managerIds = standingsData?.map(s => s.manager_id) || []
+    const { data: squads } = await supabaseAdmin
+      .from('squads')
+      .select('manager_id, team_name')
+      .eq('league_id', leagueId)
+      .in('manager_id', managerIds)
+
+    const squadMap = new Map(squads?.map(s => [s.manager_id, s]) || [])
+
     // If no standings exist, calculate them (with race condition protection)
     if (!standingsData || standingsData.length === 0) {
       console.log('No standings found, calculating...')
@@ -90,6 +100,7 @@ export async function GET(
               position: index + 1,
               managerId: standing.managerId,
               managerName: standing.managerName,
+              teamName: standing.teamName || null,
               email: standing.email,
               played: standing.played,
               won: standing.won,
@@ -101,6 +112,7 @@ export async function GET(
               points: standing.points
             }))
           })
+
         } catch (error) {
           calculatingStandings.delete(leagueId)
           throw error
@@ -121,6 +133,7 @@ export async function GET(
             position: index + 1,
             managerId: standing.managerId,
             managerName: standing.managerName,
+            teamName: standing.teamName || null,
             email: standing.email,
             played: standing.played,
             won: standing.won,
@@ -139,20 +152,24 @@ export async function GET(
     }
 
     // Transform database standings to response format
-    const standings = standingsData.map(standing => ({
-      position: standing.position,
-      managerId: standing.manager_id,
-      managerName: standing.users ? `${standing.users.first_name || ''} ${standing.users.last_name || ''}`.trim() || 'Unknown' : 'Unknown',
-      email: standing.users?.email || '',
-      played: standing.played,
-      won: standing.won,
-      drawn: standing.drawn,
-      lost: standing.lost,
-      goalsFor: standing.goals_for,
-      goalsAgainst: standing.goals_against,
-      goalDifference: standing.goal_difference,
-      points: standing.points
-    }))
+    const standings = standingsData.map(standing => {
+      const squad = squadMap.get(standing.manager_id)
+      return {
+        position: standing.position,
+        managerId: standing.manager_id,
+        managerName: standing.users ? `${standing.users.first_name || ''} ${standing.users.last_name || ''}`.trim() || 'Unknown' : 'Unknown',
+        teamName: squad?.team_name || null,
+        email: standing.users?.email || '',
+        played: standing.played,
+        won: standing.won,
+        drawn: standing.drawn,
+        lost: standing.lost,
+        goalsFor: standing.goals_for,
+        goalsAgainst: standing.goals_against,
+        goalDifference: standing.goal_difference,
+        points: standing.points
+      }
+    })
 
     return NextResponse.json({
       league,
@@ -238,6 +255,7 @@ export async function POST(
         position: index + 1,
         managerId: standing.managerId,
         managerName: standing.managerName,
+        teamName: standing.teamName || null,
         email: standing.email,
         played: standing.played,
         won: standing.won,

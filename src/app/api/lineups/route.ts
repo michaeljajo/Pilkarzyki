@@ -197,10 +197,16 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Check if gameweek is locked
+    // Check if gameweek is locked and get league info
     const { data: gameweek } = await supabaseAdmin
       .from('gameweeks')
-      .select('lock_date')
+      .select(`
+        lock_date,
+        league_id,
+        leagues:league_id (
+          name
+        )
+      `)
       .eq('id', gameweekId)
       .single()
 
@@ -212,13 +218,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Cannot modify lineup after lock date' }, { status: 400 })
     }
 
+    const leagueName = (gameweek.leagues as any)?.name
+
     // Validate lineup if playerIds provided
     if (playerIds.length > 0) {
       // Get player details for validation
+      // CRITICAL: Filter by league to prevent cross-league player confusion
       const { data: players } = await supabaseAdmin
         .from('players')
         .select('*')
         .in('id', playerIds)
+        .eq('league', leagueName)
 
       if (players) {
         const validation = validateLineup(players)

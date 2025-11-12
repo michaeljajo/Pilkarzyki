@@ -116,10 +116,12 @@ export async function GET(
 
     // Get manager's assigned players for this league
     console.log('Squad API - Looking for players with manager_id:', targetUserId)
+    // CRITICAL: Filter by league to prevent cross-league player confusion
     const { data: initialPlayers, error } = await supabaseAdmin
       .from('players')
       .select('*')
       .eq('manager_id', targetUserId)
+      .eq('league', league.name)
       .order('position')
       .order('name')
 
@@ -167,10 +169,12 @@ export async function GET(
 
       if (allUsersWithEmail && allUsersWithEmail.length > 0) {
         const allUserIds = allUsersWithEmail.map(u => u.id)
+        // CRITICAL: Filter by league to prevent cross-league player confusion
         const { data: playersForAllUsers } = await supabaseAdmin
           .from('players')
           .select('id, name, position, manager_id')
           .in('manager_id', allUserIds)
+          .eq('league', league.name)
 
         console.log('Squad API - Players assigned to users with this email:', playersForAllUsers)
       }
@@ -180,10 +184,12 @@ export async function GET(
       if (duplicateUsers && duplicateUsers.length > 0) {
         const duplicateIds = duplicateUsers.map(u => u.id)
 
+        // CRITICAL: Filter by league to prevent cross-league player confusion
         const { data: foundPlayers } = await supabaseAdmin
           .from('players')
           .select('*')
           .in('manager_id', duplicateIds)
+          .eq('league', league.name)
 
         if (foundPlayers && foundPlayers.length > 0) {
           orphanedPlayers = foundPlayers
@@ -201,10 +207,12 @@ export async function GET(
             console.log('Squad API - Successfully reassigned players to current user')
 
             // Fetch the updated players
+            // CRITICAL: Filter by league to prevent cross-league player confusion
             const { data: updatedPlayers } = await supabaseAdmin
               .from('players')
               .select('*')
               .eq('manager_id', targetUserId)
+              .eq('league', league.name)
               .order('position')
               .order('name')
 
@@ -237,6 +245,19 @@ export async function GET(
         .single()
 
       currentLineup = lineup
+    }
+
+    // Get default lineup for this league
+    let defaultLineup = null
+    if (targetUserId) {
+      const { data: defLineup } = await supabaseAdmin
+        .from('default_lineups')
+        .select('*')
+        .eq('manager_id', targetUserId)
+        .eq('league_id', leagueId)
+        .single()
+
+      defaultLineup = defLineup
     }
 
     // Check if there's a cup gameweek for this league gameweek
@@ -282,14 +303,29 @@ export async function GET(
       }
     }
 
+    // Get default cup lineup if cup exists
+    let defaultCupLineup = null
+    if (cup && targetUserId) {
+      const { data: defCupLineup } = await supabaseAdmin
+        .from('default_cup_lineups')
+        .select('*')
+        .eq('manager_id', targetUserId)
+        .eq('cup_id', cup.id)
+        .single()
+
+      defaultCupLineup = defCupLineup
+    }
+
     return NextResponse.json({
       league,
       players: players || [],
       currentGameweek,
       currentLineup,
+      defaultLineup,
       cup,
       currentCupGameweek,
       currentCupLineup,
+      defaultCupLineup,
       isDualGameweek: !!(currentGameweek && currentCupGameweek)
     })
   } catch (error) {

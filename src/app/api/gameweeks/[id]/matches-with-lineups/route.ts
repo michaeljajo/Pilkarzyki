@@ -120,10 +120,12 @@ export async function GET(
     // Batch fetch all players
     let playersMap = new Map()
     if (allPlayerIds.length > 0) {
+      // CRITICAL: Filter by league to prevent cross-league player confusion
       const { data: players, error: playersError } = await supabaseAdmin
         .from('players')
         .select('id, name, surname, position, manager_id')
         .in('id', allPlayerIds)
+        .eq('league', (gameweek.leagues as any).name)
 
       if (playersError) {
         console.error('Error fetching players:', playersError)
@@ -170,8 +172,14 @@ export async function GET(
           })
           .filter(Boolean)
 
+        // Calculate actual total goals from results
+        const calculatedTotalGoals = homePlayersWithResults.reduce((sum, player) => {
+          return sum + (player.goals_scored || 0)
+        }, 0)
+
         homeLineupWithPlayers = {
           ...homeLineup,
+          total_goals: calculatedTotalGoals, // Override with calculated value
           players: homePlayersWithResults
         }
       }
@@ -193,8 +201,14 @@ export async function GET(
           })
           .filter(Boolean)
 
+        // Calculate actual total goals from results
+        const calculatedTotalGoals = awayPlayersWithResults.reduce((sum, player) => {
+          return sum + (player.goals_scored || 0)
+        }, 0)
+
         awayLineupWithPlayers = {
           ...awayLineup,
+          total_goals: calculatedTotalGoals, // Override with calculated value
           players: awayPlayersWithResults
         }
       }

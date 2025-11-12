@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { supabaseAdmin } from '@/lib/supabase'
 import { Badge } from '@/components/ui/Badge'
-import { Trophy, Target, BarChart3, Settings, ArrowLeft, Table, Award } from 'lucide-react'
+import { Trophy, Target, BarChart3, Settings, ArrowLeft, Table, Award, MessageCircle } from 'lucide-react'
 import Image from 'next/image'
 
 interface LeagueDashboardPageProps {
@@ -102,6 +102,18 @@ export default async function LeagueDashboardPage({ params }: LeagueDashboardPag
           <div className="w-full max-w-5xl">
             {/* Mobile: Compact List Layout */}
             <div className="flex flex-col gap-3 md:hidden">
+              {/* Admin link at top for mobile */}
+              {isAdmin && (
+                <Link href={`/dashboard/admin/leagues/${leagueId}`} className="mx-2">
+                  <div className="bg-white rounded-xl border border-gray-200 hover:shadow-lg group cursor-pointer transition-shadow duration-200 p-4 flex items-center gap-4">
+                    <div className="w-12 h-12 shrink-0 rounded-lg bg-[#F59E0B]/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Settings size={24} className="text-[#F59E0B]" />
+                    </div>
+                    <h3 className="text-base font-bold text-gray-900">Zarządzaj Ligą</h3>
+                  </div>
+                </Link>
+              )}
+
               {isManager && (
                 <Link href={`/dashboard/leagues/${leagueId}/squad`} className="mx-2">
                   <div className="bg-white rounded-xl border border-gray-200 hover:shadow-lg group cursor-pointer transition-shadow duration-200 p-4 flex items-center gap-4">
@@ -131,15 +143,6 @@ export default async function LeagueDashboardPage({ params }: LeagueDashboardPag
                 </div>
               </Link>
 
-              <Link href={`/dashboard/leagues/${leagueId}/top-scorers`} className="mx-2">
-                <div className="bg-white rounded-xl border border-gray-200 hover:shadow-lg group cursor-pointer transition-shadow duration-200 p-4 flex items-center gap-4">
-                  <div className="w-12 h-12 shrink-0 rounded-lg bg-[#F59E0B]/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Award size={24} className="text-[#F59E0B]" />
-                  </div>
-                  <h3 className="text-base font-bold text-gray-900">Strzelcy</h3>
-                </div>
-              </Link>
-
               {hasCup && (
                 <>
                   <Link href={`/dashboard/leagues/${leagueId}/cup/results`} className="mx-2">
@@ -162,13 +165,32 @@ export default async function LeagueDashboardPage({ params }: LeagueDashboardPag
                 </>
               )}
 
-              {isAdmin && (
-                <Link href={`/dashboard/admin/leagues/${leagueId}`} className="mx-2">
+              {/* Strzelcy moved after cup tabs */}
+              <Link href={`/dashboard/leagues/${leagueId}/top-scorers`} className="mx-2">
+                <div className="bg-white rounded-xl border border-gray-200 hover:shadow-lg group cursor-pointer transition-shadow duration-200 p-4 flex items-center gap-4">
+                  <div className="w-12 h-12 shrink-0 rounded-lg bg-[#F59E0B]/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Award size={24} className="text-[#F59E0B]" />
+                  </div>
+                  <h3 className="text-base font-bold text-gray-900">Strzelcy</h3>
+                </div>
+              </Link>
+
+              <Link href={`/dashboard/leagues/${leagueId}/tablica`} className="mx-2">
+                <div className="bg-white rounded-xl border border-gray-200 hover:shadow-lg group cursor-pointer transition-shadow duration-200 p-4 flex items-center gap-4">
+                  <div className="w-12 h-12 shrink-0 rounded-lg bg-[#6366F1]/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <MessageCircle size={24} className="text-[#6366F1]" />
+                  </div>
+                  <h3 className="text-base font-bold text-gray-900">Tablica</h3>
+                </div>
+              </Link>
+
+              {isManager && (
+                <Link href={`/dashboard/leagues/${leagueId}/settings`} className="mx-2">
                   <div className="bg-white rounded-xl border border-gray-200 hover:shadow-lg group cursor-pointer transition-shadow duration-200 p-4 flex items-center gap-4">
-                    <div className="w-12 h-12 shrink-0 rounded-lg bg-[#F59E0B]/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <Settings size={24} className="text-[#F59E0B]" />
+                    <div className="w-12 h-12 shrink-0 rounded-lg bg-[#8B5CF6]/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Settings size={24} className="text-[#8B5CF6]" />
                     </div>
-                    <h3 className="text-base font-bold text-gray-900">Zarządzaj Ligą</h3>
+                    <h3 className="text-base font-bold text-gray-900">Ustawienia</h3>
                   </div>
                 </Link>
               )}
@@ -234,6 +256,26 @@ export default async function LeagueDashboardPage({ params }: LeagueDashboardPag
                     </div>
                   </Link>
                 </>
+              )}
+
+              <Link href={`/dashboard/leagues/${leagueId}/tablica`}>
+                <div className="bg-white rounded-2xl border border-gray-200 hover-lift hover:shadow-xl group cursor-pointer min-w-[200px] text-center transition-shadow duration-200" style={{ padding: '40px 32px' }}>
+                  <div className="w-16 h-16 mx-auto rounded-xl bg-[#6366F1]/10 flex items-center justify-center group-hover:scale-110 transition-transform" style={{ marginBottom: '24px' }}>
+                    <MessageCircle size={32} className="text-[#6366F1]" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900" style={{ marginBottom: '8px' }}>Tablica</h3>
+                </div>
+              </Link>
+
+              {isManager && (
+                <Link href={`/dashboard/leagues/${leagueId}/settings`}>
+                  <div className="bg-white rounded-2xl border border-gray-200 hover-lift hover:shadow-xl group cursor-pointer min-w-[200px] text-center transition-shadow duration-200" style={{ padding: '40px 32px' }}>
+                    <div className="w-16 h-16 mx-auto rounded-xl bg-[#8B5CF6]/10 flex items-center justify-center group-hover:scale-110 transition-transform" style={{ marginBottom: '24px' }}>
+                      <Settings size={32} className="text-[#8B5CF6]" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900" style={{ marginBottom: '8px' }}>Ustawienia</h3>
+                  </div>
+                </Link>
               )}
 
               {isAdmin && (

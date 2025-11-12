@@ -154,13 +154,16 @@ export async function GET(
       )
     )
 
-    // Batch fetch all players
+    // Batch fetch all players (filter by league to avoid cross-league duplicates)
     const playersMap = new Map()
     if (allPlayerIds.length > 0) {
+      const leagueName = Array.isArray(cup.leagues) ? cup.leagues[0]?.name : cup.leagues?.name
+
       const { data: players } = await supabaseAdmin
         .from('players')
         .select('id, name, surname, position, manager_id')
         .in('id', allPlayerIds)
+        .eq('league', leagueName)  // CRITICAL: Filter by league to prevent cross-league player confusion
 
       players?.forEach(p => playersMap.set(p.id, p))
     }

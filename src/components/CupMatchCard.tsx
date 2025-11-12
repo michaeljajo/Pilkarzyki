@@ -73,8 +73,8 @@ export function CupMatchCard({ match }: CupMatchCardProps) {
     return stageLabels[stage] || stage
   }
 
-  const homeGoals = match.home_lineup?.total_goals || 0
-  const awayGoals = match.away_lineup?.total_goals || 0
+  const homeGoals = match.home_score || 0
+  const awayGoals = match.away_score || 0
   const homePlayers = match.home_lineup?.players || []
   const awayPlayers = match.away_lineup?.players || []
 

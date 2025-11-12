@@ -27,8 +27,8 @@ export async function GET(
       .select(`
         *,
         gameweek:gameweeks(*),
-        home_manager:users!matches_home_manager_id_fkey(id, first_name, last_name),
-        away_manager:users!matches_away_manager_id_fkey(id, first_name, last_name)
+        home_manager:users!matches_home_manager_id_fkey(id, first_name, last_name, email),
+        away_manager:users!matches_away_manager_id_fkey(id, first_name, last_name, email)
       `)
       .eq('league_id', leagueId)
       .order('gameweek_id', { ascending: true })
@@ -37,7 +37,36 @@ export async function GET(
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ matches })
+    // Get unique manager IDs from matches
+    const managerIds = new Set<string>()
+    matches?.forEach(match => {
+      if (match.home_manager_id) managerIds.add(match.home_manager_id)
+      if (match.away_manager_id) managerIds.add(match.away_manager_id)
+    })
+
+    // Fetch squad team names for this league
+    const { data: squads } = await supabaseAdmin
+      .from('squads')
+      .select('manager_id, team_name')
+      .eq('league_id', leagueId)
+      .in('manager_id', Array.from(managerIds))
+
+    const squadMap = new Map(squads?.map(s => [s.manager_id, s]) || [])
+
+    // Add squad data to manager objects
+    const matchesWithSquads = matches?.map(match => ({
+      ...match,
+      home_manager: match.home_manager ? {
+        ...match.home_manager,
+        squad: squadMap.get(match.home_manager.id)
+      } : null,
+      away_manager: match.away_manager ? {
+        ...match.away_manager,
+        squad: squadMap.get(match.away_manager.id)
+      } : null
+    }))
+
+    return NextResponse.json({ matches: matchesWithSquads })
   } catch (error) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }

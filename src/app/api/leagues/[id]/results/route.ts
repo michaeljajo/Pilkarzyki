@@ -27,7 +27,8 @@ export async function GET(
           manager:users!players_manager_id_fkey (
             id,
             first_name,
-            last_name
+            last_name,
+            email
           )
         ),
         gameweek:gameweeks!results_gameweek_id_fkey (
@@ -46,7 +47,7 @@ export async function GET(
       )
     }
 
-    // Transform the data for easier consumption
+    // Get unique manager IDs from results
     interface ResultWithRelations {
       id: string
       goals: number
@@ -57,6 +58,7 @@ export async function GET(
           id: string
           first_name: string | null
           last_name: string | null
+          email: string
         } | null
       } | null
       gameweek: {
@@ -65,15 +67,48 @@ export async function GET(
       } | null
     }
 
-    const transformedResults = (results as unknown as ResultWithRelations[])?.map((result) => ({
-      id: result.id,
-      player_name: result.player?.name || 'Unknown',
-      goals: result.goals,
-      gameweek_week: result.gameweek?.week || 0,
-      manager_name: result.player?.manager
-        ? `${result.player.manager.first_name} ${result.player.manager.last_name}`
-        : 'Unassigned',
-    })) || []
+    const managerIds = Array.from(
+      new Set(
+        (results as unknown as ResultWithRelations[])
+          ?.map(r => r.player?.manager?.id)
+          .filter(Boolean) as string[]
+      )
+    )
+
+    // Fetch squad team names for this league
+    const { data: squads } = await supabaseAdmin
+      .from('squads')
+      .select('manager_id, team_name')
+      .eq('league_id', leagueId)
+      .in('manager_id', managerIds)
+
+    const squadMap = new Map(squads?.map(s => [s.manager_id, s]) || [])
+
+    // Transform the data for easier consumption
+    const transformedResults = (results as unknown as ResultWithRelations[])?.map((result) => {
+      const manager = result.player?.manager
+      const squad = manager ? squadMap.get(manager.id) : null
+
+      let managerName = 'Unassigned'
+      if (manager) {
+        // Priority: team_name → first_name+last_name → email
+        if (squad?.team_name) {
+          managerName = squad.team_name
+        } else if (manager.first_name || manager.last_name) {
+          managerName = `${manager.first_name || ''} ${manager.last_name || ''}`.trim()
+        } else {
+          managerName = manager.email
+        }
+      }
+
+      return {
+        id: result.id,
+        player_name: result.player?.name || 'Unknown',
+        goals: result.goals,
+        gameweek_week: result.gameweek?.week || 0,
+        manager_name: managerName,
+      }
+    }) || []
 
     return NextResponse.json({ results: transformedResults })
   } catch (error) {

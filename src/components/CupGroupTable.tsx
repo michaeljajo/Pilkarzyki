@@ -1,8 +1,14 @@
+import { getTeamOrManagerName } from '@/utils/team-name-resolver'
+import { ManualTiebreakerModal } from '@/components/admin/ManualTiebreakerModal'
+import { useState } from 'react'
+import { Button } from '@/components/ui/Button'
+
 interface Manager {
   id: string
   first_name?: string
   last_name?: string
   email: string
+  squad?: { team_name?: string }
 }
 
 interface GroupStanding {
@@ -21,6 +27,7 @@ interface GroupStanding {
   qualified: boolean
   updated_at: string
   manager: Manager
+  manualTiebreaker?: number | null
 }
 
 interface Group {
@@ -30,17 +37,23 @@ interface Group {
 
 interface CupGroupTableProps {
   groups: Group[]
+  cupId?: string
+  showAdminControls?: boolean
+  onRefresh?: () => void
 }
 
-export function CupGroupTable({ groups }: CupGroupTableProps) {
+export function CupGroupTable({ groups, cupId, showAdminControls = false, onRefresh }: CupGroupTableProps) {
+  const [showTiebreakerModal, setShowTiebreakerModal] = useState(false)
+  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null)
   const getManagerDisplayName = (manager: Manager) => {
-    if (manager?.first_name && manager?.last_name) {
-      return `${manager.first_name} ${manager.last_name}`
-    }
-    if (manager?.first_name) {
-      return manager.first_name
-    }
-    return manager?.email || 'Unknown Manager'
+    return getTeamOrManagerName({
+      manager: {
+        first_name: manager.first_name,
+        last_name: manager.last_name,
+        email: manager.email
+      },
+      squad: manager.squad
+    })
   }
 
   const getRowBgColor = (standing: GroupStanding) => {
@@ -62,13 +75,29 @@ export function CupGroupTable({ groups }: CupGroupTableProps) {
     )
   }
 
+  const handleOpenTiebreaker = (group: Group) => {
+    setSelectedGroup(group)
+    setShowTiebreakerModal(true)
+  }
+
   return (
     <div className="space-y-8">
       {groups.map((group) => (
         <div key={group.group_name} className="bg-white border-2 border-amber-600 rounded-2xl overflow-hidden shadow-sm">
           {/* Group Header */}
           <div className="bg-amber-600 py-4" style={{ paddingLeft: '24px', paddingRight: '24px' }}>
-            <h3 className="text-lg font-bold text-white">{group.group_name}</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold text-white">{group.group_name}</h3>
+              {showAdminControls && cupId && (
+                <Button
+                  onClick={() => handleOpenTiebreaker(group)}
+                  variant="secondary"
+                  size="sm"
+                >
+                  Rozstrzyganie
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Table Content */}
@@ -135,6 +164,33 @@ export function CupGroupTable({ groups }: CupGroupTableProps) {
       <div className="text-center text-sm text-gray-600 mt-4">
         <p>✓ = Awansował do następnej fazy</p>
       </div>
+
+      {/* Manual Tiebreaker Modal */}
+      {showAdminControls && cupId && selectedGroup && (
+        <ManualTiebreakerModal
+          isOpen={showTiebreakerModal}
+          onClose={() => {
+            setShowTiebreakerModal(false)
+            setSelectedGroup(null)
+          }}
+          standings={selectedGroup.standings.map(s => ({
+            managerId: s.manager_id,
+            managerName: getManagerDisplayName(s.manager),
+            teamName: s.manager.squad?.team_name,
+            points: s.points,
+            goalsFor: s.goals_for,
+            goalsAgainst: s.goals_against,
+            manualTiebreaker: s.manualTiebreaker
+          }))}
+          competitionId={cupId}
+          competitionType="cup"
+          onSave={() => {
+            if (onRefresh) {
+              onRefresh()
+            }
+          }}
+        />
+      )}
     </div>
   )
 }

@@ -202,24 +202,19 @@ export default function LeagueResultsPage() {
   }
 
   const handlePlayerGoalsChange = (playerId: string, value: string) => {
-    // Only allow single digit 0-9
-    // If value is empty or contains non-numeric characters, default to 0
-    // If value is multiple digits, take only the last digit
+    // Allow -1 to 9
+    // If value is empty, default to 0
     let goals = 0
 
-    if (value === '') {
+    if (value === '' || value === '-') {
       goals = 0
     } else {
-      // Remove any non-digit characters
-      const cleaned = value.replace(/\D/g, '')
-      if (cleaned.length === 0) {
+      const parsed = parseInt(value)
+      if (isNaN(parsed)) {
         goals = 0
       } else {
-        // Take only the last digit if multiple digits are entered
-        const lastDigit = cleaned.slice(-1)
-        goals = parseInt(lastDigit)
-        // Ensure it's between 0-9
-        goals = Math.min(Math.max(goals, 0), 9)
+        // Clamp between -1 and 9
+        goals = Math.min(Math.max(parsed, -1), 9)
       }
     }
 
@@ -234,16 +229,6 @@ export default function LeagueResultsPage() {
     e.target.select()
   }
 
-  const handlePlayerGoalsInput = (e: React.FormEvent<HTMLInputElement>) => {
-    // Immediately restrict input to single digit
-    const input = e.currentTarget
-    const value = input.value
-
-    if (value.length > 1) {
-      // Take only the last character
-      input.value = value.slice(-1)
-    }
-  }
 
   const updateGameweekStatus = async (isCompleted: boolean) => {
     if (!selectedGameweek || !matchData) return
@@ -460,36 +445,58 @@ export default function LeagueResultsPage() {
             </div>
           </div>
 
-          {/* Matches */}
-          {matchData.matches.length === 0 && cupGameweeks.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="text-gray-400">
-                <div className="text-3xl mb-2">⚽</div>
-                <div className="text-sm">Brak meczów w tej kolejce</div>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {/* League Matches */}
-              {matchData.matches.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-3">Mecze Ligowe</h3>
-                  <div className="space-y-6">
-                    {matchData.matches.map((match) => {
-                const homeGoals = match.home_lineup?.players?.reduce((sum, p) => sum + (playerGoals[p.id] || 0), 0) || 0
-                const awayGoals = match.away_lineup?.players?.reduce((sum, p) => sum + (playerGoals[p.id] || 0), 0) || 0
-                const homePlayers = match.home_lineup?.players || []
-                const awayPlayers = match.away_lineup?.players || []
+          {/* Helper Functions */}
+          {(() => {
+            const getManagerDisplayName = (manager: { first_name?: string; last_name?: string; email: string; squad?: { team_name?: string } | null }) => {
+              // Priority 1: Team name
+              if (manager?.squad?.team_name) {
+                return manager.squad.team_name
+              }
+              // Priority 2: First and last name
+              if (manager?.first_name && manager?.last_name) {
+                return `${manager.first_name} ${manager.last_name}`
+              }
+              // Priority 3: First name only
+              if (manager?.first_name) {
+                return manager.first_name
+              }
+              // Priority 4: Email
+              return manager?.email || 'Unknown Manager'
+            }
 
-                const getManagerDisplayName = (manager: { first_name?: string; last_name?: string; email: string }) => {
-                  if (manager?.first_name && manager?.last_name) {
-                    return `${manager.first_name} ${manager.last_name}`
-                  }
-                  if (manager?.first_name) {
-                    return manager.first_name
-                  }
-                  return manager?.email || 'Unknown Manager'
-                }
+            // Check if all players have played for a manager
+            const allPlayersHavePlayed = (players: PlayerWithResult[] | undefined) => {
+              if (!players || players.length === 0) return false
+              return players.every(p => playerHasPlayed[p.id] === true)
+            }
+
+            // Get name color based on whether all players have played
+            const getManagerNameColor = (players: PlayerWithResult[] | undefined) => {
+              return allPlayersHavePlayed(players) ? 'text-[#061852]' : 'text-[#2E7D32]'
+            }
+
+            return (
+              <>
+                {/* Matches */}
+                {matchData.matches.length === 0 && cupGameweeks.length === 0 ? (
+                  <div className="text-center py-16">
+                    <div className="text-gray-400">
+                      <div className="text-3xl mb-2">⚽</div>
+                      <div className="text-sm">Brak meczów w tej kolejce</div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {/* League Matches */}
+                    {matchData.matches.length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-3">Mecze Ligowe</h3>
+                        <div className="space-y-6">
+                          {matchData.matches.map((match) => {
+                      const homeGoals = match.home_lineup?.players?.reduce((sum, p) => sum + (playerGoals[p.id] || 0), 0) || 0
+                      const awayGoals = match.away_lineup?.players?.reduce((sum, p) => sum + (playerGoals[p.id] || 0), 0) || 0
+                      const homePlayers = match.home_lineup?.players || []
+                      const awayPlayers = match.away_lineup?.players || []
 
                 return (
                   <div key={match.id} className="bg-white border-2 border-[#29544D] rounded-2xl hover:shadow-lg transition-shadow duration-200" style={{ padding: '20px' }}>
@@ -507,7 +514,7 @@ export default function LeagueResultsPage() {
                     {/* Match Score Header */}
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex-1" style={{ paddingRight: '24px' }}>
-                        <p className="text-lg font-semibold text-[#29544D]">
+                        <p className={`text-lg font-semibold ${getManagerNameColor(homePlayers)}`}>
                           {getManagerDisplayName(match.home_manager)}
                         </p>
                       </div>
@@ -517,7 +524,7 @@ export default function LeagueResultsPage() {
                         <span className="text-3xl font-bold text-[#061852]">{awayGoals}</span>
                       </div>
                       <div className="flex-1 text-right" style={{ paddingLeft: '24px' }}>
-                        <p className="text-lg font-semibold text-[#29544D]">
+                        <p className={`text-lg font-semibold ${getManagerNameColor(awayPlayers)}`}>
                           {getManagerDisplayName(match.away_manager)}
                         </p>
                       </div>
@@ -543,17 +550,25 @@ export default function LeagueResultsPage() {
                                 />
                                 <input
                                   type="number"
-                                  min="0"
+                                  min="-1"
                                   max="9"
                                   value={goals}
                                   onChange={(e) => handlePlayerGoalsChange(player.id, e.target.value)}
-                                  onInput={handlePlayerGoalsInput}
                                   onFocus={handlePlayerGoalsFocus}
                                   disabled={saving}
-                                  className="w-12 px-1 py-0.5 text-xs text-center border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#29544D] disabled:bg-gray-100"
+                                  className={`w-12 px-1 py-0.5 text-xs text-center border rounded focus:outline-none focus:ring-1 disabled:bg-gray-100 ${
+                                    goals === -1
+                                      ? 'border-red-300 bg-red-50 text-red-700 focus:ring-red-500'
+                                      : 'border-gray-300 focus:ring-[#29544D]'
+                                  }`}
                                 />
-                                <p className={`text-sm leading-5 ${goals > 0 ? 'font-bold text-[#061852]' : 'text-gray-600'}`}>
+                                <p className={`text-sm leading-5 ${
+                                  goals === -1 ? 'font-bold text-red-600' :
+                                  goals > 0 ? 'font-bold text-[#061852]' :
+                                  'text-gray-600'
+                                }`}>
                                   {player.name} {player.surname}
+                                  {goals === -1 && <span className="ml-1 text-red-600">(OG)</span>}
                                 </p>
                                 {goals > 0 && (
                                   <div className="flex items-center gap-1">
@@ -587,19 +602,27 @@ export default function LeagueResultsPage() {
                                     ))}
                                   </div>
                                 )}
-                                <p className={`text-sm leading-5 ${goals > 0 ? 'font-bold text-[#061852]' : 'text-gray-600'}`}>
+                                <p className={`text-sm leading-5 ${
+                                  goals === -1 ? 'font-bold text-red-600' :
+                                  goals > 0 ? 'font-bold text-[#061852]' :
+                                  'text-gray-600'
+                                }`}>
                                   {player.name} {player.surname}
+                                  {goals === -1 && <span className="ml-1 text-red-600">(OG)</span>}
                                 </p>
                                 <input
                                   type="number"
-                                  min="0"
+                                  min="-1"
                                   max="9"
                                   value={goals}
                                   onChange={(e) => handlePlayerGoalsChange(player.id, e.target.value)}
-                                  onInput={handlePlayerGoalsInput}
                                   onFocus={handlePlayerGoalsFocus}
                                   disabled={saving}
-                                  className="w-12 px-1 py-0.5 text-xs text-center border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#29544D] disabled:bg-gray-100"
+                                  className={`w-12 px-1 py-0.5 text-xs text-center border rounded focus:outline-none focus:ring-1 disabled:bg-gray-100 ${
+                                    goals === -1
+                                      ? 'border-red-300 bg-red-50 text-red-700 focus:ring-red-500'
+                                      : 'border-gray-300 focus:ring-[#29544D]'
+                                  }`}
                                 />
                                 <input
                                   type="checkbox"
@@ -681,7 +704,7 @@ export default function LeagueResultsPage() {
                             {/* Match Score Header */}
                             <div className="flex items-center justify-between mb-3">
                               <div className="flex-1" style={{ paddingRight: '24px' }}>
-                                <p className="text-lg font-semibold text-yellow-700">
+                                <p className={`text-lg font-semibold ${getManagerNameColor(homePlayers)}`}>
                                   {getManagerDisplayName(match.home_manager)}
                                 </p>
                               </div>
@@ -691,7 +714,7 @@ export default function LeagueResultsPage() {
                                 <span className="text-3xl font-bold text-[#061852]">{awayGoals}</span>
                               </div>
                               <div className="flex-1 text-right" style={{ paddingLeft: '24px' }}>
-                                <p className="text-lg font-semibold text-yellow-700">
+                                <p className={`text-lg font-semibold ${getManagerNameColor(awayPlayers)}`}>
                                   {getManagerDisplayName(match.away_manager)}
                                 </p>
                               </div>
@@ -717,17 +740,25 @@ export default function LeagueResultsPage() {
                                         />
                                         <input
                                           type="number"
-                                          min="0"
+                                          min="-1"
                                           max="9"
                                           value={goals}
                                           onChange={(e) => handlePlayerGoalsChange(player.id, e.target.value)}
-                                          onInput={handlePlayerGoalsInput}
                                           onFocus={handlePlayerGoalsFocus}
                                           disabled={saving}
-                                          className="w-12 px-1 py-0.5 text-xs text-center border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-yellow-600 disabled:bg-gray-100"
+                                          className={`w-12 px-1 py-0.5 text-xs text-center border rounded focus:outline-none focus:ring-1 disabled:bg-gray-100 ${
+                                            goals === -1
+                                              ? 'border-red-300 bg-red-50 text-red-700 focus:ring-red-500'
+                                              : 'border-gray-300 focus:ring-yellow-600'
+                                          }`}
                                         />
-                                        <p className={`text-sm leading-5 ${goals > 0 ? 'font-bold text-[#061852]' : 'text-gray-600'}`}>
+                                        <p className={`text-sm leading-5 ${
+                                          goals === -1 ? 'font-bold text-red-600' :
+                                          goals > 0 ? 'font-bold text-[#061852]' :
+                                          'text-gray-600'
+                                        }`}>
                                           {player.name} {player.surname}
+                                          {goals === -1 && <span className="ml-1 text-red-600">(OG)</span>}
                                         </p>
                                         {goals > 0 && (
                                           <div className="flex items-center gap-1">
@@ -761,19 +792,27 @@ export default function LeagueResultsPage() {
                                             ))}
                                           </div>
                                         )}
-                                        <p className={`text-sm leading-5 ${goals > 0 ? 'font-bold text-[#061852]' : 'text-gray-600'}`}>
+                                        <p className={`text-sm leading-5 ${
+                                          goals === -1 ? 'font-bold text-red-600' :
+                                          goals > 0 ? 'font-bold text-[#061852]' :
+                                          'text-gray-600'
+                                        }`}>
                                           {player.name} {player.surname}
+                                          {goals === -1 && <span className="ml-1 text-red-600">(OG)</span>}
                                         </p>
                                         <input
                                           type="number"
-                                          min="0"
+                                          min="-1"
                                           max="9"
                                           value={goals}
                                           onChange={(e) => handlePlayerGoalsChange(player.id, e.target.value)}
-                                          onInput={handlePlayerGoalsInput}
                                           onFocus={handlePlayerGoalsFocus}
                                           disabled={saving}
-                                          className="w-12 px-1 py-0.5 text-xs text-center border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-yellow-600 disabled:bg-gray-100"
+                                          className={`w-12 px-1 py-0.5 text-xs text-center border rounded focus:outline-none focus:ring-1 disabled:bg-gray-100 ${
+                                            goals === -1
+                                              ? 'border-red-300 bg-red-50 text-red-700 focus:ring-red-500'
+                                              : 'border-gray-300 focus:ring-yellow-600'
+                                          }`}
                                         />
                                         <input
                                           type="checkbox"
@@ -800,8 +839,11 @@ export default function LeagueResultsPage() {
                   </div>
                 )
               })}
-            </div>
-          )}
+                  </div>
+                )}
+              </>
+            )
+          })()}
         </div>
       )}
     </div>

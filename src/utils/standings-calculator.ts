@@ -12,6 +12,7 @@ export interface MatchResult {
 export interface ManagerStats {
   managerId: string
   managerName: string
+  teamName?: string | null
   email: string
   played: number
   won: number
@@ -21,6 +22,7 @@ export interface ManagerStats {
   goalsAgainst: number
   goalDifference: number
   points: number
+  manualTiebreaker?: number | null
 }
 
 export interface HeadToHeadRecord {
@@ -37,7 +39,11 @@ export interface HeadToHeadRecord {
 }
 
 /**
- * Calculate league standings with professional tiebreaker rules
+ * Calculate league standings with custom tiebreaker rules:
+ * 1. Points (higher is better)
+ * 2. Goals Scored (higher is better)
+ * 3. Goals Conceded (higher is better - unlucky teams rank higher)
+ * 4. Head-to-Head Record (when tied on points)
  */
 export async function calculateLeagueStandings(leagueId: string): Promise<ManagerStats[]> {
   // Get all completed matches for the league
@@ -74,13 +80,34 @@ export async function calculateLeagueStandings(leagueId: string): Promise<Manage
     throw new Error(`Failed to fetch managers: ${managerError.message}`)
   }
 
+  // Fetch team names for all managers in this league
+  const managerIds = managers?.map(m => m.id) || []
+  const { data: squads } = await supabaseAdmin
+    .from('squads')
+    .select('manager_id, team_name')
+    .eq('league_id', leagueId)
+    .in('manager_id', managerIds)
+
+  const squadMap = new Map(squads?.map(s => [s.manager_id, s]) || [])
+
+  // Fetch manual tiebreakers for this league
+  const { data: manualTiebreakers } = await supabaseAdmin
+    .from('manual_tiebreakers')
+    .select('manager_id, tiebreaker_value')
+    .eq('league_id', leagueId)
+    .in('manager_id', managerIds)
+
+  const tiebreakerMap = new Map(manualTiebreakers?.map(t => [t.manager_id, t.tiebreaker_value]) || [])
+
   // Initialize stats for all managers
   const managerStats: Record<string, ManagerStats> = {}
   managers?.forEach(manager => {
     const managerName = `${manager.first_name || ''} ${manager.last_name || ''}`.trim() || 'Unknown'
+    const squad = squadMap.get(manager.id)
     managerStats[manager.id] = {
       managerId: manager.id,
       managerName,
+      teamName: squad?.team_name || null,
       email: manager.email,
       played: 0,
       won: 0,
@@ -89,7 +116,8 @@ export async function calculateLeagueStandings(leagueId: string): Promise<Manage
       goalsFor: 0,
       goalsAgainst: 0,
       goalDifference: 0,
-      points: 0
+      points: 0,
+      manualTiebreaker: tiebreakerMap.get(manager.id) || null
     }
   })
 
@@ -140,16 +168,18 @@ export async function calculateLeagueStandings(leagueId: string): Promise<Manage
   // Convert to array for sorting
   const standings = Object.values(managerStats)
 
-  // Sort with professional tiebreaker rules
+  // Sort with custom tiebreaker rules
   return sortStandingsWithTiebreakers(standings, matches || [])
 }
 
 /**
- * Sort standings with professional league tiebreaker rules
- * 1. Points
- * 2. Goal Difference
- * 3. Goals Scored
+ * Sort standings with custom league tiebreaker rules
+ * 1. Points (higher is better)
+ * 2. Goals Scored (higher is better)
+ * 3. Goals Conceded (higher is better - unlucky teams rank higher)
  * 4. Head-to-Head Record (when teams are tied on points)
+ * 5. Manual Tiebreaker (admin-set, lower value = higher rank)
+ * 6. Alphabetical (final fallback)
  */
 function sortStandingsWithTiebreakers(standings: ManagerStats[], matches: MatchResult[]): ManagerStats[] {
   return standings.sort((a, b) => {
@@ -158,14 +188,14 @@ function sortStandingsWithTiebreakers(standings: ManagerStats[], matches: MatchR
       return b.points - a.points
     }
 
-    // 2. Goal Difference (descending)
-    if (a.goalDifference !== b.goalDifference) {
-      return b.goalDifference - a.goalDifference
-    }
-
-    // 3. Goals Scored (descending)
+    // 2. Goals Scored (descending)
     if (a.goalsFor !== b.goalsFor) {
       return b.goalsFor - a.goalsFor
+    }
+
+    // 3. Goals Conceded (descending - more conceded = higher rank)
+    if (a.goalsAgainst !== b.goalsAgainst) {
+      return b.goalsAgainst - a.goalsAgainst
     }
 
     // 4. Head-to-Head Record (when tied on points)
@@ -177,18 +207,37 @@ function sortStandingsWithTiebreakers(standings: ManagerStats[], matches: MatchR
         return headToHead.bVsA.points - headToHead.aVsB.points
       }
 
-      // H2H Goal Difference
-      if (headToHead.aVsB.goalDifference !== headToHead.bVsA.goalDifference) {
-        return headToHead.bVsA.goalDifference - headToHead.aVsB.goalDifference
-      }
-
       // H2H Goals Scored
       if (headToHead.aVsB.goalsFor !== headToHead.bVsA.goalsFor) {
         return headToHead.bVsA.goalsFor - headToHead.aVsB.goalsFor
       }
+
+      // H2H Goals Conceded (more conceded = higher rank)
+      if (headToHead.aVsB.goalsAgainst !== headToHead.bVsA.goalsAgainst) {
+        return headToHead.bVsA.goalsAgainst - headToHead.aVsB.goalsAgainst
+      }
     }
 
-    // 5. Alphabetical by manager name (final tiebreaker)
+    // 5. Manual Tiebreaker (ascending - lower value = higher rank)
+    // Only applies if at least one team has a manual tiebreaker set
+    if (a.manualTiebreaker !== null || b.manualTiebreaker !== null) {
+      // If both have tiebreakers, compare them
+      if (a.manualTiebreaker !== null && b.manualTiebreaker !== null) {
+        if (a.manualTiebreaker !== b.manualTiebreaker) {
+          return a.manualTiebreaker - b.manualTiebreaker
+        }
+      }
+      // If only 'a' has a tiebreaker, it ranks higher
+      if (a.manualTiebreaker !== null && b.manualTiebreaker === null) {
+        return -1
+      }
+      // If only 'b' has a tiebreaker, it ranks higher
+      if (a.manualTiebreaker === null && b.manualTiebreaker !== null) {
+        return 1
+      }
+    }
+
+    // 6. Alphabetical by manager name (final tiebreaker)
     return a.managerName.localeCompare(b.managerName)
   })
 }
@@ -340,16 +389,6 @@ export async function recalculateLeagueStandings(leagueId: string): Promise<Mana
  * Calculate and update cup group standings for a specific cup
  */
 export async function recalculateCupGroupStandings(cupId: string): Promise<void> {
-  // Get all groups in this cup
-  const { data: cupGroups } = await supabaseAdmin
-    .from('cup_groups')
-    .select('group_name, manager_id')
-    .eq('cup_id', cupId)
-
-  if (!cupGroups || cupGroups.length === 0) {
-    return
-  }
-
   // Get all cup matches for this cup that are completed
   const { data: cupMatches } = await supabaseAdmin
     .from('cup_matches')
@@ -367,14 +406,63 @@ export async function recalculateCupGroupStandings(cupId: string): Promise<void>
     .eq('stage', 'group_stage')
     .eq('is_completed', true)
 
+  // If there are no completed group stage matches, nothing to calculate
+  if (!cupMatches || cupMatches.length === 0) {
+    console.log(`No completed group stage matches found for cup ${cupId}`)
+    return
+  }
+
+  // Get all groups in this cup
+  const { data: cupGroups } = await supabaseAdmin
+    .from('cup_groups')
+    .select('group_name, manager_id')
+    .eq('cup_id', cupId)
+
   // Group managers by their group
   const groupsByName: Record<string, string[]> = {}
-  cupGroups.forEach(group => {
-    if (!groupsByName[group.group_name]) {
-      groupsByName[group.group_name] = []
-    }
-    groupsByName[group.group_name].push(group.manager_id)
-  })
+
+  if (cupGroups && cupGroups.length > 0) {
+    // Use explicit cup_groups if they exist
+    cupGroups.forEach(group => {
+      if (!groupsByName[group.group_name]) {
+        groupsByName[group.group_name] = []
+      }
+      groupsByName[group.group_name].push(group.manager_id)
+    })
+  } else {
+    // Infer groups from cup matches if cup_groups table is empty
+    console.log(`No cup_groups found, inferring from matches for cup ${cupId}`)
+    cupMatches.forEach(match => {
+      if (match.group_name) {
+        if (!groupsByName[match.group_name]) {
+          groupsByName[match.group_name] = []
+        }
+        // Add managers to their respective groups
+        if (!groupsByName[match.group_name].includes(match.home_manager_id)) {
+          groupsByName[match.group_name].push(match.home_manager_id)
+        }
+        if (!groupsByName[match.group_name].includes(match.away_manager_id)) {
+          groupsByName[match.group_name].push(match.away_manager_id)
+        }
+      }
+    })
+  }
+
+  // If no groups were found, there's nothing to calculate
+  if (Object.keys(groupsByName).length === 0) {
+    console.log(`No groups found for cup ${cupId}`)
+    return
+  }
+
+  // Fetch manual tiebreakers for this cup
+  const allManagerIds = Object.values(groupsByName).flat()
+  const { data: cupManualTiebreakers } = await supabaseAdmin
+    .from('cup_manual_tiebreakers')
+    .select('manager_id, tiebreaker_value')
+    .eq('cup_id', cupId)
+    .in('manager_id', allManagerIds)
+
+  const cupTiebreakerMap = new Map(cupManualTiebreakers?.map(t => [t.manager_id, t.tiebreaker_value]) || [])
 
   // Calculate standings for each group
   const allStandings: Array<{
@@ -408,7 +496,8 @@ export async function recalculateCupGroupStandings(cupId: string): Promise<void>
         goalsFor: 0,
         goalsAgainst: 0,
         goalDifference: 0,
-        points: 0
+        points: 0,
+        manualTiebreaker: cupTiebreakerMap.get(managerId) || null
       }
     })
 
