@@ -83,6 +83,8 @@ export async function GET(
           id,
           home_manager_id,
           away_manager_id,
+          home_team_source,
+          away_team_source,
           stage,
           leg,
           group_name,
@@ -101,12 +103,12 @@ export async function GET(
       return NextResponse.json({ error: gameweeksError.message }, { status: 500 })
     }
 
-    // Collect all unique manager IDs from matches
+    // Collect all unique manager IDs from matches (skip null placeholders)
     const managerIds = new Set<string>()
     cupGameweeks?.forEach((gw) => {
       gw.cup_matches?.forEach((match) => {
-        managerIds.add(match.home_manager_id)
-        managerIds.add(match.away_manager_id)
+        if (match.home_manager_id) managerIds.add(match.home_manager_id)
+        if (match.away_manager_id) managerIds.add(match.away_manager_id)
       })
     })
 
@@ -244,8 +246,8 @@ export async function GET(
 
         return {
           ...match,
-          home_manager: userMap.get(match.home_manager_id),
-          away_manager: userMap.get(match.away_manager_id),
+          home_manager: match.home_manager_id ? userMap.get(match.home_manager_id) : null,
+          away_manager: match.away_manager_id ? userMap.get(match.away_manager_id) : null,
           home_lineup: homeLineupWithPlayers,
           away_lineup: awayLineupWithPlayers
         }

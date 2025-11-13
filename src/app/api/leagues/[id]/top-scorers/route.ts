@@ -58,26 +58,68 @@ export async function GET(
       )
     }
 
-    // Fetch all results for this league with player and manager details
+    // Fetch all league lineups for this league to determine which players participated in league matches
     // We need to:
     // 1. Get all gameweeks for this league
-    // 2. Get all results for those gameweeks
-    // 3. Aggregate goals by player
-    // 4. Join with players to get player details
-    // 5. Join with users to get manager names
+    // 2. Get all league lineups for those gameweeks
+    // 3. Get results only for players who were in league lineups
+    // 4. Aggregate goals by player
+    // 5. Join with players to get player details
+    // 6. Join with users to get manager names
 
+    // Get all gameweeks for this league
+    const { data: gameweeks, error: gameweeksError } = await supabaseAdmin
+      .from('gameweeks')
+      .select('id')
+      .eq('league_id', leagueId)
+
+    if (gameweeksError) {
+      console.error('Error fetching gameweeks:', gameweeksError)
+      return NextResponse.json(
+        { error: 'Failed to fetch gameweeks' },
+        { status: 500 }
+      )
+    }
+
+    if (!gameweeks || gameweeks.length === 0) {
+      // No gameweeks yet
+      return NextResponse.json({ topScorers: [] })
+    }
+
+    const gameweekIds = gameweeks.map((gw) => gw.id)
+
+    // Get all league lineups for these gameweeks
+    const { data: leagueLineups, error: leagueLineupsError } = await supabaseAdmin
+      .from('lineups')
+      .select('player_ids, gameweek_id')
+      .in('gameweek_id', gameweekIds)
+
+    if (leagueLineupsError) {
+      console.error('Error fetching league lineups:', leagueLineupsError)
+      return NextResponse.json(
+        { error: 'Failed to fetch league lineups' },
+        { status: 500 }
+      )
+    }
+
+    // Build a set of (gameweek_id + player_id) for players in league lineups
+    const leaguePlayersSet = new Set<string>()
+    leagueLineups?.forEach((lineup) => {
+      lineup.player_ids?.forEach((playerId: string) => {
+        leaguePlayersSet.add(`${lineup.gameweek_id}_${playerId}`)
+      })
+    })
+
+    if (leaguePlayersSet.size === 0) {
+      // No players in league lineups yet
+      return NextResponse.json({ topScorers: [] })
+    }
+
+    // Fetch results for these gameweeks
     const { data: resultsData, error: resultsError } = await supabaseAdmin
       .from('results')
-      .select(`
-        player_id,
-        goals,
-        gameweek_id,
-        gameweeks!inner (
-          id,
-          league_id
-        )
-      `)
-      .eq('gameweeks.league_id', leagueId)
+      .select('player_id, goals, gameweek_id')
+      .in('gameweek_id', gameweekIds)
       .gt('goals', 0)
 
     console.log('Top Scorers Debug - League ID:', leagueId)
@@ -92,24 +134,30 @@ export async function GET(
       )
     }
 
-    // Aggregate goals by player
+    // Filter results to only include players who were in league lineups
+    // and aggregate goals by player
     const playerGoalsMap = new Map<
       string,
       { totalGoals: number; gameweeks: Set<string> }
     >()
 
     resultsData?.forEach((result) => {
-      const playerId = result.player_id
-      const existing = playerGoalsMap.get(playerId)
+      const key = `${result.gameweek_id}_${result.player_id}`
 
-      if (existing) {
-        existing.totalGoals += result.goals
-        existing.gameweeks.add(result.gameweek_id)
-      } else {
-        playerGoalsMap.set(playerId, {
-          totalGoals: result.goals,
-          gameweeks: new Set([result.gameweek_id]),
-        })
+      // Only count if player was in a league lineup for this gameweek
+      if (leaguePlayersSet.has(key)) {
+        const playerId = result.player_id
+        const existing = playerGoalsMap.get(playerId)
+
+        if (existing) {
+          existing.totalGoals += result.goals
+          existing.gameweeks.add(result.gameweek_id)
+        } else {
+          playerGoalsMap.set(playerId, {
+            totalGoals: result.goals,
+            gameweeks: new Set([result.gameweek_id]),
+          })
+        }
       }
     })
 

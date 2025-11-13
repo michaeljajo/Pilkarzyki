@@ -275,10 +275,12 @@ export function generateNextKnockoutRound(
 
 /**
  * Calculate which stage comes after current stage
+ * Note: For 16-team cups, we skip round_of_16 and go straight to quarter_final
  */
 export function getNextStage(currentStage: CupStage, numQualified: number): CupStage | null {
   if (currentStage === 'group_stage') {
-    if (numQualified === 16) return 'round_of_16'
+    // For 16 teams (4 groups), go directly to quarterfinals (skip round of 16)
+    if (numQualified === 16) return 'quarter_final'
     if (numQualified === 8) return 'quarter_final'
     if (numQualified === 4) return 'semi_final'
   }

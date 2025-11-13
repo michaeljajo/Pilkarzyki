@@ -40,18 +40,26 @@ interface CupMatch {
   stage: string
   leg: number
   group_name?: string
-  home_manager: {
+  home_manager?: {
     id: string
     first_name?: string
     last_name?: string
     email: string
-  }
-  away_manager: {
+    squad?: {
+      team_name?: string
+    }
+  } | null
+  away_manager?: {
     id: string
     first_name?: string
     last_name?: string
     email: string
-  }
+    squad?: {
+      team_name?: string
+    }
+  } | null
+  home_team_source?: string
+  away_team_source?: string
   home_score?: number
   away_score?: number
   home_aggregate_score?: number

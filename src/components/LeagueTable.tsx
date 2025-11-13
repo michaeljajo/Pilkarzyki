@@ -117,7 +117,8 @@ export default function LeagueTable({ leagueId, showAdminControls = false }: Lea
     if (position === 1) return 'bg-[#DECF99]/20' // Gold for 1st
     if (position === 2) return 'bg-[#FAFAFA]' // Off-white for 2nd
     if (position === 3) return 'bg-[#8B6F47]/10' // Brown for 3rd
-    if (position >= standings.length - 1) return 'bg-[#EF4444]/5' // Red for bottom 2
+    // Highlight bottom 3 teams when there are more than 4 teams
+    if (standings.length > 4 && position >= standings.length - 2) return 'bg-[#EF4444]/5' // Red for bottom 3
     return 'bg-white'
   }
 

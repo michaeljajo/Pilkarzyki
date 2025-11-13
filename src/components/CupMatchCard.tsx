@@ -1,6 +1,7 @@
 import { Icon } from 'lucide-react'
 import { soccerBall } from '@lucide/lab'
 import { getTeamOrManagerName } from '@/utils/team-name-resolver'
+import { formatPlaceholder } from '@/utils/placeholder-formatter'
 
 interface Player {
   id: string
@@ -40,8 +41,10 @@ interface CupMatch {
   home_aggregate_score?: number
   away_aggregate_score?: number
   is_completed: boolean
-  home_manager: Manager
-  away_manager: Manager
+  home_manager?: Manager | null
+  away_manager?: Manager | null
+  home_team_source?: string
+  away_team_source?: string
   home_lineup?: Lineup
   away_lineup?: Lineup
 }
@@ -51,7 +54,17 @@ interface CupMatchCardProps {
 }
 
 export function CupMatchCard({ match }: CupMatchCardProps) {
-  const getManagerDisplayName = (manager: Manager) => {
+  const getManagerDisplayName = (manager: Manager | null | undefined, teamSource?: string) => {
+    // If manager is null/undefined, show placeholder or TBD
+    if (!manager) {
+      if (teamSource) {
+        // Format the placeholder for display
+        const formatted = formatPlaceholder(teamSource)
+        return formatted.short
+      }
+      return 'TBD'
+    }
+
     return getTeamOrManagerName({
       manager: {
         first_name: manager.first_name,
@@ -103,7 +116,7 @@ export function CupMatchCard({ match }: CupMatchCardProps) {
       <div className="flex items-center justify-between mb-3">
         <div className="flex-1" style={{ paddingRight: '24px' }}>
           <p className={`text-lg font-semibold ${homeNameColor}`}>
-            {getManagerDisplayName(match.home_manager)}
+            {getManagerDisplayName(match.home_manager, match.home_team_source)}
           </p>
         </div>
         <div className="flex items-center gap-4 px-8">
@@ -113,7 +126,7 @@ export function CupMatchCard({ match }: CupMatchCardProps) {
         </div>
         <div className="flex-1 text-right" style={{ paddingLeft: '24px' }}>
           <p className={`text-lg font-semibold ${awayNameColor}`}>
-            {getManagerDisplayName(match.away_manager)}
+            {getManagerDisplayName(match.away_manager, match.away_team_source)}
           </p>
         </div>
       </div>

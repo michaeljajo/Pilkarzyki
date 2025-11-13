@@ -1,4 +1,5 @@
 import { getTeamOrManagerName } from '@/utils/team-name-resolver'
+import { formatPlaceholder } from '@/utils/placeholder-formatter'
 
 interface Manager {
   id: string
@@ -12,8 +13,13 @@ interface KnockoutMatch {
   id: string
   stage: string
   leg: number
-  home_manager: Manager
-  away_manager: Manager
+  match_number?: number
+  home_manager?: Manager | null
+  away_manager?: Manager | null
+  home_manager_id?: string | null
+  away_manager_id?: string | null
+  home_team_source?: string
+  away_team_source?: string
   home_aggregate_score?: number
   away_aggregate_score?: number
   is_completed: boolean
@@ -22,18 +28,48 @@ interface KnockoutMatch {
 
 interface KnockoutBracketProps {
   matches: KnockoutMatch[]
+  cupId?: string
 }
 
-export function KnockoutBracket({ matches }: KnockoutBracketProps) {
-  const getManagerDisplayName = (manager: Manager) => {
-    return getTeamOrManagerName({
-      manager: {
-        first_name: manager.first_name,
-        last_name: manager.last_name,
-        email: manager.email
-      },
-      squad: manager.squad
-    })
+export function KnockoutBracket({ matches, cupId }: KnockoutBracketProps) {
+  const getTeamDisplay = (
+    manager: Manager | null | undefined,
+    managerId: string | null | undefined,
+    teamSource: string | undefined,
+    isWinner: boolean
+  ) => {
+    // If manager exists, show resolved team
+    if (manager) {
+      const displayName = getTeamOrManagerName({
+        manager: {
+          first_name: manager.first_name,
+          last_name: manager.last_name,
+          email: manager.email
+        },
+        squad: manager.squad
+      })
+
+      return (
+        <span className={`${isWinner ? 'font-bold text-amber-900' : 'text-gray-700'}`}>
+          {displayName}
+          {isWinner && ' ✓'}
+        </span>
+      )
+    }
+
+    // If no manager but we have team source (placeholder), show placeholder
+    if (teamSource) {
+      const formatted = formatPlaceholder(teamSource)
+      return (
+        <span className="text-gray-500 italic flex items-center gap-2">
+          <span className="font-mono font-bold text-amber-600">{formatted.short}</span>
+          <span className="text-xs">({formatted.full})</span>
+        </span>
+      )
+    }
+
+    // Fallback for TBD
+    return <span className="text-gray-400 italic">TBD</span>
   }
 
   const getStageLabel = (stage: string) => {
@@ -84,12 +120,25 @@ export function KnockoutBracket({ matches }: KnockoutBracketProps) {
     stageMatches.forEach(match => {
       if (processedIds.has(match.id)) return
 
-      const pairedMatch = stageMatches.find(m =>
-        m.id !== match.id &&
-        !processedIds.has(m.id) &&
-        ((m.home_manager.id === match.away_manager.id && m.away_manager.id === match.home_manager.id) ||
-         (m.home_manager.id === match.home_manager.id && m.away_manager.id === match.away_manager.id))
-      )
+      // For matches with placeholders (no resolved managers), we need to match by match_number instead
+      const pairedMatch = stageMatches.find(m => {
+        if (m.id === match.id || processedIds.has(m.id)) return false
+
+        // If both have match_number, use that for pairing
+        if (match.match_number && m.match_number && match.match_number === m.match_number) {
+          return true
+        }
+
+        // Otherwise, try to match by managers if they exist
+        if (match.home_manager && match.away_manager && m.home_manager && m.away_manager) {
+          return (
+            (m.home_manager.id === match.away_manager.id && m.away_manager.id === match.home_manager.id) ||
+            (m.home_manager.id === match.home_manager.id && m.away_manager.id === match.away_manager.id)
+          )
+        }
+
+        return false
+      })
 
       if (pairedMatch) {
         ties.push([match, pairedMatch].sort((a, b) => a.leg - b.leg))
@@ -136,19 +185,30 @@ export function KnockoutBracket({ matches }: KnockoutBracketProps) {
                 const homeAggregate = leg2Match.home_aggregate_score ?? 0
                 const awayAggregate = leg2Match.away_aggregate_score ?? 0
                 const isDecided = leg2Match.winner_id && leg2Match.is_completed
-                const winner = isDecided
+                const winner = isDecided && leg2Match.home_manager && leg2Match.away_manager
                   ? (leg2Match.winner_id === leg2Match.home_manager.id
                       ? leg2Match.home_manager
                       : leg2Match.away_manager)
                   : null
 
+                // Determine if matches are resolved or have placeholders
+                const hasPlaceholders = !tie[0].home_manager || !tie[0].away_manager
+
                 return (
-                  <div key={index} className="border-2 border-amber-200 rounded-xl p-4">
+                  <div key={index} className={`border-2 rounded-xl p-4 ${
+                    hasPlaceholders
+                      ? 'border-yellow-300 bg-yellow-50'  // Unresolved
+                      : 'border-amber-200 bg-white'        // Resolved
+                  }`}>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex-1">
-                        <p className={`text-base ${winner?.id === tie[0].home_manager.id ? 'font-bold text-amber-900' : 'text-gray-700'}`}>
-                          {getManagerDisplayName(tie[0].home_manager)}
-                          {winner?.id === tie[0].home_manager.id && ' ✓'}
+                        <p className="text-base">
+                          {getTeamDisplay(
+                            tie[0].home_manager,
+                            tie[0].home_manager_id,
+                            tie[0].home_team_source,
+                            winner?.id === tie[0].home_manager?.id
+                          )}
                         </p>
                       </div>
                       {tie.length > 1 && (
@@ -159,9 +219,13 @@ export function KnockoutBracket({ matches }: KnockoutBracketProps) {
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <p className={`text-base ${winner?.id === tie[0].away_manager.id ? 'font-bold text-amber-900' : 'text-gray-700'}`}>
-                          {getManagerDisplayName(tie[0].away_manager)}
-                          {winner?.id === tie[0].away_manager.id && ' ✓'}
+                        <p className="text-base">
+                          {getTeamDisplay(
+                            tie[0].away_manager,
+                            tie[0].away_manager_id,
+                            tie[0].away_team_source,
+                            winner?.id === tie[0].away_manager?.id
+                          )}
                         </p>
                       </div>
                     </div>

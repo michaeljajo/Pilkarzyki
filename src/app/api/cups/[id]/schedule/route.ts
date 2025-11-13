@@ -44,10 +44,14 @@ export async function GET(
         ),
         cup_matches (
           id,
+          cup_gameweek_id,
           home_manager_id,
           away_manager_id,
+          home_team_source,
+          away_team_source,
           stage,
           leg,
+          match_number,
           group_name,
           home_score,
           away_score,
@@ -66,13 +70,16 @@ export async function GET(
 
     // Get all unique manager IDs from matches
     interface CupMatchDb {
-      home_manager_id: string
-      away_manager_id: string
+      home_manager_id: string | null
+      away_manager_id: string | null
+      home_team_source?: string
+      away_team_source?: string
       id: string
       cup_id: string
       cup_gameweek_id: string
       stage: string
       leg: number
+      match_number?: number
       group_name: string | null
       home_score: number | null
       away_score: number | null
@@ -94,8 +101,9 @@ export async function GET(
     const managerIds = new Set<string>()
     cupGameweeks?.forEach(gw => {
       gw.cup_matches?.forEach((match: CupMatchDb) => {
-        managerIds.add(match.home_manager_id)
-        managerIds.add(match.away_manager_id)
+        // Only add non-null manager IDs (skip placeholders)
+        if (match.home_manager_id) managerIds.add(match.home_manager_id)
+        if (match.away_manager_id) managerIds.add(match.away_manager_id)
       })
     })
 
@@ -139,8 +147,8 @@ export async function GET(
       ...gameweek,
       matches: gameweek.cup_matches?.map((match: CupMatchDb) => ({
         ...match,
-        home_manager: userMap[match.home_manager_id],
-        away_manager: userMap[match.away_manager_id]
+        home_manager: match.home_manager_id ? userMap[match.home_manager_id] : null,
+        away_manager: match.away_manager_id ? userMap[match.away_manager_id] : null
       }))
     }))
 

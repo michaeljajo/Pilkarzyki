@@ -380,6 +380,33 @@ export default function CupOverviewPage() {
                     Zarządzaj Składami
                   </Button>
                 </motion.div>
+
+                {/* Step 4: Configure Knockout Draw */}
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="flex justify-between items-center p-6 bg-[var(--background-tertiary)] rounded-xl hover:bg-[var(--background-tertiary)]/90 transition-colors"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold bg-[var(--mineral-green)]/20 text-[var(--mineral-green)]">
+                      4
+                    </div>
+                    <div>
+                      <div className="font-semibold text-lg">Konfiguruj Fazę Pucharową</div>
+                      <div className="text-sm text-[var(--foreground-secondary)]">
+                        Zdefiniuj matchupy fazy pucharowej przed zakończeniem fazy grupowej
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => router.push(`/dashboard/admin/leagues/${params.id}/cup/knockout-draw`)}
+                    variant="secondary"
+                    icon={<Trophy size={18} />}
+                  >
+                    Zarządzaj Drabinką
+                  </Button>
+                </motion.div>
               </div>
             </CardContent>
           </Card>

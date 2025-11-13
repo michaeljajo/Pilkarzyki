@@ -312,10 +312,13 @@ export interface CupMatch {
   id: string
   cupId: string
   cupGameweekId: string
-  homeManagerId: string
-  awayManagerId: string
+  homeManagerId?: string  // Optional: null when using placeholder
+  awayManagerId?: string  // Optional: null when using placeholder
+  homeTeamSource?: string  // Placeholder reference (e.g., "winner_group_A", "QF1")
+  awayTeamSource?: string  // Placeholder reference (e.g., "runner_up_group_C", "SF2")
   stage: CupStage
   leg: number
+  matchNumber?: number  // Match number within stage (e.g., 1 for QF1, 2 for QF2)
   groupName?: string
   homeScore?: number
   awayScore?: number
@@ -398,10 +401,13 @@ export interface CupMatchWithManagers {
   id: string
   cup_id: string
   cup_gameweek_id: string
-  home_manager_id: string
-  away_manager_id: string
+  home_manager_id?: string  // Optional: null when using placeholder
+  away_manager_id?: string  // Optional: null when using placeholder
+  home_team_source?: string  // Placeholder reference
+  away_team_source?: string  // Placeholder reference
   stage: CupStage
   leg: number
+  match_number?: number  // Match number within stage (e.g., 1 for QF1, 2 for QF2)
   group_name?: string
   home_score?: number
   away_score?: number
@@ -411,18 +417,18 @@ export interface CupMatchWithManagers {
   winner_id?: string
   created_at: string
   updated_at: string
-  home_manager: {
+  home_manager?: {
     id: string
     first_name?: string
     last_name?: string
     email: string
-  }
-  away_manager: {
+  } | null  // Now nullable
+  away_manager?: {
     id: string
     first_name?: string
     last_name?: string
     email: string
-  }
+  } | null  // Now nullable
 }
 
 export interface CupGameweekWithDetails {
@@ -441,6 +447,15 @@ export interface CupGameweekWithDetails {
     lock_date: string
     is_completed: boolean
   }
+}
+
+// Resolved match team for display purposes
+export interface ResolvedMatchTeam {
+  type: 'resolved' | 'placeholder'
+  managerId?: string
+  managerName?: string
+  placeholderText: string  // e.g., "Winner Group A" or "A1"
+  placeholderShort: string  // e.g., "A1"
 }
 
 // Dual lineup validation types
