@@ -226,6 +226,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
+    // Log cup lineup change to history table
+    await supabaseAdmin
+      .from('cup_lineup_history')
+      .insert({
+        manager_id: userRecord.id,
+        cup_gameweek_id: cupGameweekId,
+        player_ids: playerIds
+      })
+
     return NextResponse.json({ cupLineup })
   } catch (error) {
     console.error('Error creating/updating cup lineup:', error)

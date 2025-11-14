@@ -257,6 +257,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
+    // Log lineup change to history table
+    await supabaseAdmin
+      .from('lineup_history')
+      .insert({
+        manager_id: userRecord.id,
+        gameweek_id: gameweekId,
+        player_ids: playerIds,
+        created_by_admin: false,
+        admin_creator_id: null
+      })
+
     return NextResponse.json({ lineup })
   } catch (error) {
     console.error('Error creating/updating lineup:', error)

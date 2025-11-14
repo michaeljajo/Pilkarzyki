@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/Input'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Avatar } from '@/components/ui/Avatar'
 import { League, User } from '@/types'
-import { Users, UserPlus, Edit3, Trash2, Calendar, AlertTriangle, Trophy, CheckCircle } from 'lucide-react'
+import { Users, UserPlus, Edit3, Trash2, Calendar, AlertTriangle, Trophy, CheckCircle, Download } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 export default function LeagueDetailsPage() {
@@ -37,6 +37,7 @@ export default function LeagueDetailsPage() {
   const [allUsers, setAllUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [exporting, setExporting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [showAddManager, setShowAddManager] = useState(false)
@@ -276,6 +277,38 @@ export default function LeagueDetailsPage() {
     }
   }
 
+  async function exportToExcel() {
+    if (!league) return
+
+    try {
+      setExporting(true)
+      setError(null)
+      const response = await fetch(`/api/admin/leagues/${league.id}/export`)
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to export data')
+      }
+
+      // Get the blob from response
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${league.name}_${league.season}_Export_${new Date().toISOString().split('T')[0]}.xlsx`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+
+      setSuccess('Data exported successfully!')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to export data')
+    } finally {
+      setExporting(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="animate-pulse space-y-8">
@@ -326,8 +359,8 @@ export default function LeagueDetailsPage() {
         </Alert>
       )}
 
-      {/* League Name & Cup Access */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {/* League Name & Cup Access & Export */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <Card className="hover-lift">
           <CardHeader>
             <CardTitle className="flex items-center gap-3">
@@ -381,6 +414,30 @@ export default function LeagueDetailsPage() {
               className="w-full !bg-yellow-500 hover:!bg-yellow-600 !text-white !border-0"
             >
               Zarządzaj Pucharem
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="hover-lift bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-3 text-green-800">
+              <Download size={28} className="text-green-600" />
+              Eksport do Excel
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-base text-green-700 mb-6">
+              Eksportuj wszystkie dane ligi i pucharu do pliku Excel
+            </p>
+            <Button
+              onClick={exportToExcel}
+              loading={exporting}
+              variant="secondary"
+              size="lg"
+              className="w-full !bg-green-500 hover:!bg-green-600 !text-white !border-0"
+              icon={<Download size={18} />}
+            >
+              {exporting ? 'Eksportowanie...' : 'Pobierz Excel'}
             </Button>
           </CardContent>
         </Card>

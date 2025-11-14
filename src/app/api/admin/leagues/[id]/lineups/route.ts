@@ -101,6 +101,17 @@ export async function POST(
         return NextResponse.json({ error: 'Failed to update lineup' }, { status: 500 })
       }
 
+      // Log lineup change to history table (admin created)
+      await supabaseAdmin
+        .from('lineup_history')
+        .insert({
+          manager_id: managerId,
+          gameweek_id: gameweekId,
+          player_ids: playerIds,
+          created_by_admin: true,
+          admin_creator_id: adminUser.id
+        })
+
       return NextResponse.json({
         message: 'Lineup updated successfully',
         lineup: data
@@ -123,6 +134,17 @@ export async function POST(
         console.error('Error creating lineup:', error)
         return NextResponse.json({ error: 'Failed to create lineup' }, { status: 500 })
       }
+
+      // Log lineup change to history table (admin created)
+      await supabaseAdmin
+        .from('lineup_history')
+        .insert({
+          manager_id: managerId,
+          gameweek_id: gameweekId,
+          player_ids: playerIds,
+          created_by_admin: true,
+          admin_creator_id: adminUser.id
+        })
 
       return NextResponse.json({
         message: 'Lineup created successfully',

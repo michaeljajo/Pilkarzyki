@@ -512,3 +512,43 @@ export interface PostWithUser {
     email: string
   }
 }
+
+// Lineup History types
+
+export interface LineupHistory {
+  id: string
+  managerId: string
+  gameweekId: string
+  playerIds: string[]
+  createdAt: Date
+  createdByAdmin?: boolean
+  adminCreatorId?: string
+}
+
+export interface CupLineupHistory {
+  id: string
+  managerId: string
+  cupGameweekId: string
+  playerIds: string[]
+  createdAt: Date
+}
+
+// Database response types for lineup history (snake_case)
+
+export interface LineupHistoryRow {
+  id: string
+  manager_id: string
+  gameweek_id: string
+  player_ids: string[]
+  created_at: string
+  created_by_admin?: boolean
+  admin_creator_id?: string
+}
+
+export interface CupLineupHistoryRow {
+  id: string
+  manager_id: string
+  cup_gameweek_id: string
+  player_ids: string[]
+  created_at: string
+}
