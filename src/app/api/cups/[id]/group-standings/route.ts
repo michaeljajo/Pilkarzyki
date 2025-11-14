@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { recalculateCupGroupStandings } from '@/utils/standings-calculator'
 
 /**
  * GET /api/cups/[id]/group-standings
@@ -141,6 +142,126 @@ export async function GET(
     })
   } catch (error) {
     console.error('Error fetching cup group standings:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+/**
+ * POST /api/cups/[id]/group-standings
+ * Recalculate cup group standings based on match results
+ * Admin only
+ */
+export async function POST(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { userId } = await auth()
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { id: cupId } = await context.params
+
+    // Get cup details
+    const { data: cup, error: cupError } = await supabaseAdmin
+      .from('cups')
+      .select('id, name, stage, league_id')
+      .eq('id', cupId)
+      .single()
+
+    if (cupError || !cup) {
+      return NextResponse.json({ error: 'Cup not found' }, { status: 404 })
+    }
+
+    // Verify user is admin
+    const { data: userRecord } = await supabaseAdmin
+      .from('users')
+      .select('id, is_admin')
+      .eq('clerk_id', userId)
+      .single()
+
+    if (!userRecord?.is_admin) {
+      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
+    }
+
+    // Recalculate cup group standings
+    await recalculateCupGroupStandings(cupId)
+
+    // Fetch updated standings
+    const { data: standings } = await supabaseAdmin
+      .from('cup_group_standings')
+      .select(`
+        id,
+        group_name,
+        manager_id,
+        played,
+        won,
+        drawn,
+        lost,
+        goals_for,
+        goals_against,
+        goal_difference,
+        points,
+        position,
+        qualified,
+        updated_at
+      `)
+      .eq('cup_id', cupId)
+      .order('group_name', { ascending: true })
+      .order('position', { ascending: true })
+
+    if (!standings || standings.length === 0) {
+      return NextResponse.json({
+        cup,
+        groups: []
+      })
+    }
+
+    // Fetch user data for all managers
+    const managerIds = standings.map(s => s.manager_id)
+    const { data: users } = await supabaseAdmin
+      .from('users')
+      .select('id, first_name, last_name, email')
+      .in('id', managerIds)
+
+    // Fetch squad team names for this league
+    const { data: squads } = await supabaseAdmin
+      .from('squads')
+      .select('manager_id, team_name')
+      .eq('league_id', cup.league_id)
+      .in('manager_id', managerIds)
+
+    const squadMap = new Map(squads?.map(s => [s.manager_id, s]) || [])
+    const userMap = new Map(users?.map(u => [u.id, { ...u, squad: squadMap.get(u.id) }]) || [])
+
+    // Add manager details to standings
+    const standingsWithManagers = standings.map(standing => ({
+      ...standing,
+      manager: userMap.get(standing.manager_id)
+    }))
+
+    // Group standings by group name
+    const groupedStandings = standingsWithManagers.reduce((acc, standing) => {
+      if (!acc[standing.group_name]) {
+        acc[standing.group_name] = []
+      }
+      acc[standing.group_name].push(standing)
+      return acc
+    }, {} as Record<string, typeof standingsWithManagers>)
+
+    // Convert to array format
+    const groups = Object.entries(groupedStandings).map(([groupName, standings]) => ({
+      group_name: groupName,
+      standings
+    }))
+
+    return NextResponse.json({
+      cup,
+      groups
+    })
+  } catch (error) {
+    console.error('Error recalculating cup group standings:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

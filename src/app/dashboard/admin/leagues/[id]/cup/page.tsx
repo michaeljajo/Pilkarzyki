@@ -353,7 +353,7 @@ export default function CupOverviewPage() {
                   </Button>
                 </motion.div>
 
-                {/* Step 3: Manage Cup Lineups */}
+                {/* Step 3: View Cup Standings */}
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -361,8 +361,40 @@ export default function CupOverviewPage() {
                   className="flex justify-between items-center p-6 bg-[var(--background-tertiary)] rounded-xl hover:bg-[var(--background-tertiary)]/90 transition-colors"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold bg-[var(--mineral-green)]/20 text-[var(--mineral-green)]">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
+                      stats.scheduleGenerated
+                        ? 'bg-[var(--mineral-green)]/20 text-[var(--mineral-green)]'
+                        : 'bg-[var(--navy-border)]/20 text-[var(--foreground-tertiary)]'
+                    }`}>
                       3
+                    </div>
+                    <div>
+                      <div className="font-semibold text-lg">Tabela Pucharu</div>
+                      <div className="text-sm text-[var(--foreground-secondary)]">
+                        Zobacz tabele grupowe, przelicz wyniki i rozstrzygaj remisy
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => router.push(`/dashboard/admin/leagues/${params.id}/cup/standings`)}
+                    disabled={!stats.scheduleGenerated}
+                    variant="secondary"
+                    icon={<Trophy size={18} />}
+                  >
+                    Zobacz Tabele
+                  </Button>
+                </motion.div>
+
+                {/* Step 4: Manage Cup Lineups */}
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="flex justify-between items-center p-6 bg-[var(--background-tertiary)] rounded-xl hover:bg-[var(--background-tertiary)]/90 transition-colors"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold bg-[var(--mineral-green)]/20 text-[var(--mineral-green)]">
+                      4
                     </div>
                     <div>
                       <div className="font-semibold text-lg">Zarządzaj Składami Pucharowymi</div>
@@ -381,16 +413,16 @@ export default function CupOverviewPage() {
                   </Button>
                 </motion.div>
 
-                {/* Step 4: Configure Knockout Draw */}
+                {/* Step 5: Configure Knockout Draw */}
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.4 }}
+                  transition={{ delay: 0.5 }}
                   className="flex justify-between items-center p-6 bg-[var(--background-tertiary)] rounded-xl hover:bg-[var(--background-tertiary)]/90 transition-colors"
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold bg-[var(--mineral-green)]/20 text-[var(--mineral-green)]">
-                      4
+                      5
                     </div>
                     <div>
                       <div className="font-semibold text-lg">Konfiguruj Fazę Pucharową</div>
@@ -402,7 +434,7 @@ export default function CupOverviewPage() {
                   <Button
                     onClick={() => router.push(`/dashboard/admin/leagues/${params.id}/cup/knockout-draw`)}
                     variant="secondary"
-                    icon={<Trophy size={18} />}
+                    icon={<Award size={18} />}
                   >
                     Zarządzaj Drabinką
                   </Button>

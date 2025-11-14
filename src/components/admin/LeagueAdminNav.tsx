@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/utils/cn'
-import { Users, Trophy, Calendar, ClipboardList, BarChart3, Settings, ArrowLeft, Award, Shirt } from 'lucide-react'
+import { Users, Trophy, Calendar, ClipboardList, BarChart3, Settings, ArrowLeft, Award, Shirt, Table } from 'lucide-react'
 
 interface LeagueAdminNavProps {
   leagueId: string
@@ -16,6 +16,11 @@ const getLeagueNavItems = (leagueId: string) => [
     label: 'Przegląd',
     icon: Trophy,
     exactMatch: true
+  },
+  {
+    href: `/dashboard/admin/leagues/${leagueId}/standings`,
+    label: 'Tabela',
+    icon: Table
   },
   {
     href: `/dashboard/admin/leagues/${leagueId}/managers`,

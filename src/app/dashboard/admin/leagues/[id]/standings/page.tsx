@@ -1,0 +1,57 @@
+'use client'
+
+import { useParams } from 'next/navigation'
+import LeagueTable from '@/components/LeagueTable'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Trophy } from 'lucide-react'
+import { motion } from 'framer-motion'
+
+export default function AdminStandingsPage() {
+  const params = useParams()
+  const leagueId = params.id as string
+
+  return (
+    <div className="space-y-12">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col gap-3 -mt-16"
+      >
+        <h1 className="text-5xl font-bold text-[var(--foreground)]">
+          Tabela i Rozstrzyganie
+        </h1>
+        <p className="text-xl text-[var(--foreground-secondary)]">
+          Zarządzaj tabelą ligową, przeliczaj wyniki i rozstrzygaj remisy
+        </p>
+      </motion.div>
+
+      {/* Instructions Card */}
+      <Card className="hover-lift bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3 text-blue-800">
+            💡 Jak używać
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3 text-blue-700">
+            <p>
+              <strong>Przelicz:</strong> Automatycznie przelicza tabelę na podstawie wyników meczów
+            </p>
+            <p>
+              <strong>Rozstrzyganie:</strong> Ręcznie ustaw kolejność drużyn w przypadku remisu (niższa wartość = wyższa pozycja)
+            </p>
+            <p className="text-sm text-blue-600 mt-4">
+              ⚠️ Ręczne rozstrzyganie powinno być używane tylko wtedy, gdy automatyczne kryteria (punkty, bilans bramek) nie wystarczają do rozstrzygnięcia równej pozycji drużyn.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* League Table with Admin Controls */}
+      <div>
+        <LeagueTable leagueId={leagueId} showAdminControls={true} />
+      </div>
+    </div>
+  )
+}
