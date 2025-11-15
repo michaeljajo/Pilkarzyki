@@ -71,7 +71,10 @@ export function LeagueNavigation({
       }
 
       try {
-        const response = await fetch(`/api/manager/leagues?id=${leagueId}`)
+        // Add cache-busting timestamp to ensure fresh data
+        const response = await fetch(`/api/manager/leagues?id=${leagueId}&_t=${Date.now()}`, {
+          cache: 'no-store'
+        })
         if (response.ok) {
           const data = await response.json()
           setIsAdmin(data.league?.user_is_admin || false)
