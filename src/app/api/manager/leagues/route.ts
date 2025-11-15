@@ -153,7 +153,7 @@ async function getSpecificLeague(userId: string, leagueId: string) {
     // Get user information to verify they have access to this league
     const { data: user, error: userError } = await supabaseAdmin
       .from('users')
-      .select('id, email')
+      .select('id, email, is_admin')
       .eq('clerk_id', userId)
       .single()
 
@@ -162,7 +162,11 @@ async function getSpecificLeague(userId: string, leagueId: string) {
       console.log('GET /api/manager/leagues specific - User data:', user)
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
-    console.log('GET /api/manager/leagues specific - User found:', user.id)
+    console.log('GET /api/manager/leagues specific - User found:', {
+      id: user.id,
+      email: user.email,
+      is_admin: user.is_admin
+    })
 
     // Get league details
     const { data: league, error: leagueError } = await supabaseAdmin
@@ -206,7 +210,8 @@ async function getSpecificLeague(userId: string, leagueId: string) {
         created_at: league.created_at,
         updated_at: league.updated_at,
         user_is_participant: userPlayers && userPlayers.length > 0,
-        user_is_admin: league.admin_id === user.id
+        // User is admin if they're the league creator OR a global admin
+        user_is_admin: league.admin_id === user.id || user.is_admin === true
       }
     })
   } catch (error) {
