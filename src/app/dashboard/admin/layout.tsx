@@ -10,7 +10,7 @@ interface AdminLayoutProps {
 
 async function checkAdminAccess(userId: string) {
   try {
-    // Check if user is admin of ANY league (not global admin)
+    // Check if user is admin of ANY league OR is a global admin
     return await userAdminsAnyLeague(userId)
   } catch (error) {
     console.error('Error in admin access check:', error)

@@ -49,21 +49,26 @@ export async function verifyLeagueAdmin(clerkUserId: string, leagueId: string): 
 }
 
 /**
- * Checks if a user administers any leagues
+ * Checks if a user administers any leagues OR is a global admin
  * @param clerkUserId - The Clerk user ID
- * @returns Boolean indicating if user is admin of any league
+ * @returns Boolean indicating if user has admin access
  */
 export async function userAdminsAnyLeague(clerkUserId: string): Promise<boolean> {
   try {
-    // Get user's internal ID
+    // Get user's internal ID and admin status
     const { data: userRecord, error: userError } = await supabaseAdmin
       .from('users')
-      .select('id')
+      .select('id, is_admin')
       .eq('clerk_id', clerkUserId)
       .single()
 
     if (userError || !userRecord) {
       return false
+    }
+
+    // Global admins always have access
+    if (userRecord.is_admin === true) {
+      return true
     }
 
     // Check if user is admin of any league
