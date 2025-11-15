@@ -16,10 +16,10 @@ export default async function DashboardPage() {
     redirect('/sign-in')
   }
 
-  // Get user's internal ID or create if doesn't exist
+  // Get user's internal ID and admin status, or create if doesn't exist
   let { data: userRecord } = await supabaseAdmin
     .from('users')
-    .select('id')
+    .select('id, is_admin')
     .eq('clerk_id', user.id)
     .single()
 
@@ -35,7 +35,7 @@ export default async function DashboardPage() {
         last_name: user.lastName || '',
         is_admin: false
       })
-      .select('id')
+      .select('id, is_admin')
       .single()
 
     if (createError || !newUser) {
@@ -103,7 +103,8 @@ export default async function DashboardPage() {
       season: item.leagues.season,
       is_active: item.leagues.is_active,
       created_at: item.leagues.created_at,
-      isAdmin: item.leagues.admin_id === userRecord.id,
+      // User is admin if they're the league creator OR a global admin
+      isAdmin: item.leagues.admin_id === userRecord.id || userRecord.is_admin === true,
       isManager: true
     })) || []),
     ...(adminLeagues?.filter(l => !managerLeagueIds.has(l.id)).map(league => ({
@@ -120,7 +121,8 @@ export default async function DashboardPage() {
   // Sort by creation date (newest first)
   allLeagues.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
 
-  const hasAdminAccess = adminLeagueIds.size > 0
+  // User has admin access if they created any league OR are a global admin
+  const hasAdminAccess = adminLeagueIds.size > 0 || userRecord.is_admin === true
 
   return (
     <div className="min-h-screen bg-white">
