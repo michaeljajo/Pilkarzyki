@@ -44,9 +44,9 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized - not league admin' }, { status: 403 })
     }
 
-    // Validate player count (max 3 players)
-    if (playerIds.length > 3) {
-      return NextResponse.json({ error: 'Maximum 3 players allowed in lineup' }, { status: 400 })
+    // Validate player count (1-3 players)
+    if (playerIds.length < 1 || playerIds.length > 3) {
+      return NextResponse.json({ error: 'Lineup must have between 1 and 3 players' }, { status: 400 })
     }
 
     // Validate all players belong to manager's squad

@@ -6,9 +6,9 @@ type PlayerWithDbFields = Player & { football_league?: string }
 export function validateLineup(selectedPlayers: Player[]): LineupValidation {
   const errors: string[] = []
 
-  // Must select exactly 3 players
-  if (selectedPlayers.length !== 3) {
-    errors.push('Musisz wybrać dokładnie 3 zawodników')
+  // Must select between 1 and 3 players
+  if (selectedPlayers.length < 1 || selectedPlayers.length > 3) {
+    errors.push('Musisz wybrać od 1 do 3 zawodników')
     return { isValid: false, errors }
   }
 
@@ -16,7 +16,7 @@ export function validateLineup(selectedPlayers: Player[]): LineupValidation {
   // Support both camelCase and snake_case field names
   const leagues = (selectedPlayers as PlayerWithDbFields[]).map(p => p.footballLeague || p.football_league)
   const uniqueLeagues = new Set(leagues)
-  if (uniqueLeagues.size !== 3) {
+  if (uniqueLeagues.size !== selectedPlayers.length) {
     errors.push('Każdy zawodnik musi pochodzić z innej ligi')
   }
 

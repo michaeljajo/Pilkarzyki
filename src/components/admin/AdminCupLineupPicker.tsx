@@ -132,7 +132,7 @@ export function AdminCupLineupPicker({
               Wybierz Skład Pucharowy dla {managerName}
             </h2>
             <p className="text-sm text-gray-600 mt-1">
-              Wybrano: {selectedPlayers.length}/3 zawodników
+              Wybrano: {selectedPlayers.length} (wymagane: 1-3 zawodników)
             </p>
           </div>
           <button

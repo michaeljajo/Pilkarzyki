@@ -465,8 +465,8 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
   const activePlayers = selectedPlayers.filter(p => p !== null) as Player[]
   const activeCupPlayers = selectedCupPlayers.filter(p => p !== null) as Player[]
 
-  const isLeagueLineupValid = activePlayers.length === 3 && validationErrors.length === 0
-  const isCupLineupValid = activeCupPlayers.length === 3 && cupValidationErrors.length === 0
+  const isLeagueLineupValid = activePlayers.length >= 1 && activePlayers.length <= 3 && validationErrors.length === 0
+  const isCupLineupValid = activeCupPlayers.length >= 1 && activeCupPlayers.length <= 3 && cupValidationErrors.length === 0
   const isValid = squadData.isDualGameweek
     ? isLeagueLineupValid && isCupLineupValid && crossLineupErrors.length === 0
     : isLeagueLineupValid
