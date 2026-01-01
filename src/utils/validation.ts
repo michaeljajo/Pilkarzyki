@@ -26,10 +26,12 @@ export function validateLineup(selectedPlayers: Player[]): LineupValidation {
     errors.push('Możesz wybrać maksymalnie 2 napastników')
   }
 
-  // Must have at least 1 non-forward (midfielder or defender)
-  const nonForwards = selectedPlayers.filter(p => p.position === 'Midfielder' || p.position === 'Defender')
-  if (nonForwards.length === 0) {
-    errors.push('Musisz wybrać co najmniej 1 pomocnika lub obrońcę')
+  // Must have at least 1 non-forward (midfielder or defender) ONLY when squad is complete (3 players)
+  if (selectedPlayers.length === 3) {
+    const nonForwards = selectedPlayers.filter(p => p.position === 'Midfielder' || p.position === 'Defender')
+    if (nonForwards.length === 0) {
+      errors.push('Musisz wybrać co najmniej 1 pomocnika lub obrońcę')
+    }
   }
 
   return {
