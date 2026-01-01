@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { auth } from '@clerk/nextjs/server'
+import { LEAGUE_LIMITS, SEASON_FORMAT, VALIDATION_MESSAGES } from '@/config/constants'
 
 export async function GET() {
   try {
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
     } = requestBody
 
     // Generate season from current year if not provided
-    const currentSeason = season || (new Date().getFullYear() + '-' + (new Date().getFullYear() + 1).toString().slice(-2))
+    const currentSeason = season || SEASON_FORMAT.generate()
 
     // Create a minimal user record first, then the league
     // NOTE: is_admin is NOT set - that's reserved for super admins only
@@ -105,9 +106,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to verify league limit' }, { status: 500 })
     }
 
-    if (existingLeagues && existingLeagues.length >= 5) {
+    if (existingLeagues && existingLeagues.length >= LEAGUE_LIMITS.MAX_PER_USER) {
       return NextResponse.json({
-        error: 'You have reached the maximum limit of 5 leagues. Please contact support if you need more.'
+        error: VALIDATION_MESSAGES.LEAGUE_LIMIT_REACHED
       }, { status: 400 })
     }
 

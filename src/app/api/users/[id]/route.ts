@@ -28,7 +28,9 @@ export async function GET(
 
     return NextResponse.json({ user: transformedUser })
   } catch (error) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Error fetching user:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error'
+    return NextResponse.json({ error: errorMessage }, { status: 500 })
   }
 }
 
@@ -43,17 +45,33 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const updates = await request.json()
+    // Check if requesting user is an admin
     const client = await clerkClient()
+    const requestingUser = await client.users.getUser(userId)
+    const isAdmin = requestingUser.publicMetadata?.isAdmin === true
 
-    // Update user in Clerk
-    const updatedUser = await client.users.updateUser(id, {
-      firstName: updates.firstName,
-      lastName: updates.lastName,
-      publicMetadata: {
+    if (!isAdmin) {
+      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 })
+    }
+
+    const updates = await request.json()
+
+    // Build update object with only provided fields
+    const clerkUpdates: any = {}
+    if (updates.firstName !== undefined) {
+      clerkUpdates.firstName = updates.firstName
+    }
+    if (updates.lastName !== undefined) {
+      clerkUpdates.lastName = updates.lastName
+    }
+    if (updates.isAdmin !== undefined) {
+      clerkUpdates.publicMetadata = {
         isAdmin: updates.isAdmin
       }
-    })
+    }
+
+    // Update user in Clerk
+    const updatedUser = await client.users.updateUser(id, clerkUpdates)
 
     const transformedUser = {
       id: updatedUser.id,
@@ -68,7 +86,9 @@ export async function PUT(
 
     return NextResponse.json({ user: transformedUser })
   } catch (error) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Error updating user:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error'
+    return NextResponse.json({ error: errorMessage }, { status: 500 })
   }
 }
 
@@ -83,11 +103,21 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Check if requesting user is an admin
     const client = await clerkClient()
+    const requestingUser = await client.users.getUser(userId)
+    const isAdmin = requestingUser.publicMetadata?.isAdmin === true
+
+    if (!isAdmin) {
+      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 })
+    }
+
     await client.users.deleteUser(id)
 
     return NextResponse.json({ message: 'User deleted successfully' })
   } catch (error) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Error deleting user:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error'
+    return NextResponse.json({ error: errorMessage }, { status: 500 })
   }
 }

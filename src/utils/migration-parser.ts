@@ -158,9 +158,18 @@ export function parseDate(value: string | Date | number): Date {
   // Handle Excel date serial numbers
   if (typeof value === 'number') {
     // Excel dates are days since 1900-01-01
-    const excelEpoch = new Date(1900, 0, 1)
-    const date = new Date(excelEpoch.getTime() + (value - 2) * 24 * 60 * 60 * 1000)
-    return date
+    // Note: Excel incorrectly treats 1900 as a leap year, so we subtract 2
+    // Calculate the date components to create a date at midnight LOCAL time
+    const excelEpoch = new Date(1899, 11, 30) // Dec 30, 1899 (adjusted for Excel's bug)
+    const daysToAdd = Math.floor(value)
+
+    const targetDate = new Date(excelEpoch)
+    targetDate.setDate(targetDate.getDate() + daysToAdd)
+
+    // Set to midnight local time
+    targetDate.setHours(0, 0, 0, 0)
+
+    return targetDate
   }
   return new Date(value)
 }
@@ -169,10 +178,23 @@ export function combineDateTime(date: Date, timeValue?: number): Date {
   if (!timeValue) return date
 
   // Excel time is a fraction of a day (0.5 = 12:00 PM)
-  const millisInDay = 24 * 60 * 60 * 1000
-  const timeMillis = timeValue * millisInDay
+  // Extract hours, minutes, seconds from the time fraction
+  const totalSeconds = Math.round(timeValue * 24 * 60 * 60)
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
 
-  const combined = new Date(date.getTime() + timeMillis)
+  // Create date with time components in local timezone
+  // Use local date components (not UTC) to preserve the intended day
+  const combined = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+    hours,
+    minutes,
+    seconds
+  )
+
   return combined
 }
 
@@ -233,11 +255,14 @@ export function parseLeagueGameweeks(rows: LeagueGameweekRow[]): {
       }
 
       const startDate = parseDate(row.StartDate)
-      const endDate = parseDate(row.EndDate)
-      const lockDateBase = row.LockDate ? parseDate(row.LockDate) : endDate
+      const endDateBase = parseDate(row.EndDate)
+      const lockDateBase = row.LockDate ? parseDate(row.LockDate) : endDateBase
 
       // Combine lock date with lock time if available
       const lockDate = combineDateTime(lockDateBase, row.LockTime)
+
+      // Combine end date with completion time if available, otherwise default to 23:59
+      const endDate = combineDateTime(endDateBase, row.CompletionTime || 0.9993055555555556)
 
       if (!isValidDate(startDate)) {
         errors.push(`Row ${rowNum}: Invalid StartDate`)

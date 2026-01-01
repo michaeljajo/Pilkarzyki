@@ -41,6 +41,32 @@ export default function LeagueManagersPage() {
     }
   }
 
+  async function handleToggleAdmin(userId: string, isAdmin: boolean) {
+    try {
+      const response = await fetch(`/api/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ isAdmin }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update user')
+      }
+
+      // Update local state
+      setManagers(prev => prev.map(manager =>
+        manager.id === userId ? { ...manager, isAdmin } : manager
+      ))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update user')
+      setTimeout(() => setError(null), 5000)
+    }
+  }
+
   if (loading) {
     return (
       <div className="animate-pulse space-y-8">
@@ -104,13 +130,32 @@ export default function LeagueManagersPage() {
                       size="lg"
                     />
                     <div>
-                      <div className="font-semibold text-lg text-[var(--foreground)]">
-                        {manager.firstName} {manager.lastName}
+                      <div className="flex items-center gap-3">
+                        <div className="font-semibold text-lg text-[var(--foreground)]">
+                          {manager.firstName} {manager.lastName}
+                        </div>
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            manager.isAdmin
+                              ? 'bg-red-100 text-red-800'
+                              : 'bg-green-100 text-green-800'
+                          }`}
+                        >
+                          {manager.isAdmin ? 'Admin' : 'Menedżer'}
+                        </span>
                       </div>
                       <div className="text-base text-[var(--foreground-secondary)] mt-1">{manager.email}</div>
                     </div>
                   </div>
-                  <span className="text-base text-[var(--foreground-tertiary)]">Menedżer #{index + 1}</span>
+                  <div className="flex items-center gap-4">
+                    <Button
+                      variant={manager.isAdmin ? 'danger' : 'secondary'}
+                      size="sm"
+                      onClick={() => handleToggleAdmin(manager.id, !manager.isAdmin)}
+                    >
+                      {manager.isAdmin ? 'Usuń Admina' : 'Nadaj Admina'}
+                    </Button>
+                  </div>
                 </motion.div>
               ))}
             </div>

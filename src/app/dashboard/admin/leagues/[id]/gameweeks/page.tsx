@@ -87,9 +87,9 @@ export default function LeagueGameweeksPage() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          start_date: editingGameweek.start_date,
+          start_date: editingGameweek.lock_date, // Start date = lock date
           end_date: editingGameweek.end_date,
-          lock_date: editingGameweek.start_date, // Lock date = start date
+          lock_date: editingGameweek.lock_date,
           is_completed: editingGameweek.is_completed,
           is_locked: editingGameweek.is_locked
         })
@@ -158,7 +158,7 @@ export default function LeagueGameweeksPage() {
     return dateObj.toISOString()
   }
 
-  function updateEditingDateTime(field: 'start_date' | 'end_date', type: 'date' | 'time', value: string) {
+  function updateEditingDateTime(field: 'start_date' | 'end_date' | 'lock_date', type: 'date' | 'time', value: string) {
     if (!editingGameweek) return
 
     const currentValue = editingGameweek[field]
@@ -172,8 +172,7 @@ export default function LeagueGameweeksPage() {
 
     setEditingGameweek({
       ...editingGameweek,
-      [field]: combined,
-      lock_date: field === 'start_date' ? combined : editingGameweek.lock_date
+      [field]: combined
     })
   }
 
@@ -253,22 +252,22 @@ export default function LeagueGameweeksPage() {
                         </div>
 
                         <div className="space-y-4">
-                          {/* Start Date and Time */}
+                          {/* Lock Date and Time */}
                           <div>
                             <label className="block text-sm font-medium text-[var(--foreground-secondary)] mb-2">
-                              Data rozpoczęcia (i blokada składu)
+                              Data i czas blokady składu
                             </label>
                             <div className="grid grid-cols-2 gap-3">
                               <input
                                 type="date"
-                                value={formatDateForInput(editingGameweek.start_date)}
-                                onChange={(e) => updateEditingDateTime('start_date', 'date', e.target.value)}
+                                value={formatDateForInput(editingGameweek.lock_date)}
+                                onChange={(e) => updateEditingDateTime('lock_date', 'date', e.target.value)}
                                 className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                               />
                               <input
                                 type="time"
-                                value={formatTimeForInput(editingGameweek.start_date)}
-                                onChange={(e) => updateEditingDateTime('start_date', 'time', e.target.value)}
+                                value={formatTimeForInput(editingGameweek.lock_date)}
+                                onChange={(e) => updateEditingDateTime('lock_date', 'time', e.target.value)}
                                 className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                               />
                             </div>
@@ -348,11 +347,11 @@ export default function LeagueGameweeksPage() {
                         <div>
                           <div className="font-semibold text-xl text-[var(--foreground)]">Kolejka {gameweek.week}</div>
                           <div className="text-base text-[var(--foreground-secondary)] mt-2">
-                            {new Date(gameweek.start_date).toLocaleDateString()} -{' '}
-                            {new Date(gameweek.end_date).toLocaleDateString()}
+                            {new Date(gameweek.lock_date).toLocaleDateString('pl-PL')} -{' '}
+                            {new Date(gameweek.end_date).toLocaleDateString('pl-PL')}
                           </div>
                           <div className="text-sm text-[var(--foreground-tertiary)] mt-1">
-                            Blokada Składu: {new Date(gameweek.lock_date).toLocaleString()}
+                            Blokada Składu: {new Date(gameweek.lock_date).toLocaleString('pl-PL')}
                           </div>
                         </div>
                         <div className="flex flex-col gap-2 items-end">

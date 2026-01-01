@@ -31,6 +31,7 @@ export async function GET(
         manager_id,
         users!squads_manager_id_fkey(
           id,
+          clerk_id,
           email,
           first_name,
           last_name,
@@ -50,8 +51,9 @@ export async function GET(
     // Transform the data to match expected User interface
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const managers = (data || []).map((squad: any) => ({
-      id: squad.users.id,
-      clerkId: '', // Not available in this query
+      id: squad.users.clerk_id || squad.users.id, // Use Clerk ID for API calls
+      clerkId: squad.users.clerk_id,
+      databaseId: squad.users.id, // Keep database ID for reference
       email: squad.users.email,
       firstName: squad.users.first_name,
       lastName: squad.users.last_name,
