@@ -103,13 +103,6 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-      name,
-      admin_id: adminId,
-      season: currentSeason,
-      current_gameweek: 1,
-      is_active: true
-    })
-
     // Create league
     const { data: league, error: leagueError } = await supabaseAdmin
       .from('leagues')

@@ -14,19 +14,6 @@ export async function GET() {
       limit: 500
     })
 
-      totalCount: users.totalCount,
-      dataLength: users.data.length,
-      users: users.data.map(user => ({
-        id: user.id,
-        email: user.emailAddresses[0]?.emailAddress || '',
-        firstName: user.firstName,
-        lastName: user.lastName,
-        username: user.username,
-        createdAt: user.createdAt,
-        lastSignInAt: user.lastSignInAt
-      }))
-    })
-
     // Check for email duplicates in raw data
     const emailCounts = users.data.reduce((acc, user) => {
       const email = user.emailAddresses[0]?.emailAddress || ''
@@ -42,12 +29,6 @@ export async function GET() {
         const duplicateUsers = users.data.filter(user =>
           user.emailAddresses[0]?.emailAddress === email
         )
-          id: user.id,
-          createdAt: user.createdAt,
-          lastSignInAt: user.lastSignInAt,
-          firstName: user.firstName,
-          lastName: user.lastName
-        })))
       })
     }
 
@@ -98,13 +79,6 @@ export async function GET() {
         }
 
         if (shouldReplace) {
-            replacing: existing.id,
-            with: user.id,
-            reason: currentLastSignIn.getTime() > existingLastSignIn.getTime() ? 'more recent sign-in' :
-                   currentCompleteness > existingCompleteness ? 'more complete profile' :
-                   'more recent creation'
-          })
-
           // Replace the existing user
           const index = acc.findIndex(u => u.emailAddresses[0]?.emailAddress === email)
           acc[index] = user

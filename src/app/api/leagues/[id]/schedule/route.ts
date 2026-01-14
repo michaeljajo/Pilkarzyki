@@ -295,12 +295,6 @@ export async function GET(
       .eq('league_id', leagueId)
       .order('week', { ascending: true })
 
-      gameweeks: gameweeks ? gameweeks.length : 'null',
-      totalMatches: gameweeks ? gameweeks.reduce((sum, gw) => sum + (gw.matches?.length || 0), 0) : 0,
-      gameweeksError,
-      fullGameweeksData: gameweeks
-    })
-
     if (gameweeksError) {
       console.error('Gameweeks GET error:', gameweeksError)
       return NextResponse.json({ error: gameweeksError.message }, { status: 500 })
@@ -321,11 +315,6 @@ export async function GET(
       .from('users')
       .select('id, first_name, last_name, email')
       .in('id', Array.from(managerIds))
-
-      users: users ? users.length : 'null',
-      usersError,
-      fullUsersData: users
-    })
 
     if (usersError) {
       console.error('Users GET error:', usersError)
@@ -366,21 +355,6 @@ export async function GET(
         away_manager: userMap[match.away_manager_id]
       }))
     }))
-
-      schedule: schedule ? schedule.length : 'null',
-      totalGameweeks: schedule?.length,
-      totalMatches: schedule?.reduce((sum, gw) => sum + (gw.matches?.length || 0), 0),
-      firstGameweekSample: schedule && schedule.length > 0 ? {
-        id: schedule[0].id,
-        week: schedule[0].week,
-        matchesCount: schedule[0].matches?.length,
-        firstMatchSample: schedule[0].matches && schedule[0].matches.length > 0 ? {
-          id: schedule[0].matches[0].id,
-          home_manager: schedule[0].matches[0].home_manager,
-          away_manager: schedule[0].matches[0].away_manager
-        } : 'no matches'
-      } : 'no gameweeks'
-    })
 
     return NextResponse.json({
       schedule: schedule || [],

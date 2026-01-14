@@ -13,6 +13,11 @@ const nextConfig: NextConfig = {
     // Memory and performance optimizations handled automatically
   },
 
+  // Turbopack configuration
+  // Turbopack automatically handles server-only module exclusions (fs, net, tls)
+  // No additional configuration needed for standard Next.js apps
+  turbopack: {},
+
   // Webpack fallback configuration (if Turbopack fails)
   webpack: (config, { isServer }) => {
     if (!isServer) {

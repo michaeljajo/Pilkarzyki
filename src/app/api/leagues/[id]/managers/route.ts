@@ -118,13 +118,6 @@ export async function POST(
         const clerkUser = await client.users.getUser(userId)
         const email = clerkUser.emailAddresses[0]?.emailAddress || ''
 
-          id: clerkUser.id,
-          email,
-          first_name: clerkUser.firstName,
-          last_name: clerkUser.lastName,
-          username: clerkUser.username
-        })
-
         // Use enhanced name resolution logic
         const { firstName, lastName } = resolveUserNames({
           email,

@@ -370,11 +370,6 @@ export default function ResultsPage() {
                 const allPlayersHavePlayed = (players: PlayerWithResult[] | undefined) => {
                   if (!players || players.length === 0) return false
                   const result = players.every(p => playerHasPlayed[p.id] === true)
-                  // Debug logging
-                    name: `${p.name} ${p.surname}`,
-                    hasPlayed: playerHasPlayed[p.id],
-                    id: p.id
-                  })), 'All played:', result)
                   return result
                 }
 

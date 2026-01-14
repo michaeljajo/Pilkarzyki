@@ -88,13 +88,6 @@ async function handleUserCreated(userData: ClerkWebhookEvent['data']) {
   try {
     const email = userData.email_addresses[0]?.email_address || ''
 
-      id: userData.id,
-      email,
-      first_name: userData.first_name,
-      last_name: userData.last_name,
-      username: userData.username
-    })
-
     // Use enhanced name resolution logic
     const { firstName, lastName } = resolveUserNames({
       email,
@@ -125,13 +118,6 @@ async function handleUserCreated(userData: ClerkWebhookEvent['data']) {
 async function handleUserUpdated(userData: ClerkWebhookEvent['data']) {
   try {
     const email = userData.email_addresses[0]?.email_address || ''
-
-      id: userData.id,
-      email,
-      first_name: userData.first_name,
-      last_name: userData.last_name,
-      username: userData.username
-    })
 
     // Use enhanced name resolution logic
     const { firstName, lastName } = resolveUserNames({

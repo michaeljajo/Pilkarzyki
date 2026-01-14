@@ -75,12 +75,6 @@ export default function CupGroupsPage() {
       const managersResponse = await fetch(`/api/leagues/${params.id}/managers`)
       const managersData = await managersResponse.json()
 
-        ok: managersResponse.ok,
-        status: managersResponse.status,
-        data: managersData,
-        leagueId: params.id
-      })
-
       if (!managersResponse.ok) {
         throw new Error('Failed to fetch managers')
       }
@@ -100,12 +94,6 @@ export default function CupGroupsPage() {
       // Fetch existing group assignments
       const groupsResponse = await fetch(`/api/cups/${cupData.cup.id}/groups`)
       const groupsData = await groupsResponse.json()
-
-        ok: groupsResponse.ok,
-        status: groupsResponse.status,
-        data: groupsData,
-        hasGroups: !!groupsData.groups
-      })
 
       if (groupsResponse.ok && groupsData.groups && Object.keys(groupsData.groups).length > 0) {
 
@@ -334,12 +322,6 @@ export default function CupGroupsPage() {
   }
 
   const groupNames = Object.keys(groups).sort()
-
-    groupNames,
-    groups,
-    allManagers: allManagers.length,
-    unassignedManagers: unassignedManagers.length
-  })
 
   return (
     <div className="space-y-12">
