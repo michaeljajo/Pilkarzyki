@@ -58,20 +58,23 @@ export default function LeaguePlayersPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-4 sm:space-y-6 lg:space-y-8">
+      <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Zawodnicy Ligi</h1>
-          <p className="mt-1 text-gray-600">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">Zawodnicy Ligi</h1>
+          <p className="mt-1 sm:mt-2 text-sm sm:text-base lg:text-lg text-gray-600">
             Przeglądaj i zarządzaj zawodnikami w tej lidze
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={fetchPlayers} variant="secondary">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+          <Button onClick={fetchPlayers} variant="secondary" size="lg" className="w-full sm:w-auto">
             Odśwież
           </Button>
-          <Link href={`/dashboard/admin/leagues/${params.id}/players/import`}>
-            <Button>Importuj Zawodników</Button>
+          <Link href={`/dashboard/admin/leagues/${params.id}/players/draft`} className="w-full sm:w-auto">
+            <Button variant="outline" size="lg" className="w-full">Transfery</Button>
+          </Link>
+          <Link href={`/dashboard/admin/leagues/${params.id}/players/import`} className="w-full sm:w-auto">
+            <Button size="lg" className="w-full">Importuj Zawodników</Button>
           </Link>
         </div>
       </div>
@@ -95,46 +98,82 @@ export default function LeaguePlayersPage() {
               </Link>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Nazwisko
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Klub
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Pozycja
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Menedżer
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {players.map((player) => (
-                    <tr key={player.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {player.name} {player.surname}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {player.club}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {player.position}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {player.manager
-                          ? `${player.manager.first_name} ${player.manager.last_name}`
-                          : 'Nieprzypisany'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <>
+              {/* Mobile Card View */}
+              <div className="block sm:hidden space-y-3">
+                {players.map((player) => (
+                  <div key={player.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <div className="font-semibold text-base text-gray-900 mb-2">
+                      {player.name} {player.surname}
+                    </div>
+                    <div className="space-y-1.5 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Klub:</span>
+                        <span className="text-gray-900 font-medium">{player.club}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Pozycja:</span>
+                        <span className="text-gray-900 font-medium">{player.position}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Menedżer:</span>
+                        <span className="text-gray-900 font-medium">
+                          {player.manager
+                            ? `${player.manager.first_name} ${player.manager.last_name}`
+                            : 'Nieprzypisany'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop Table View */}
+              <div className="hidden sm:block overflow-x-auto">
+                <div className="inline-block min-w-full align-middle">
+                  <div className="overflow-hidden shadow-sm ring-1 ring-black ring-opacity-5 rounded-lg">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Nazwisko
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Klub
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Pozycja
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Menedżer
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {players.map((player) => (
+                          <tr key={player.id} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              {player.name} {player.surname}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {player.club}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {player.position}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {player.manager
+                                ? `${player.manager.first_name} ${player.manager.last_name}`
+                                : 'Nieprzypisany'}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

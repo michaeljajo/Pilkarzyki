@@ -75,7 +75,6 @@ export default function CupGroupsPage() {
       const managersResponse = await fetch(`/api/leagues/${params.id}/managers`)
       const managersData = await managersResponse.json()
 
-      console.log('📊 Managers API Response:', {
         ok: managersResponse.ok,
         status: managersResponse.status,
         data: managersData,
@@ -87,7 +86,6 @@ export default function CupGroupsPage() {
       }
 
       const managers: Manager[] = managersData.managers || []
-      console.log('👥 Parsed managers:', managers.length, managers)
       setAllManagers(managers)
 
       // Initialize groups based on manager count
@@ -103,7 +101,6 @@ export default function CupGroupsPage() {
       const groupsResponse = await fetch(`/api/cups/${cupData.cup.id}/groups`)
       const groupsData = await groupsResponse.json()
 
-      console.log('📦 Groups API Response:', {
         ok: groupsResponse.ok,
         status: groupsResponse.status,
         data: groupsData,
@@ -111,7 +108,6 @@ export default function CupGroupsPage() {
       })
 
       if (groupsResponse.ok && groupsData.groups && Object.keys(groupsData.groups).length > 0) {
-        console.log('✅ Using existing group assignments')
 
         // Transform API data to match component format
         interface GroupManagerData {
@@ -142,17 +138,14 @@ export default function CupGroupsPage() {
         })
         setUnassignedManagers(managers.filter(m => !assignedIds.has(m.id)))
       } else {
-        console.log('🆕 Initializing empty groups, groupCount:', groupCount)
         // Initialize empty groups
         const initialGroups: GroupAssignment = {}
         const groupNames = Array.from({ length: groupCount }, (_, i) =>
           String.fromCharCode(65 + i) // A, B, C, D, ...
         )
-        console.log('📝 Creating groups:', groupNames)
         groupNames.forEach(name => {
           initialGroups[name] = []
         })
-        console.log('📋 Initial groups object:', initialGroups)
         setGroups(initialGroups)
         setUnassignedManagers(managers)
       }
@@ -342,7 +335,6 @@ export default function CupGroupsPage() {
 
   const groupNames = Object.keys(groups).sort()
 
-  console.log('🏁 Rendering groups:', {
     groupNames,
     groups,
     allManagers: allManagers.length,

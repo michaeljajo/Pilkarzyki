@@ -108,9 +108,6 @@ export async function POST(request: NextRequest) {
 
     const mm = parseManagersMapping(managersMappingData)
 
-    console.log('=== MANAGERS MAPPING ===')
-    console.log('Team names found:', Array.from(mm.data.keys()))
-    console.log('========================')
 
     if (mm.errors.length > 0) {
       console.error('=== MANAGERS_MAPPING PARSING ERRORS ===')
@@ -351,8 +348,6 @@ async function importMigrationData(
     }
 
     // CRITICAL SAFEGUARD: Create manager map ONLY with managers who have squads in THIS league
-    console.log(`\n=== LEAGUE ISOLATION CHECK ===`)
-    console.log(`Target League: ${leagueName} (ID: ${leagueId})`)
 
     const { data: leagueSquads } = await supabaseAdmin
       .from('squads')
@@ -371,12 +366,9 @@ async function importMigrationData(
 
       if (user && user.email) {
         managerMap.set(user.email.toLowerCase(), user.id)
-        console.log(`  ✓ Manager in league: ${user.email} (team: ${squad.team_name})`)
       }
     }
 
-    console.log(`Total managers in league: ${managerMap.size}`)
-    console.log(`===========================\n`)
 
     // Step 4: Import cup groups
     for (const group of data.cupGroups) {
@@ -446,8 +438,6 @@ async function importMigrationData(
       .eq('league', leagueName)
       .in('manager_id', managerIds)  // CRITICAL: Only players assigned to managers in this league
 
-    console.log(`\n=== PLAYER VALIDATION ===`)
-    console.log(`Found ${players?.length || 0} players for league "${leagueName}"`)
 
     const playerMap = new Map<string, string>() // full_name -> player_id
     const playerToManagerMap = new Map<string, string>() // player_id -> manager_id
@@ -458,7 +448,6 @@ async function importMigrationData(
 
       // Check for duplicates (same name across different managers in same league)
       if (playerMap.has(fullName)) {
-        console.log(`  ⚠ WARNING: Duplicate player name "${fullName}" in league "${leagueName}"`)
       }
 
       playerMap.set(fullName, player.id)
@@ -466,8 +455,6 @@ async function importMigrationData(
       playerLeagueMap.set(player.id, player.league)
     })
 
-    console.log(`Player map size: ${playerMap.size}`)
-    console.log(`========================\n`)
 
     // Step 7: Import league matches, lineups, and results
     for (const match of data.leagueMatches) {

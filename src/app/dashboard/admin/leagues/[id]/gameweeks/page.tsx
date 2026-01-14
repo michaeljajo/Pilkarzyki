@@ -202,15 +202,15 @@ export default function LeagueGameweeksPage() {
   }
 
   return (
-    <div className="space-y-12">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6 sm:space-y-8 lg:space-y-12">
+      <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
         <div>
-          <h1 className="text-5xl font-bold text-[var(--foreground)]">Kolejki Ligi</h1>
-          <p className="mt-3 text-xl text-[var(--foreground-secondary)]">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--foreground)]">Kolejki Ligi</h1>
+          <p className="mt-2 sm:mt-3 text-base sm:text-lg lg:text-xl text-[var(--foreground-secondary)]">
             Zobacz i zarządzaj kolejkami tej ligi
           </p>
         </div>
-        <Button onClick={fetchGameweeks} variant="secondary" size="lg">
+        <Button onClick={fetchGameweeks} variant="secondary" size="lg" className="w-full sm:w-auto">
           Odśwież
         </Button>
       </div>
@@ -234,7 +234,7 @@ export default function LeagueGameweeksPage() {
               <p className="text-base">Kolejki są tworzone podczas generowania harmonogramu</p>
             </div>
           ) : (
-            <div className="space-y-5 -ml-2">
+            <div className="space-y-3 sm:space-y-5">
               {gameweeks.map((gameweek) => {
                 const isEditing = editingId === gameweek.id
                 const nextStatus = getNextStatus(gameweek)
@@ -242,12 +242,12 @@ export default function LeagueGameweeksPage() {
                 return (
                   <div
                     key={gameweek.id}
-                    className="p-6 pl-8 bg-[var(--background-tertiary)] rounded-2xl hover:bg-[var(--background-tertiary)]/90 transition-colors"
+                    className="p-4 sm:p-6 bg-[var(--background-tertiary)] rounded-2xl hover:bg-[var(--background-tertiary)]/90 transition-colors"
                   >
                     {isEditing && editingGameweek ? (
                       // Edit Mode
                       <div className="space-y-4">
-                        <div className="font-semibold text-xl text-[var(--foreground)]">
+                        <div className="font-semibold text-lg sm:text-xl text-[var(--foreground)]">
                           Edytuj Kolejkę {gameweek.week}
                         </div>
 
@@ -257,18 +257,18 @@ export default function LeagueGameweeksPage() {
                             <label className="block text-sm font-medium text-[var(--foreground-secondary)] mb-2">
                               Data i czas blokady składu
                             </label>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                               <input
                                 type="date"
                                 value={formatDateForInput(editingGameweek.lock_date)}
                                 onChange={(e) => updateEditingDateTime('lock_date', 'date', e.target.value)}
-                                className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                                className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-sm sm:text-base"
                               />
                               <input
                                 type="time"
                                 value={formatTimeForInput(editingGameweek.lock_date)}
                                 onChange={(e) => updateEditingDateTime('lock_date', 'time', e.target.value)}
-                                className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                                className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-sm sm:text-base"
                               />
                             </div>
                           </div>
@@ -278,24 +278,24 @@ export default function LeagueGameweeksPage() {
                             <label className="block text-sm font-medium text-[var(--foreground-secondary)] mb-2">
                               Data zakończenia
                             </label>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                               <input
                                 type="date"
                                 value={formatDateForInput(editingGameweek.end_date)}
                                 onChange={(e) => updateEditingDateTime('end_date', 'date', e.target.value)}
-                                className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                                className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-sm sm:text-base"
                               />
                               <input
                                 type="time"
                                 value={formatTimeForInput(editingGameweek.end_date)}
                                 onChange={(e) => updateEditingDateTime('end_date', 'time', e.target.value)}
-                                className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                                className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-sm sm:text-base"
                               />
                             </div>
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="flex items-center gap-3">
                             <input
                               type="checkbox"
@@ -323,11 +323,12 @@ export default function LeagueGameweeksPage() {
                           </div>
                         </div>
 
-                        <div className="flex gap-3 pt-2">
+                        <div className="flex flex-col sm:flex-row gap-3 pt-2">
                           <Button
                             onClick={saveGameweek}
                             loading={saving}
                             size="sm"
+                            className="w-full sm:w-auto"
                           >
                             Zapisz
                           </Button>
@@ -336,6 +337,7 @@ export default function LeagueGameweeksPage() {
                             variant="secondary"
                             size="sm"
                             disabled={saving}
+                            className="w-full sm:w-auto"
                           >
                             Anuluj
                           </Button>
@@ -343,20 +345,20 @@ export default function LeagueGameweeksPage() {
                       </div>
                     ) : (
                       // Display Mode
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <div className="font-semibold text-xl text-[var(--foreground)]">Kolejka {gameweek.week}</div>
-                          <div className="text-base text-[var(--foreground-secondary)] mt-2">
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div className="flex-1">
+                          <div className="font-semibold text-lg sm:text-xl text-[var(--foreground)]">Kolejka {gameweek.week}</div>
+                          <div className="text-sm sm:text-base text-[var(--foreground-secondary)] mt-2">
                             {new Date(gameweek.lock_date).toLocaleDateString('pl-PL')} -{' '}
                             {new Date(gameweek.end_date).toLocaleDateString('pl-PL')}
                           </div>
-                          <div className="text-sm text-[var(--foreground-tertiary)] mt-1">
+                          <div className="text-xs sm:text-sm text-[var(--foreground-tertiary)] mt-1">
                             Blokada Składu: {new Date(gameweek.lock_date).toLocaleString('pl-PL')}
                           </div>
                         </div>
-                        <div className="flex flex-col gap-2 items-end">
+                        <div className="flex flex-row sm:flex-col gap-3 sm:gap-2 items-center sm:items-end w-full sm:w-auto">
                           <span
-                            className={`px-4 py-2 text-sm font-semibold rounded-full ${
+                            className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-full ${
                               gameweek.is_completed
                                 ? 'bg-[var(--success)]/20 text-[var(--success)]'
                                 : gameweek.is_locked
@@ -370,6 +372,7 @@ export default function LeagueGameweeksPage() {
                             onClick={() => startEditing(gameweek)}
                             variant="secondary"
                             size="sm"
+                            className="flex-1 sm:flex-initial"
                           >
                             Edytuj
                           </Button>

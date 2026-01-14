@@ -28,7 +28,6 @@ type ClerkWebhookEvent = {
 }
 
 export async function POST(request: NextRequest) {
-  console.log('🚀 Webhook called at:', new Date().toISOString())
   try {
     // Get the headers
     const headerPayload = await headers()
@@ -36,11 +35,9 @@ export async function POST(request: NextRequest) {
     const svix_timestamp = headerPayload.get('svix-timestamp')
     const svix_signature = headerPayload.get('svix-signature')
 
-    console.log('📋 Headers:', { svix_id, svix_timestamp, svix_signature })
 
     // If there are no headers, error out
     if (!svix_id || !svix_timestamp || !svix_signature) {
-      console.log('❌ Missing required headers')
       return NextResponse.json({ error: 'Missing required headers' }, { status: 400 })
     }
 
@@ -66,26 +63,20 @@ export async function POST(request: NextRequest) {
 
     // Handle the event
     const { type, data } = evt
-    console.log('🔔 Webhook event:', type, 'for user:', data.id)
 
     switch (type) {
       case 'user.created':
-        console.log('👤 Creating user in Supabase')
         await handleUserCreated(data)
         break
       case 'user.updated':
-        console.log('✏️ Updating user in Supabase')
         await handleUserUpdated(data)
         break
       case 'user.deleted':
-        console.log('🗑️ Deleting user from Supabase')
         await handleUserDeleted(data)
         break
       default:
-        console.log(`❓ Unhandled webhook event type: ${type}`)
     }
 
-    console.log('✅ Webhook processed successfully')
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error processing webhook:', error)
@@ -97,8 +88,6 @@ async function handleUserCreated(userData: ClerkWebhookEvent['data']) {
   try {
     const email = userData.email_addresses[0]?.email_address || ''
 
-    console.log('🔍 Processing user creation for:', email)
-    console.log('📝 Received data:', {
       id: userData.id,
       email,
       first_name: userData.first_name,
@@ -127,7 +116,6 @@ async function handleUserCreated(userData: ClerkWebhookEvent['data']) {
     if (error) {
       console.error('❌ Error creating user in database:', error)
     } else {
-      console.log('✅ User created successfully:', email, `(${firstName} ${lastName})`)
     }
   } catch (error) {
     console.error('❌ Error in handleUserCreated:', error)
@@ -138,8 +126,6 @@ async function handleUserUpdated(userData: ClerkWebhookEvent['data']) {
   try {
     const email = userData.email_addresses[0]?.email_address || ''
 
-    console.log('🔍 Processing user update for:', email)
-    console.log('📝 Received data:', {
       id: userData.id,
       email,
       first_name: userData.first_name,
@@ -169,7 +155,6 @@ async function handleUserUpdated(userData: ClerkWebhookEvent['data']) {
     if (error) {
       console.error('❌ Error updating user in database:', error)
     } else {
-      console.log('✅ User updated successfully:', email, `(${firstName} ${lastName})`)
     }
   } catch (error) {
     console.error('❌ Error in handleUserUpdated:', error)
@@ -186,7 +171,6 @@ async function handleUserDeleted(userData: ClerkWebhookEvent['data']) {
     if (error) {
       console.error('Error deleting user from database:', error)
     } else {
-      console.log('User deleted successfully:', userData.id)
     }
   } catch (error) {
     console.error('Error in handleUserDeleted:', error)

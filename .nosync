@@ -1,0 +1,5 @@
+# This file marks the .next directory to be excluded from iCloud sync
+# Place this file in directories that should not sync to iCloud
+.next
+node_modules
+.turbo

@@ -19,54 +19,60 @@ export async function GET(
 
     const { id: leagueId } = await context.params
 
-    // Check if league exists
-    const { data: league, error: leagueError } = await supabaseAdmin
-      .from('leagues')
-      .select('id, name, season')
-      .eq('id', leagueId)
-      .single()
+    // Parallel queries: Get league and user data simultaneously
+    const [leagueResult, userResult] = await Promise.all([
+      supabaseAdmin
+        .from('leagues')
+        .select('id, name, season')
+        .eq('id', leagueId)
+        .single(),
+      supabaseAdmin
+        .from('users')
+        .select('id')
+        .eq('clerk_id', userId)
+        .single()
+    ])
+
+    const { data: league, error: leagueError } = leagueResult
+    const { data: user } = userResult
 
     if (leagueError || !league) {
       return NextResponse.json({ error: 'League not found' }, { status: 404 })
     }
 
-    // Get user's database ID from Clerk ID
-    const { data: user } = await supabaseAdmin
-      .from('users')
-      .select('id')
-      .eq('clerk_id', userId)
-      .single()
-
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    // Verify user is a member of this league (has a squad)
-    const { data: squad } = await supabaseAdmin
-      .from('squads')
-      .select('id')
-      .eq('league_id', leagueId)
-      .eq('manager_id', user.id)
-      .single()
+    // Parallel queries: Get squad verification and standings simultaneously
+    const [squadResult, standingsResult] = await Promise.all([
+      supabaseAdmin
+        .from('squads')
+        .select('id')
+        .eq('league_id', leagueId)
+        .eq('manager_id', user.id)
+        .single(),
+      supabaseAdmin
+        .from('standings')
+        .select(`
+          *,
+          users!standings_manager_id_fkey(
+            id,
+            first_name,
+            last_name,
+            email
+          )
+        `)
+        .eq('league_id', leagueId)
+        .order('position', { ascending: true })
+    ])
+
+    const { data: squad } = squadResult
+    const { data: standingsData, error: standingsError } = standingsResult
 
     if (!squad) {
       return NextResponse.json({ error: 'You are not a member of this league' }, { status: 403 })
     }
-
-    // Get standings from database (cached)
-    const { data: standingsData, error: standingsError } = await supabaseAdmin
-      .from('standings')
-      .select(`
-        *,
-        users!standings_manager_id_fkey(
-          id,
-          first_name,
-          last_name,
-          email
-        )
-      `)
-      .eq('league_id', leagueId)
-      .order('position', { ascending: true })
 
     if (standingsError) {
       console.error('Error fetching standings:', standingsError)
@@ -85,12 +91,10 @@ export async function GET(
 
     // If no standings exist, calculate them (with race condition protection)
     if (!standingsData || standingsData.length === 0) {
-      console.log('No standings found, calculating...')
 
       // Check if standings are already being calculated for this league
       const existingCalculation = calculatingStandings.get(leagueId)
       if (existingCalculation) {
-        console.log('Standings already being calculated, waiting...')
         try {
           const calculatedStandings = await existingCalculation
           calculatingStandings.delete(leagueId)
@@ -193,29 +197,22 @@ export async function POST(
 
     const { id: leagueId } = await context.params
 
-    // Verify user is admin of this league
-    const { isAdmin, error: authError } = await verifyLeagueAdmin(userId, leagueId)
+    // Parallel queries: Verify admin access and get league simultaneously
+    const [adminCheck, leagueResult] = await Promise.all([
+      verifyLeagueAdmin(userId, leagueId),
+      supabaseAdmin
+        .from('leagues')
+        .select('id, name, season')
+        .eq('id', leagueId)
+        .single()
+    ])
+
+    const { isAdmin, error: authError } = adminCheck
+    const { data: league, error: leagueError } = leagueResult
+
     if (!isAdmin) {
       return NextResponse.json({ error: authError || 'Forbidden' }, { status: 403 })
     }
-
-    // Check if user is admin
-    const { data: user, error: userError } = await supabaseAdmin
-      .from('users')
-      .select('is_admin')
-      .eq('clerk_id', userId)
-      .single()
-
-    if (userError || !user?.is_admin) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
-    }
-
-    // Check if league exists
-    const { data: league, error: leagueError } = await supabaseAdmin
-      .from('leagues')
-      .select('id, name, season')
-      .eq('id', leagueId)
-      .single()
 
     if (leagueError || !league) {
       return NextResponse.json({ error: 'League not found' }, { status: 404 })
@@ -226,7 +223,6 @@ export async function POST(
     let standings
 
     if (existingCalculation) {
-      console.log('Standings already being calculated, waiting...')
       try {
         standings = await existingCalculation
         calculatingStandings.delete(leagueId)

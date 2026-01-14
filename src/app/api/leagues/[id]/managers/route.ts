@@ -11,7 +11,6 @@ export async function GET(
   try {
     const { userId } = await auth()
     const { id } = await params
-    console.log('GET /api/leagues/[id]/managers - userId:', userId, 'leagueId:', id)
 
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -41,7 +40,6 @@ export async function GET(
       `)
       .eq('league_id', id)
 
-    console.log('Managers query result:', { data, error })
 
     if (error) {
       console.error('Error fetching managers:', error)
@@ -76,7 +74,6 @@ export async function POST(
   try {
     const { userId: authUserId } = await auth()
     const { id } = await params
-    console.log('POST /api/leagues/[id]/managers - authUserId:', authUserId, 'leagueId:', id)
 
     if (!authUserId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -89,7 +86,6 @@ export async function POST(
     }
 
     const { userId } = await request.json()
-    console.log('Adding manager with userId:', userId)
 
     // Check if league exists
     const { data: league, error: leagueError } = await supabaseAdmin
@@ -113,7 +109,6 @@ export async function POST(
 
     // If user doesn't exist in our database, create them
     if (userError || !user) {
-      console.log('User not found in database, creating user record for clerkId:', userId)
 
       // Get user details from Clerk
       const { clerkClient } = await import('@clerk/nextjs/server')
@@ -123,8 +118,6 @@ export async function POST(
         const clerkUser = await client.users.getUser(userId)
         const email = clerkUser.emailAddresses[0]?.emailAddress || ''
 
-        console.log('🔍 Creating user record for:', email)
-        console.log('📝 Clerk user data:', {
           id: clerkUser.id,
           email,
           first_name: clerkUser.firstName,
@@ -192,7 +185,6 @@ export async function POST(
       return NextResponse.json({ error: 'Failed to add manager to league' }, { status: 500 })
     }
 
-    console.log('Successfully added manager:', { user, squad: newSquad })
     return NextResponse.json({
       success: true,
       manager: user,
@@ -211,7 +203,6 @@ export async function DELETE(
   try {
     const { userId: authUserId } = await auth()
     const { id } = await params
-    console.log('DELETE /api/leagues/[id]/managers - authUserId:', authUserId, 'leagueId:', id)
 
     if (!authUserId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -224,7 +215,6 @@ export async function DELETE(
     }
 
     const { managerId } = await request.json()
-    console.log('Removing manager with managerId:', managerId)
 
     if (!managerId) {
       return NextResponse.json({ error: 'Manager ID is required' }, { status: 400 })
@@ -265,7 +255,6 @@ export async function DELETE(
       return NextResponse.json({ error: 'Failed to remove manager from league' }, { status: 500 })
     }
 
-    console.log('Successfully removed manager:', managerId, 'from league:', id)
     return NextResponse.json({
       success: true,
       message: 'Manager removed from league successfully'

@@ -81,7 +81,6 @@ export default async function ResultsSelectorPage() {
 
     isAdmin = userRecord?.is_admin || false
   } catch (error) {
-    console.log('Could not check admin status')
   }
 
   return (

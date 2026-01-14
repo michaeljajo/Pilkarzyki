@@ -81,11 +81,11 @@ export default async function AdminLineupsPage({
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
           Zarządzanie Składami
         </h1>
-        <p className="text-gray-600">
+        <p className="text-sm sm:text-base lg:text-lg text-gray-600">
           Zarządzaj składami zawodników w imieniu menedżerów dla poszczególnych kolejek
         </p>
       </div>

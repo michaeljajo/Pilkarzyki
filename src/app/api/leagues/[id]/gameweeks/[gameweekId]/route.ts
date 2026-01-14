@@ -10,7 +10,6 @@ export async function PATCH(
   try {
     const { userId } = await auth()
     const { id, gameweekId } = await params
-    console.log('PATCH /api/leagues/[id]/gameweeks/[gameweekId] - userId:', userId, 'leagueId:', id, 'gameweekId:', gameweekId)
 
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -24,7 +23,6 @@ export async function PATCH(
 
     const body = await request.json()
     const { start_date, end_date, lock_date, is_completed, is_locked } = body
-    console.log('Update gameweek data:', body)
 
     // Verify gameweek belongs to this league
     const { data: existingGameweek, error: fetchError } = await supabaseAdmin
@@ -61,7 +59,6 @@ export async function PATCH(
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    console.log('Successfully updated gameweek:', data)
     return NextResponse.json({ gameweek: data })
   } catch (error) {
     console.error('PATCH gameweek catch error:', error)
@@ -76,7 +73,6 @@ export async function DELETE(
   try {
     const { userId } = await auth()
     const { id, gameweekId } = await params
-    console.log('DELETE /api/leagues/[id]/gameweeks/[gameweekId] - userId:', userId, 'leagueId:', id, 'gameweekId:', gameweekId)
 
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -111,7 +107,6 @@ export async function DELETE(
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    console.log('Successfully deleted gameweek')
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('DELETE gameweek catch error:', error)

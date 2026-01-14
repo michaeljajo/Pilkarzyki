@@ -176,9 +176,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Recalculate league standings
-        console.log('Recalculating league standings for league:', gameweek.league_id)
         await recalculateLeagueStandings(gameweek.league_id)
-        console.log('League standings updated successfully after result entry')
       } catch (standingsError) {
         console.error('Error updating match scores and standings:', standingsError)
         // Don't fail the request if standings update fails

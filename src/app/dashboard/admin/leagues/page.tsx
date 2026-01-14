@@ -35,9 +35,9 @@ function CreateLeagueModal({ isOpen, onClose, onSubmit, loading }: CreateLeagueM
 
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Utwórz Nową Ligę</h3>
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-full sm:max-w-md lg:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4">Utwórz Nową Ligę</h3>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -71,20 +71,20 @@ function CreateLeagueModal({ isOpen, onClose, onSubmit, loading }: CreateLeagueM
 
 
 
-          <div className="flex gap-3 pt-4">
+          <div className="flex flex-col sm:flex-row gap-3 pt-4">
             <Button
               type="button"
               variant="secondary"
               onClick={onClose}
               disabled={loading}
-              className="flex-1"
+              className="flex-1 w-full sm:w-auto"
             >
               Anuluj
             </Button>
             <Button
               type="submit"
               loading={loading}
-              className="flex-1"
+              className="flex-1 w-full sm:w-auto"
             >
               Utwórz Ligę
             </Button>
@@ -137,7 +137,7 @@ function LeagueCard({ league }: LeagueCardProps) {
           </div>
         </div>
 
-        <div className="mt-6 flex gap-3">
+        <div className="mt-6 flex flex-col sm:flex-row gap-3">
           <Link href={`/dashboard/admin/leagues/${league.id}`} className="flex-1">
             <Button size="sm" variant="secondary" className="w-full">
               Szczegóły
@@ -211,25 +211,25 @@ export default function LeaguesPage() {
   }
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-6 sm:space-y-8 lg:space-y-12">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
         <div>
-          <h1 className="text-5xl font-bold text-[var(--foreground)]">Zarządzanie Ligami</h1>
-          <p className="mt-3 text-xl text-[var(--foreground-secondary)]">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--foreground)]">Zarządzanie Ligami</h1>
+          <p className="mt-2 sm:mt-3 text-base sm:text-lg lg:text-xl text-[var(--foreground-secondary)]">
             Twórz i zarządzaj ligami fantasy football
           </p>
         </div>
-        <div className="flex gap-4">
-          <Link href="/dashboard/admin/migration">
-            <Button variant="ghost" size="lg">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+          <Link href="/dashboard/admin/migration" className="w-full sm:w-auto">
+            <Button variant="ghost" size="lg" className="w-full sm:w-auto">
               📊 Migracja Danych
             </Button>
           </Link>
-          <Button onClick={fetchLeagues} variant="secondary" size="lg">
+          <Button onClick={fetchLeagues} variant="secondary" size="lg" className="w-full sm:w-auto">
             Odśwież
           </Button>
-          <Button onClick={() => setShowCreateModal(true)} size="lg">
+          <Button onClick={() => setShowCreateModal(true)} size="lg" className="w-full sm:w-auto">
             Utwórz Ligę
           </Button>
         </div>
@@ -244,7 +244,7 @@ export default function LeaguesPage() {
 
       {/* Leagues Grid */}
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="animate-pulse h-80 bg-[var(--background-secondary)] rounded-2xl" />
           ))}
@@ -263,7 +263,7 @@ export default function LeaguesPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {leagues.map((league) => (
             <LeagueCard key={league.id} league={league} />
           ))}

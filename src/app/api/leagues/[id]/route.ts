@@ -9,7 +9,6 @@ export async function GET(
   try {
     const { userId } = await auth()
     const { id } = await params
-    console.log('GET /api/leagues/[id] - userId:', userId, 'leagueId:', id)
 
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -32,7 +31,6 @@ export async function GET(
       .eq('id', id)
       .single()
 
-    console.log('League query result:', { data, error })
 
     if (error) {
       console.error('Error fetching league:', error)
@@ -62,7 +60,6 @@ export async function PUT(
   try {
     const { userId } = await auth()
     const { id } = await params
-    console.log('PUT /api/leagues/[id] - userId:', userId, 'leagueId:', id)
 
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -95,7 +92,6 @@ export async function PUT(
     }
 
     const requestBody = await request.json()
-    console.log('Update request body:', requestBody)
 
     const { name, isActive } = requestBody
 
@@ -110,7 +106,6 @@ export async function PUT(
       .select('*')
       .single()
 
-    console.log('League update result:', { data, error })
 
     if (error) {
       console.error('Error updating league:', error)
@@ -135,7 +130,6 @@ export async function DELETE(
   try {
     const { userId } = await auth()
     const { id } = await params
-    console.log('DELETE /api/leagues/[id] - userId:', userId, 'leagueId:', id)
 
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -174,7 +168,6 @@ export async function DELETE(
       .select('*')
       .single()
 
-    console.log('League delete result:', { data, error })
 
     if (error) {
       console.error('Error deleting league:', error)

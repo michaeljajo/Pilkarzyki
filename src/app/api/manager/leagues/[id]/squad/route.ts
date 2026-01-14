@@ -49,7 +49,6 @@ export async function GET(
     }
 
     // Get manager's assigned players for this league
-    console.log('Squad API - Looking for players with manager_id:', targetUserId)
     // CRITICAL: Filter by league to prevent cross-league player confusion
     const { data: initialPlayers, error } = await supabaseAdmin
       .from('players')
@@ -61,7 +60,6 @@ export async function GET(
 
     let players = initialPlayers
 
-    console.log('Squad API - Found players:', players?.length || 0)
 
     if (error) {
       console.error('Error fetching squad:', error)
@@ -72,9 +70,7 @@ export async function GET(
     if (!players || players.length === 0) {
       if (managerId) {
         // For admin requests, just return empty array if no players found
-        console.log('Squad API - No players found for manager:', managerId)
       } else {
-        console.log('Squad API - No players found, checking for orphaned players...')
 
       // Get current user email for matching
       const currentUserEmail = (await supabaseAdmin
@@ -82,7 +78,6 @@ export async function GET(
         .select('email')
         .eq('id', targetUserId)
         .single()).data?.email || ''
-      console.log('Squad API - Current user email:', currentUserEmail)
 
       // Look for duplicate users with the same email but different IDs
       const { data: duplicateUsers } = await supabaseAdmin
@@ -91,7 +86,6 @@ export async function GET(
         .eq('email', currentUserEmail)
         .neq('id', targetUserId!)
 
-      console.log('Squad API - Found duplicate users:', duplicateUsers)
 
       // Also check for players assigned to ANY user with this email (including current user)
       const { data: allUsersWithEmail } = await supabaseAdmin
@@ -99,7 +93,6 @@ export async function GET(
         .select('id, email, clerk_id, created_at')
         .eq('email', currentUserEmail)
 
-      console.log('Squad API - All users with this email:', allUsersWithEmail)
 
       if (allUsersWithEmail && allUsersWithEmail.length > 0) {
         const allUserIds = allUsersWithEmail.map(u => u.id)
@@ -110,7 +103,6 @@ export async function GET(
           .in('manager_id', allUserIds)
           .eq('league', league.name)
 
-        console.log('Squad API - Players assigned to users with this email:', playersForAllUsers)
       }
 
       // Look for players assigned to any of these duplicate user IDs
@@ -127,7 +119,6 @@ export async function GET(
 
         if (foundPlayers && foundPlayers.length > 0) {
           orphanedPlayers = foundPlayers
-          console.log('Squad API - Found orphaned players to reassign:', foundPlayers.length)
 
           // Reassign all orphaned players to current user
           const { error: updateError } = await supabaseAdmin
@@ -138,7 +129,6 @@ export async function GET(
           if (updateError) {
             console.error('Squad API - Error reassigning players:', updateError)
           } else {
-            console.log('Squad API - Successfully reassigned players to current user')
 
             // Fetch the updated players
             // CRITICAL: Filter by league to prevent cross-league player confusion
@@ -151,7 +141,6 @@ export async function GET(
               .order('name')
 
             players = updatedPlayers
-            console.log('Squad API - Updated player count:', players?.length || 0)
           }
         }
       }

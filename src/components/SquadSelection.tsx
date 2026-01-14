@@ -8,6 +8,7 @@ import { PlayerJersey } from '@/components/ui/PlayerJersey'
 import { FootballField } from '@/components/ui/FootballField'
 import { Player, League, Gameweek, Lineup, Cup, CupGameweek, CupLineup, DefaultLineup, DefaultCupLineup } from '@/types'
 import { validateLineup, validateDualLineups } from '@/utils/validation'
+import { Clock, Lock, Save, Settings, Trophy, AlertCircle, CalendarX } from 'lucide-react'
 
 interface SquadData {
   league: League
@@ -465,6 +466,19 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
   const activePlayers = selectedPlayers.filter(p => p !== null) as Player[]
   const activeCupPlayers = selectedCupPlayers.filter(p => p !== null) as Player[]
 
+  // Format deadline information
+  const formatDeadline = (date: Date | null) => {
+    if (!date) return null
+    const options: Intl.DateTimeFormatOptions = {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit'
+    }
+    return date.toLocaleDateString('pl-PL', options)
+  }
+
   const isLeagueLineupValid = activePlayers.length >= 1 && activePlayers.length <= 3 && validationErrors.length === 0
   const isCupLineupValid = activeCupPlayers.length >= 1 && activeCupPlayers.length <= 3 && cupValidationErrors.length === 0
   const isValid = squadData.isDualGameweek
@@ -483,11 +497,45 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
       <div className="bg-gradient-to-br from-background-light to-white field-pattern">
         {!squadData.currentGameweek ? (
           <div className="text-center py-16">
-            <div className="text-6xl mb-4">⚽</div>
+            <div className="flex justify-center mb-4">
+              <CalendarX size={64} className="text-gray-400" />
+            </div>
             <p className="text-navy-600 text-lg">Nie znaleziono aktywnej kolejki. Skontaktuj się z administratorem ligi.</p>
           </div>
         ) : (
           <div className="space-y-4 pb-4">
+            {/* Deadline Info */}
+            {!isDefaultMode && lockDate && (
+              <div className={`mx-4 p-3 rounded-lg border ${isGameweekLocked ? 'bg-red-50 border-red-300' : 'bg-blue-50 border-blue-300'}`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-xs font-semibold text-gray-700 flex items-center gap-1">
+                      {isGameweekLocked ? (
+                        <>
+                          <Lock size={14} />
+                          <span>Skład zablokowany</span>
+                        </>
+                      ) : (
+                        <>
+                          <Clock size={14} />
+                          <span>Termin składu</span>
+                        </>
+                      )}
+                    </div>
+                    <div className={`text-sm font-bold ${isGameweekLocked ? 'text-red-700' : 'text-blue-700'}`}>
+                      {formatDeadline(lockDate)}
+                    </div>
+                  </div>
+                  {squadData.currentGameweek && (
+                    <div className="text-right">
+                      <div className="text-xs text-gray-600">Kolejka</div>
+                      <div className="text-lg font-bold text-gray-900">{squadData.currentGameweek.week}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Save Button */}
             <div className="px-4 space-y-2">
               <Button
@@ -496,15 +544,29 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
                 loading={saving}
                 className="w-full"
               >
-                {isDefaultMode ? (
-                  <>⚙️ Zapisz domyślny skład (żelazo)</>
-                ) : isGameweekLocked ? (
-                  <>🔒 Zablokowane</>
-                ) : squadData.isDualGameweek ? (
-                  <>⚽ Zapisz oba składy</>
-                ) : (
-                  <>⚽ Zapisz</>
-                )}
+                <div className="flex items-center justify-center gap-2">
+                  {isDefaultMode ? (
+                    <>
+                      <Settings size={16} />
+                      <span>Zapisz domyślny skład (żelazo)</span>
+                    </>
+                  ) : isGameweekLocked ? (
+                    <>
+                      <Lock size={16} />
+                      <span>Zablokowane</span>
+                    </>
+                  ) : squadData.isDualGameweek ? (
+                    <>
+                      <Save size={16} />
+                      <span>Zapisz oba składy</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save size={16} />
+                      <span>Zapisz</span>
+                    </>
+                  )}
+                </div>
               </Button>
 
               {/* "Ustaw żelazo" button - only in regular mode */}
@@ -514,7 +576,10 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
                   variant="secondary"
                   className="w-full"
                 >
-                  ⚙️ Ustaw żelazo
+                  <div className="flex items-center justify-center gap-2">
+                    <Settings size={16} />
+                    <span>Ustaw żelazo</span>
+                  </div>
                 </Button>
               )}
             </div>
@@ -523,8 +588,9 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
             <Card className={`border-gray-300 ${isDefaultMode ? 'bg-gray-50' : 'bg-[#F2F2F2]'}`}>
               <CardHeader className="px-4 py-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">
-                    {isDefaultMode ? '⚙️ Żelazny skład ligowy' : 'Skład Ligowy'}
+                  <CardTitle className="text-base flex items-center gap-1.5">
+                    {isDefaultMode && <Settings size={16} />}
+                    <span>{isDefaultMode ? 'Żelazny skład ligowy' : 'Skład Ligowy'}</span>
                   </CardTitle>
                   {!isDefaultMode && squadData.isDualGameweek && (
                     <span className="text-[10px] font-semibold px-2 py-0.5 bg-blue-100 text-blue-700 rounded">
@@ -646,7 +712,10 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
                   <div className="mt-3 bg-red-50/90 backdrop-blur-sm border border-red-200 rounded p-2">
                     <ul className="text-[10px] text-red-700 space-y-0.5">
                       {validationErrors.map((error, index) => (
-                        <li key={index}>⚠️ {error}</li>
+                        <li key={index} className="flex items-start gap-1">
+                          <AlertCircle size={12} className="mt-0.5 flex-shrink-0" />
+                          <span>{error}</span>
+                        </li>
                       ))}
                     </ul>
                   </div>
@@ -659,8 +728,8 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
               <Card className={`border-yellow-500 border-2 ${isDefaultMode ? 'bg-gray-50' : 'bg-[#F2F2F2]'}`}>
                 <CardHeader className={`px-4 py-3 rounded-t-2xl ${isDefaultMode ? 'bg-gray-100' : 'bg-yellow-50'}`}>
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      {isDefaultMode ? '⚙️' : '🏆'}
+                    <CardTitle className="text-base flex items-center gap-1.5">
+                      {isDefaultMode ? <Settings size={16} /> : <Trophy size={16} />}
                       <span>{isDefaultMode ? 'Żelazny skład pucharowy' : 'Skład Pucharowy'}</span>
                     </CardTitle>
                     {!isDefaultMode && squadData.currentCupGameweek && (
@@ -783,7 +852,10 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
                     <div className="mt-3 bg-red-50/90 backdrop-blur-sm border border-red-200 rounded p-2">
                       <ul className="text-[10px] text-red-700 space-y-0.5">
                         {cupValidationErrors.map((error, index) => (
-                          <li key={index}>⚠️ {error}</li>
+                          <li key={index} className="flex items-start gap-1">
+                            <AlertCircle size={12} className="mt-0.5 flex-shrink-0" />
+                            <span>{error}</span>
+                          </li>
                         ))}
                       </ul>
                     </div>
@@ -795,7 +867,10 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
             {/* Cross-Lineup Errors */}
             {crossLineupErrors.length > 0 && (
               <div className="bg-red-50/90 backdrop-blur-sm border-2 border-red-500 rounded-xl p-3">
-                <h4 className="font-semibold text-red-700 mb-1 text-sm">⚠️ Konflikt Składów</h4>
+                <h4 className="font-semibold text-red-700 mb-1 text-sm flex items-center gap-1">
+                  <AlertCircle size={16} />
+                  <span>Konflikt Składów</span>
+                </h4>
                 <ul className="text-xs text-red-700 space-y-1">
                   {crossLineupErrors.map((error, index) => (
                     <li key={index}>{error}</li>
@@ -814,7 +889,9 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
     <div className="bg-gradient-to-br from-background-light to-white field-pattern">
       {!squadData.currentGameweek ? (
         <div className="text-center py-16">
-          <div className="text-6xl mb-4">⚽</div>
+          <div className="flex justify-center mb-4">
+            <CalendarX size={64} className="text-gray-400" />
+          </div>
           <p className="text-navy-600 text-lg">Nie znaleziono aktywnej kolejki. Skontaktuj się z administratorem ligi.</p>
         </div>
       ) : (
@@ -822,6 +899,38 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
           {/* Squad Pool - Left Side (Sticky) */}
           <div className="xl:col-span-1" style={{ width: 'fit-content' }}>
             <div style={{ position: 'sticky', top: '80px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {/* Deadline Info */}
+              {!isDefaultMode && lockDate && (
+                <div className={`p-3 rounded-lg border ${isGameweekLocked ? 'bg-red-50 border-red-300' : 'bg-blue-50 border-blue-300'}`}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-xs font-semibold text-gray-700 flex items-center gap-1">
+                        {isGameweekLocked ? (
+                          <>
+                            <Lock size={14} />
+                            <span>Skład zablokowany</span>
+                          </>
+                        ) : (
+                          <>
+                            <Clock size={14} />
+                            <span>Termin składu</span>
+                          </>
+                        )}
+                      </div>
+                      <div className={`text-sm font-bold ${isGameweekLocked ? 'text-red-700' : 'text-blue-700'}`}>
+                        {formatDeadline(lockDate)}
+                      </div>
+                    </div>
+                    {squadData.currentGameweek && (
+                      <div className="text-right">
+                        <div className="text-xs text-gray-600">Kolejka</div>
+                        <div className="text-lg font-bold text-gray-900">{squadData.currentGameweek.week}</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <Card className="h-fit">
                 <CardContent style={{ padding: '10px' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -864,15 +973,29 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
                   className="text-[11px] py-1.5"
                   style={{ width: '100%' }}
                 >
-                  {isDefaultMode ? (
-                    <>⚙️ Zapisz domyślny skład (żelazo)</>
-                  ) : isGameweekLocked ? (
-                    <>🔒 Zablokowane</>
-                  ) : squadData.isDualGameweek ? (
-                    <>⚽ Zapisz oba składy</>
-                  ) : (
-                    <>⚽ Zapisz</>
-                  )}
+                  <div className="flex items-center justify-center gap-1.5">
+                    {isDefaultMode ? (
+                      <>
+                        <Settings size={14} />
+                        <span>Zapisz domyślny skład (żelazo)</span>
+                      </>
+                    ) : isGameweekLocked ? (
+                      <>
+                        <Lock size={14} />
+                        <span>Zablokowane</span>
+                      </>
+                    ) : squadData.isDualGameweek ? (
+                      <>
+                        <Save size={14} />
+                        <span>Zapisz oba składy</span>
+                      </>
+                    ) : (
+                      <>
+                        <Save size={14} />
+                        <span>Zapisz</span>
+                      </>
+                    )}
+                  </div>
                 </Button>
 
                 {/* "Ustaw żelazo" button - only in regular mode */}
@@ -883,7 +1006,10 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
                     className="text-[11px] py-1.5"
                     style={{ width: '100%' }}
                   >
-                    ⚙️ Ustaw żelazo
+                    <div className="flex items-center justify-center gap-1.5">
+                      <Settings size={14} />
+                      <span>Ustaw żelazo</span>
+                    </div>
                   </Button>
                 )}
               </div>
@@ -896,8 +1022,9 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
             <Card className={isDefaultMode ? "bg-gray-50 border-gray-300" : "bg-[#F2F2F2] border-gray-300"}>
               <CardHeader style={{ padding: '12px 16px' }}>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">
-                    {isDefaultMode ? '⚙️ Żelazny skład ligowy' : 'Skład Ligowy'}
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    {isDefaultMode && <Settings size={18} />}
+                    <span>{isDefaultMode ? 'Żelazny skład ligowy' : 'Skład Ligowy'}</span>
                   </CardTitle>
                   {!isDefaultMode && squadData.isDualGameweek && (
                     <span className="text-xs font-semibold px-2 py-1 bg-blue-100 text-blue-700 rounded">
@@ -942,7 +1069,10 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
                   <div className="mt-1.5 bg-red-50/90 backdrop-blur-sm border border-red-200 rounded p-1.5">
                     <ul className="text-[10px] text-red-700 space-y-0.5">
                       {validationErrors.map((error, index) => (
-                        <li key={index}>⚠️ {error}</li>
+                        <li key={index} className="flex items-start gap-1">
+                          <AlertCircle size={12} className="mt-0.5 flex-shrink-0" />
+                          <span>{error}</span>
+                        </li>
                       ))}
                     </ul>
                   </div>
@@ -956,7 +1086,7 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
                 <CardHeader style={{ padding: '16px 24px' }} className={isDefaultMode ? "bg-gray-100 rounded-t-2xl" : "bg-yellow-50 rounded-t-2xl"}>
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg flex items-center gap-2">
-                      {isDefaultMode ? '⚙️' : '🏆'}
+                      {isDefaultMode ? <Settings size={18} /> : <Trophy size={18} />}
                       <span>{isDefaultMode ? 'Żelazny skład pucharowy' : 'Skład Pucharowy'}</span>
                     </CardTitle>
                     {!isDefaultMode && squadData.currentCupGameweek && (
@@ -1002,7 +1132,10 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
                     <div className="mt-1.5 bg-red-50/90 backdrop-blur-sm border border-red-200 rounded p-1.5">
                       <ul className="text-[10px] text-red-700 space-y-0.5">
                         {cupValidationErrors.map((error, index) => (
-                          <li key={index}>⚠️ {error}</li>
+                          <li key={index} className="flex items-start gap-1">
+                            <AlertCircle size={12} className="mt-0.5 flex-shrink-0" />
+                            <span>{error}</span>
+                          </li>
                         ))}
                       </ul>
                     </div>
@@ -1014,7 +1147,10 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
             {/* Cross-Lineup Errors */}
             {crossLineupErrors.length > 0 && (
               <div className="bg-red-50/90 backdrop-blur-sm border-2 border-red-500 rounded-xl p-4">
-                <h4 className="font-semibold text-red-700 mb-2">⚠️ Konflikt Składów</h4>
+                <h4 className="font-semibold text-red-700 mb-2 flex items-center gap-1.5">
+                  <AlertCircle size={18} />
+                  <span>Konflikt Składów</span>
+                </h4>
                 <ul className="text-sm text-red-700 space-y-1">
                   {crossLineupErrors.map((error, index) => (
                     <li key={index}>{error}</li>

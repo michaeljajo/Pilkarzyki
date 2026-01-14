@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { TopScorer } from '@/types'
+import { batchGetManagersAtGameweek } from '@/utils/transfer-resolver'
 
 /**
  * GET /api/leagues/[id]/top-scorers
@@ -122,9 +123,6 @@ export async function GET(
       .in('gameweek_id', gameweekIds)
       .gt('goals', 0)
 
-    console.log('Top Scorers Debug - League ID:', leagueId)
-    console.log('Top Scorers Debug - Results count:', resultsData?.length)
-    console.log('Top Scorers Debug - First few results:', resultsData?.slice(0, 3))
 
     if (resultsError) {
       console.error('Error fetching results:', resultsError)
@@ -135,56 +133,78 @@ export async function GET(
     }
 
     // Filter results to only include players who were in league lineups
-    // and aggregate goals by player
-    const playerGoalsMap = new Map<
+    // and aggregate goals by (player, historical manager) combination
+    // This ensures goals are attributed to the manager who owned the player at the time
+    const playerManagerGoalsMap = new Map<
       string,
-      { totalGoals: number; gameweeks: Set<string> }
+      {
+        playerId: string
+        managerId: string | null
+        totalGoals: number
+        gameweeks: Set<string>
+      }
     >()
 
+    // Group results by gameweek for batch manager resolution
+    const gameweekResultsMap = new Map<string, typeof resultsData>()
     resultsData?.forEach((result) => {
       const key = `${result.gameweek_id}_${result.player_id}`
-
-      // Only count if player was in a league lineup for this gameweek
       if (leaguePlayersSet.has(key)) {
-        const playerId = result.player_id
-        const existing = playerGoalsMap.get(playerId)
+        if (!gameweekResultsMap.has(result.gameweek_id)) {
+          gameweekResultsMap.set(result.gameweek_id, [])
+        }
+        gameweekResultsMap.get(result.gameweek_id)!.push(result)
+      }
+    })
 
+    // Resolve historical managers for each gameweek
+    for (const [gameweekId, gameweekResults] of gameweekResultsMap.entries()) {
+      const playerIds = gameweekResults.map(r => r.player_id)
+      const managerMap = await batchGetManagersAtGameweek(playerIds, gameweekId)
+
+      // Aggregate goals by (player, manager) combination
+      for (const result of gameweekResults) {
+        const managerId = managerMap.get(result.player_id) || null
+        const compositeKey = `${result.player_id}:${managerId || 'unassigned'}`
+
+        const existing = playerManagerGoalsMap.get(compositeKey)
         if (existing) {
           existing.totalGoals += result.goals
           existing.gameweeks.add(result.gameweek_id)
         } else {
-          playerGoalsMap.set(playerId, {
+          playerManagerGoalsMap.set(compositeKey, {
+            playerId: result.player_id,
+            managerId,
             totalGoals: result.goals,
             gameweeks: new Set([result.gameweek_id]),
           })
         }
       }
-    })
+    }
 
-    // Get all player IDs
-    const playerIds = Array.from(playerGoalsMap.keys())
+    // Get all unique player IDs and manager IDs
+    const playerIds = Array.from(
+      new Set(
+        Array.from(playerManagerGoalsMap.values()).map(v => v.playerId)
+      )
+    )
+    const managerIds = Array.from(
+      new Set(
+        Array.from(playerManagerGoalsMap.values())
+          .map(v => v.managerId)
+          .filter(Boolean) as string[]
+      )
+    )
 
     if (playerIds.length === 0) {
       // No goals scored yet
       return NextResponse.json({ topScorers: [] })
     }
 
-    // Fetch player details with manager information
+    // Fetch player details (without manager join - we already have historical manager)
     const { data: players, error: playersError } = await supabaseAdmin
       .from('players')
-      .select(`
-        id,
-        name,
-        surname,
-        position,
-        manager_id,
-        users:manager_id (
-          id,
-          first_name,
-          last_name,
-          email
-        )
-      `)
+      .select('id, name, surname, position')
       .in('id', playerIds)
       .eq('league', leagueName)
 
@@ -196,12 +216,11 @@ export async function GET(
       )
     }
 
-    // Get unique manager IDs from players
-    const managerIds = Array.from(
-      new Set(
-        players?.map(p => p.manager_id).filter(Boolean) as string[]
-      )
-    )
+    // Fetch manager details
+    const { data: managers } = await supabaseAdmin
+      .from('users')
+      .select('id, first_name, last_name, email')
+      .in('id', managerIds)
 
     // Fetch squad team names for this league
     const { data: squads } = await supabaseAdmin
@@ -210,19 +229,19 @@ export async function GET(
       .eq('league_id', leagueId)
       .in('manager_id', managerIds)
 
+    const playerMap = new Map(players?.map(p => [p.id, p]) || [])
+    const managerMap = new Map(managers?.map(m => [m.id, m]) || [])
     const squadMap = new Map(squads?.map(s => [s.manager_id, s]) || [])
 
-    // Build top scorers array
-    const topScorers: TopScorer[] = players
-      ?.map((player) => {
-        const playerStats = playerGoalsMap.get(player.id)
-        if (!playerStats) return null
+    // Build top scorers array from playerManagerGoalsMap
+    // Note: A player who transferred will appear multiple times (once per manager)
+    const topScorers: TopScorer[] = Array.from(playerManagerGoalsMap.values())
+      .map((stats) => {
+        const player = playerMap.get(stats.playerId)
+        if (!player) return null
 
-        const manager = Array.isArray(player.users)
-          ? player.users[0]
-          : player.users
-
-        const squad = player.manager_id ? squadMap.get(player.manager_id) : null
+        const manager = stats.managerId ? managerMap.get(stats.managerId) : null
+        const squad = stats.managerId ? squadMap.get(stats.managerId) : null
 
         // Priority: team_name → first_name+last_name → email
         let managerName = 'Brak managera'
@@ -241,14 +260,14 @@ export async function GET(
           playerName: player.name,
           playerSurname: player.surname,
           position: player.position,
-          managerId: player.manager_id || '',
+          managerId: stats.managerId || '',
           managerName,
-          totalGoals: playerStats.totalGoals,
-          gamesPlayed: playerStats.gameweeks.size,
+          totalGoals: stats.totalGoals,
+          gamesPlayed: stats.gameweeks.size,
         }
       })
       .filter((scorer): scorer is TopScorer => scorer !== null)
-      .sort((a, b) => b.totalGoals - a.totalGoals) || []
+      .sort((a, b) => b.totalGoals - a.totalGoals)
 
     return NextResponse.json({ topScorers })
   } catch (error) {

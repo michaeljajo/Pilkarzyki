@@ -6,7 +6,6 @@ import { LEAGUE_LIMITS, SEASON_FORMAT, VALIDATION_MESSAGES } from '@/config/cons
 export async function GET() {
   try {
     const { userId } = await auth()
-    console.log('GET /api/leagues - userId:', userId)
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -24,7 +23,6 @@ export async function GET() {
     }
 
     // Fetch only leagues where this user is the admin
-    console.log('Fetching leagues for admin_id:', userRecord.id)
     const { data, error } = await supabaseAdmin
       .from('leagues')
       .select('*')
@@ -32,7 +30,6 @@ export async function GET() {
       .eq('is_active', true)
       .order('created_at', { ascending: false })
 
-    console.log('Leagues query result:', { data, error })
 
     if (error) {
       console.error('Error fetching leagues:', error)
@@ -49,13 +46,11 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth()
-    console.log('POST /api/leagues - userId:', userId)
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const requestBody = await request.json()
-    console.log('Request body:', requestBody)
     const {
       name,
       season
@@ -67,7 +62,6 @@ export async function POST(request: NextRequest) {
     // Create a minimal user record first, then the league
     // NOTE: is_admin is NOT set - that's reserved for super admins only
     // This user becomes admin of THIS league via admin_id, not a global admin
-    console.log('Creating/updating user record for userId:', userId)
     const { data: userRecord, error: userError } = await supabaseAdmin
       .from('users')
       .upsert({
@@ -82,7 +76,6 @@ export async function POST(request: NextRequest) {
       .select('id')
       .single()
 
-    console.log('User record result:', { userRecord, userError })
 
     if (userError) {
       console.error('User creation error:', userError)
@@ -90,7 +83,6 @@ export async function POST(request: NextRequest) {
     }
 
     const adminId = userRecord?.id || crypto.randomUUID() // Fallback UUID
-    console.log('Using adminId:', adminId)
 
     // Check 5 league limit for this user
     const { data: existingLeagues, error: countError } = await supabaseAdmin
@@ -99,7 +91,6 @@ export async function POST(request: NextRequest) {
       .eq('admin_id', adminId)
       .eq('is_active', true)
 
-    console.log('Checking league count for user:', adminId, 'found:', existingLeagues?.length || 0)
 
     if (countError) {
       console.error('Error counting user leagues:', countError)
@@ -112,7 +103,6 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    console.log('Creating league with data:', {
       name,
       admin_id: adminId,
       season: currentSeason,
@@ -133,14 +123,12 @@ export async function POST(request: NextRequest) {
       .select('*')
       .single()
 
-    console.log('League creation result:', { league, leagueError })
 
     if (leagueError) {
       console.error('League creation error:', leagueError)
       return NextResponse.json({ error: leagueError.message }, { status: 500 })
     }
 
-    console.log('Successfully created league:', league.id)
 
     return NextResponse.json({
       league,

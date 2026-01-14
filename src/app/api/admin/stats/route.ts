@@ -9,7 +9,6 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    console.log('Fetching admin stats for user:', userId)
 
     // Use admin client for reliable stats
     const [usersResult, leaguesResult, playersResult, gameweeksResult] = await Promise.all([
@@ -26,7 +25,6 @@ export async function GET() {
       activeGameweeks: gameweeksResult.count || 0
     }
 
-    console.log('Admin stats:', stats)
     return NextResponse.json({ stats })
   } catch (error) {
     console.error('Error fetching admin stats:', error)

@@ -409,9 +409,7 @@ export async function PUT(
       // Recalculate cup group standings after updating all cup match results
       for (const cupId of cupIds) {
         try {
-          console.log('Recalculating cup group standings for cup:', cupId)
           await recalculateCupGroupStandings(cupId)
-          console.log('Cup group standings updated successfully')
         } catch (cupStandingsError) {
           console.error('Error updating cup group standings:', cupStandingsError)
           // Don't fail the entire request if standings update fails
@@ -429,9 +427,7 @@ export async function PUT(
         .single()
 
       if (gameweek?.league_id) {
-        console.log('Recalculating league standings for league:', gameweek.league_id)
         await recalculateLeagueStandings(gameweek.league_id)
-        console.log('League standings updated successfully')
       }
     } catch (standingsError) {
       console.error('Error updating league standings:', standingsError)

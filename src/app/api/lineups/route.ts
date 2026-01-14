@@ -26,7 +26,6 @@ export async function GET(request: NextRequest) {
       .single()
 
     if (!userRecord) {
-      console.log('Lineup API - User not found in database, creating...')
 
       try {
         // Fetch user from Clerk
@@ -60,13 +59,11 @@ export async function GET(request: NextRequest) {
         }
 
         userRecord = newUser
-        console.log('Lineup API - User created successfully:', userRecord)
       } catch (clerkError) {
         console.error('Error fetching user from Clerk:', clerkError)
 
         // Fallback: create user with minimal information
         const fallbackEmail = userId.includes('@') ? userId : `${userId}@unknown.com`
-        console.log('Lineup API - Creating user with fallback info, email:', fallbackEmail)
 
         const { data: newUser, error: insertError } = await supabaseAdmin
           .from('users')
@@ -86,7 +83,6 @@ export async function GET(request: NextRequest) {
         }
 
         userRecord = newUser
-        console.log('Lineup API - Fallback user created successfully:', userRecord)
       }
     }
 
@@ -133,7 +129,6 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (!userRecord) {
-      console.log('Lineup API - User not found in database, creating...')
 
       try {
         // Fetch user from Clerk
@@ -167,13 +162,11 @@ export async function POST(request: NextRequest) {
         }
 
         userRecord = newUser
-        console.log('Lineup API - User created successfully:', userRecord)
       } catch (clerkError) {
         console.error('Error fetching user from Clerk:', clerkError)
 
         // Fallback: create user with minimal information
         const fallbackEmail = userId.includes('@') ? userId : `${userId}@unknown.com`
-        console.log('Lineup API - Creating user with fallback info, email:', fallbackEmail)
 
         const { data: newUser, error: insertError } = await supabaseAdmin
           .from('users')
@@ -193,7 +186,6 @@ export async function POST(request: NextRequest) {
         }
 
         userRecord = newUser
-        console.log('Lineup API - Fallback user created successfully:', userRecord)
       }
     }
 

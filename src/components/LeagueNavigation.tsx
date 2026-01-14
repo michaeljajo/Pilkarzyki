@@ -3,14 +3,14 @@
 import Link from 'next/link'
 import { useUser } from '@clerk/nextjs'
 import { UserButton } from '@clerk/nextjs'
-import { ArrowLeft, Menu, X, Target, BarChart3, Table, Trophy, Settings, Award, ChevronDown } from 'lucide-react'
+import { ArrowLeft, Menu, X, Target, BarChart3, Table, Trophy, Settings, Award, ChevronDown, Calendar } from 'lucide-react'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
 
 interface LeagueNavigationProps {
   leagueId: string
   leagueName: string
-  currentPage: 'squad' | 'results' | 'standings' | 'top-scorers' | 'cup-results' | 'cup-standings' | 'settings'
+  currentPage: 'squad' | 'results' | 'standings' | 'schedule' | 'top-scorers' | 'cup-results' | 'cup-standings' | 'settings'
   showSquadTab?: boolean // Some leagues might not have squad access for certain users
 }
 
@@ -18,6 +18,7 @@ const navigationTabs = [
   { id: 'squad', label: 'Skład', href: (leagueId: string) => `/dashboard/leagues/${leagueId}/squad`, isCup: false },
   { id: 'results', label: 'Wyniki', href: (leagueId: string) => `/dashboard/leagues/${leagueId}/results`, isCup: false },
   { id: 'standings', label: 'Tabela', href: (leagueId: string) => `/dashboard/leagues/${leagueId}/standings`, isCup: false },
+  { id: 'schedule', label: 'Terminarz', href: (leagueId: string) => `/dashboard/leagues/${leagueId}/schedule`, isCup: false },
   { id: 'top-scorers', label: 'Strzelcy', href: (leagueId: string) => `/dashboard/leagues/${leagueId}/top-scorers`, isCup: false },
   { id: 'cup-results', label: '🏆 Wyniki Pucharu', href: (leagueId: string) => `/dashboard/leagues/${leagueId}/cup/results`, isCup: true },
   { id: 'cup-standings', label: '🏆 Tabela Pucharu', href: (leagueId: string) => `/dashboard/leagues/${leagueId}/cup/standings`, isCup: true },
@@ -216,6 +217,19 @@ export function LeagueNavigation({
                 </div>
               )}
 
+              {/* Terminarz */}
+              <Link
+                href={`/dashboard/leagues/${leagueId}/schedule`}
+                className={`min-h-[44px] py-3 text-sm font-medium rounded-xl transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 whitespace-nowrap inline-flex items-center justify-center ${
+                  currentPage === 'schedule'
+                    ? 'bg-[#061852] text-white shadow-sm hover:bg-[#0a2475] hover:shadow-md focus:ring-[#061852]'
+                    : 'bg-transparent text-[#29544D] hover:bg-gray-100 focus:ring-gray-300'
+                }`}
+                style={{ paddingLeft: '2em', paddingRight: '2em' }}
+              >
+                Terminarz
+              </Link>
+
               {/* Strzelcy */}
               <Link
                 href={`/dashboard/leagues/${leagueId}/top-scorers`}
@@ -328,17 +342,21 @@ export function LeagueNavigation({
                     ? 'bg-amber-600/10'
                     : tab.id === 'squad'
                       ? 'bg-[#29544D]/10'
-                      : tab.id === 'results'
-                        ? 'bg-[#3B82F6]/10'
-                        : 'bg-[#10B981]/10' // standings
+                      : tab.id === 'schedule'
+                        ? 'bg-[#8B5CF6]/10'
+                        : tab.id === 'results'
+                          ? 'bg-[#3B82F6]/10'
+                          : 'bg-[#10B981]/10' // standings
 
                   const iconColor = isCupTab
                     ? 'text-amber-600'
                     : tab.id === 'squad'
                       ? 'text-[#29544D]'
-                      : tab.id === 'results'
-                        ? 'text-[#3B82F6]'
-                        : 'text-[#10B981]' // standings
+                      : tab.id === 'schedule'
+                        ? 'text-[#8B5CF6]'
+                        : tab.id === 'results'
+                          ? 'text-[#3B82F6]'
+                          : 'text-[#10B981]' // standings
 
                   const borderColor = isCupTab ? 'border-amber-200' : 'border-gray-200'
 
@@ -352,6 +370,7 @@ export function LeagueNavigation({
                       <div className="flex items-center gap-4">
                         <div className={`w-12 h-12 shrink-0 rounded-lg ${bgColor} flex items-center justify-center`}>
                           {tab.id === 'squad' && <Target size={24} className={iconColor} />}
+                          {tab.id === 'schedule' && <Calendar size={24} className={iconColor} />}
                           {tab.id === 'results' && <BarChart3 size={24} className={iconColor} />}
                           {tab.id === 'standings' && <Table size={24} className={iconColor} />}
                           {tab.isCup && <Trophy size={24} className={iconColor} />}

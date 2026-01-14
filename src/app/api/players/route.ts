@@ -11,7 +11,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    console.log('Players API - userId:', userId)
 
     const { searchParams } = new URL(request.url)
     const managerId = searchParams.get('managerId')
@@ -43,7 +42,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    console.log('Players API success - returned', data?.length || 0, 'players')
     return NextResponse.json({ players: data })
   } catch (error) {
     console.error('Players API catch block error:', error)

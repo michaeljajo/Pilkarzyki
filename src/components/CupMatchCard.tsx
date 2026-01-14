@@ -148,16 +148,16 @@ export function CupMatchCard({ match }: CupMatchCardProps) {
             homePlayers.map((player) => {
               const goals = player.goals_scored || 0
               const hasPlayed = player.has_played || false
-              const shouldBeItalic = !hasPlayed
               const isOwnGoal = goals === -1
               const isFromDefault = match.home_lineup?.is_from_default || false
               return (
                 <div key={player.id} className="flex items-baseline gap-2 h-[20px]">
                   <p className={`text-sm leading-5 truncate ${
                     isOwnGoal ? 'font-bold text-red-600' :
-                    goals > 0 ? 'font-bold text-[#061852]' :
+                    hasPlayed && goals > 0 ? 'font-bold text-[#061852]' :
+                    hasPlayed && goals === 0 ? 'italic text-gray-600' :
                     'text-gray-600'
-                  } ${shouldBeItalic ? 'italic' : ''} ${isFromDefault ? 'underline' : ''}`}>
+                  } ${isFromDefault ? 'underline' : ''}`}>
                     {player.name} {player.surname}
                     {isOwnGoal && <span className="ml-1">(OG)</span>}
                   </p>
@@ -184,7 +184,6 @@ export function CupMatchCard({ match }: CupMatchCardProps) {
             awayPlayers.map((player) => {
               const goals = player.goals_scored || 0
               const hasPlayed = player.has_played || false
-              const shouldBeItalic = !hasPlayed
               const isOwnGoal = goals === -1
               const isFromDefault = match.away_lineup?.is_from_default || false
               return (
@@ -198,9 +197,10 @@ export function CupMatchCard({ match }: CupMatchCardProps) {
                   )}
                   <p className={`text-sm leading-5 truncate ${
                     isOwnGoal ? 'font-bold text-red-600' :
-                    goals > 0 ? 'font-bold text-[#061852]' :
+                    hasPlayed && goals > 0 ? 'font-bold text-[#061852]' :
+                    hasPlayed && goals === 0 ? 'italic text-gray-600' :
                     'text-gray-600'
-                  } ${shouldBeItalic ? 'italic' : ''} ${isFromDefault ? 'underline' : ''}`}>
+                  } ${isFromDefault ? 'underline' : ''}`}>
                     {player.name} {player.surname}
                     {isOwnGoal && <span className="ml-1">(OG)</span>}
                   </p>

@@ -80,16 +80,16 @@ export default function LeagueManagersPage() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="space-y-12"
+      className="space-y-6 sm:space-y-8 lg:space-y-12"
     >
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
         <div>
-          <h1 className="text-5xl font-bold text-[var(--foreground)]">Menedżerowie Ligi</h1>
-          <p className="mt-3 text-xl text-[var(--foreground-secondary)]">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--foreground)]">Menedżerowie Ligi</h1>
+          <p className="mt-2 sm:mt-3 text-base sm:text-lg lg:text-xl text-[var(--foreground-secondary)]">
             Przeglądaj i zarządzaj menedżerami w tej lidze
           </p>
         </div>
-        <Button onClick={fetchManagers} variant="secondary" icon={<RefreshCw size={18} />} size="lg">
+        <Button onClick={fetchManagers} variant="secondary" icon={<RefreshCw size={18} />} size="lg" className="w-full sm:w-auto">
           Odśwież
         </Button>
       </div>
@@ -115,27 +115,27 @@ export default function LeagueManagersPage() {
               description="Menedżerowie pojawią się tutaj po dodaniu ich do ligi"
             />
           ) : (
-            <div className="space-y-5 -ml-2">
+            <div className="space-y-3 sm:space-y-5">
               {managers.map((manager, index) => (
                 <motion.div
                   key={manager.id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="flex justify-between items-center p-6 pl-8 bg-[var(--background-tertiary)] rounded-2xl hover:bg-[var(--background-tertiary)]/90 transition-colors"
+                  className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 sm:p-6 bg-[var(--background-tertiary)] rounded-2xl hover:bg-[var(--background-tertiary)]/90 transition-colors"
                 >
-                  <div className="flex items-center gap-5">
+                  <div className="flex items-center gap-3 sm:gap-5 w-full sm:w-auto">
                     <Avatar
                       fallback={`${manager.firstName} ${manager.lastName}`}
                       size="lg"
                     />
-                    <div>
-                      <div className="flex items-center gap-3">
-                        <div className="font-semibold text-lg text-[var(--foreground)]">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                        <div className="font-semibold text-base sm:text-lg text-[var(--foreground)] truncate">
                           {manager.firstName} {manager.lastName}
                         </div>
                         <span
-                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full flex-shrink-0 ${
                             manager.isAdmin
                               ? 'bg-red-100 text-red-800'
                               : 'bg-green-100 text-green-800'
@@ -144,14 +144,15 @@ export default function LeagueManagersPage() {
                           {manager.isAdmin ? 'Admin' : 'Menedżer'}
                         </span>
                       </div>
-                      <div className="text-base text-[var(--foreground-secondary)] mt-1">{manager.email}</div>
+                      <div className="text-sm sm:text-base text-[var(--foreground-secondary)] mt-1 truncate">{manager.email}</div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
                     <Button
                       variant={manager.isAdmin ? 'danger' : 'secondary'}
                       size="sm"
                       onClick={() => handleToggleAdmin(manager.id, !manager.isAdmin)}
+                      className="w-full sm:w-auto"
                     >
                       {manager.isAdmin ? 'Usuń Admina' : 'Nadaj Admina'}
                     </Button>

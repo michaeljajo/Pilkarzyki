@@ -21,7 +21,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
-    console.log('🔄 Starting name migration for users with empty names...')
 
     // Find users with empty first_name or last_name
     const { data: usersToUpdate, error: fetchError } = await supabaseAdmin
@@ -35,14 +34,12 @@ export async function POST(request: NextRequest) {
     }
 
     if (!usersToUpdate || usersToUpdate.length === 0) {
-      console.log('✅ No users with empty names found')
       return NextResponse.json({
         message: 'No users with empty names found',
         updated: 0
       })
     }
 
-    console.log(`Found ${usersToUpdate.length} users with empty names:`, usersToUpdate)
 
     const updates = []
 
@@ -52,7 +49,6 @@ export async function POST(request: NextRequest) {
       const firstName = user.first_name || emailPrefix
       const lastName = user.last_name || ''
 
-      console.log(`Updating user ${user.email}: "${user.first_name}" "${user.last_name}" -> "${firstName}" "${lastName}"`)
 
       const { error: updateError } = await supabaseAdmin
         .from('users')
@@ -74,7 +70,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log(`✅ Migration completed. Updated ${updates.length} users.`)
 
     return NextResponse.json({
       message: `Successfully updated ${updates.length} users`,

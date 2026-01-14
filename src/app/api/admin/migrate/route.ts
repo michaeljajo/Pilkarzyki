@@ -20,7 +20,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
-    console.log('Running database migration for league dates...')
 
     // Add start_date and end_date columns to leagues table if they don't exist
     const { error: alterError } = await supabaseAdmin.rpc('exec_sql', {
@@ -80,7 +79,6 @@ export async function POST(request: NextRequest) {
       console.warn('Index creation warning:', indexError)
     }
 
-    console.log('Migration completed successfully')
 
     return NextResponse.json({
       message: 'Migration completed successfully',

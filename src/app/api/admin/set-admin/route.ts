@@ -9,7 +9,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    console.log('Setting admin status for user:', userId)
 
     // Set the current user as admin in Clerk metadata
     const client = await clerkClient()
@@ -38,7 +37,6 @@ export async function POST(request: NextRequest) {
       console.warn('Database update error (continuing anyway):', error)
     }
 
-    console.log('Admin status set successfully in both Clerk and database')
 
     return NextResponse.json({
       success: true,

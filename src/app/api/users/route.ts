@@ -14,7 +14,6 @@ export async function GET() {
       limit: 500
     })
 
-    console.log('🔍 Raw Clerk users response:', {
       totalCount: users.totalCount,
       dataLength: users.data.length,
       users: users.data.map(user => ({
@@ -37,14 +36,12 @@ export async function GET() {
 
     const duplicateEmails = Object.entries(emailCounts).filter(([_, count]) => count > 1)
     if (duplicateEmails.length > 0) {
-      console.log('⚠️ Duplicate emails found in Clerk:', duplicateEmails)
 
       // Log detailed info for duplicates
       duplicateEmails.forEach(([email, count]) => {
         const duplicateUsers = users.data.filter(user =>
           user.emailAddresses[0]?.emailAddress === email
         )
-        console.log(`📧 Email ${email} appears ${count} times:`, duplicateUsers.map(user => ({
           id: user.id,
           createdAt: user.createdAt,
           lastSignInAt: user.lastSignInAt,
@@ -101,7 +98,6 @@ export async function GET() {
         }
 
         if (shouldReplace) {
-          console.log(`🔄 Replacing duplicate user for ${email}:`, {
             replacing: existing.id,
             with: user.id,
             reason: currentLastSignIn.getTime() > existingLastSignIn.getTime() ? 'more recent sign-in' :
@@ -113,14 +109,12 @@ export async function GET() {
           const index = acc.findIndex(u => u.emailAddresses[0]?.emailAddress === email)
           acc[index] = user
         } else {
-          console.log(`⏭️ Keeping existing user for ${email}: ${existing.id} over ${user.id}`)
         }
       }
 
       return acc
     }, [] as typeof users.data)
 
-    console.log(`🧹 Deduplication: ${users.data.length} → ${deduplicatedUsers.length} users`)
 
     // Transform deduplicated users to match our expected format
     const transformedUsers = deduplicatedUsers.map(user => ({
@@ -134,7 +128,6 @@ export async function GET() {
       updatedAt: new Date(user.updatedAt)
     }))
 
-    console.log('✅ Final transformed users count:', transformedUsers.length)
 
     return NextResponse.json({ users: transformedUsers })
   } catch (error) {

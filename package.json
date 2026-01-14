@@ -3,10 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbo",
+    "dev:clean": "npm run kill:dev && rm -rf .next && next dev --turbo",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "kill:dev": "lsof -ti:3000 | xargs kill -9 2>/dev/null || true"
   },
   "dependencies": {
     "@clerk/localizations": "^3.26.2",
@@ -46,11 +48,11 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "15.5.9",
+    "eslint-config-next": "^16.1.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   },
   "optionalDependencies": {
-    "@next/swc-darwin-x64": "^15.5.9"
+    "@next/swc-darwin-x64": "^16.1.1"
   }
 }

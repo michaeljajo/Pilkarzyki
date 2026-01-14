@@ -8,6 +8,7 @@ import { Users, Trophy, Calendar, ClipboardList, BarChart3, Settings, ArrowLeft,
 interface LeagueAdminNavProps {
   leagueId: string
   leagueName?: string
+  onNavigate?: () => void
 }
 
 const getLeagueNavItems = (leagueId: string) => [
@@ -59,7 +60,7 @@ const getLeagueNavItems = (leagueId: string) => [
   },
 ]
 
-export function LeagueAdminNav({ leagueId, leagueName }: LeagueAdminNavProps) {
+export function LeagueAdminNav({ leagueId, leagueName, onNavigate }: LeagueAdminNavProps) {
   const pathname = usePathname()
   const navItems = getLeagueNavItems(leagueId)
 
@@ -77,6 +78,7 @@ export function LeagueAdminNav({ leagueId, leagueName }: LeagueAdminNavProps) {
             <li key={item.href}>
               <Link
                 href={item.href}
+                onClick={onNavigate}
                 className={cn(
                   'group flex items-center text-sm font-medium rounded-xl transition-all duration-200 hover:scale-[1.02]',
                   isActive
@@ -102,6 +104,7 @@ export function LeagueAdminNav({ leagueId, leagueName }: LeagueAdminNavProps) {
       <div style={{ marginTop: '32px' }}>
         <Link
           href="/dashboard"
+          onClick={onNavigate}
           className="group flex items-center text-sm font-medium rounded-xl transition-all duration-200 hover:scale-[1.02] text-gray-700 hover:bg-gray-100 hover:text-[#29544D]"
           style={{
             padding: '12px 16px',

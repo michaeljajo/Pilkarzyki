@@ -43,7 +43,6 @@ export async function PUT(
 
     // If gameweek is being marked as completed, advance the league's current_gameweek
     if (currentGameweek && updates.is_completed === true && currentGameweek.is_completed === false) {
-      console.log(`Gameweek ${currentGameweek.week} marked as completed, advancing league...`)
 
       // Get current league data
       const { data: league } = await supabaseAdmin
@@ -74,10 +73,8 @@ export async function PUT(
           if (leagueError) {
             console.error('Error advancing league gameweek:', leagueError)
           } else {
-            console.log(`League advanced to gameweek ${nextGameweek}`)
           }
         } else {
-          console.log(`No next gameweek (${nextGameweek}) found, season may be complete`)
         }
       }
     }

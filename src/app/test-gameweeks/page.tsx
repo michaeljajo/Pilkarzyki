@@ -27,13 +27,10 @@ export default function TestGameweeksPage() {
     setMessage('Testing gameweeks API...')
 
     try {
-      console.log('Fetching from /api/gameweeks')
       const response = await fetch('/api/gameweeks')
-      console.log('Response:', response.status, response.ok)
 
       if (response.ok) {
         const data = await response.json()
-        console.log('Data:', data)
         setGameweeks(data.gameweeks || [])
         setMessage(`✅ Success! Found ${data.gameweeks?.length || 0} gameweeks`)
       } else {
@@ -54,13 +51,10 @@ export default function TestGameweeksPage() {
     setMessage('Testing leagues API...')
 
     try {
-      console.log('Fetching from /api/leagues')
       const response = await fetch('/api/leagues')
-      console.log('Response:', response.status, response.ok)
 
       if (response.ok) {
         const data = await response.json()
-        console.log('Data:', data)
         setLeagues(data.leagues || [])
         setMessage(`✅ Success! Found ${data.leagues?.length || 0} leagues`)
       } else {
@@ -82,11 +76,9 @@ export default function TestGameweeksPage() {
 
     try {
       const response = await fetch('/api/admin/set-admin', { method: 'POST' })
-      console.log('Set admin response:', response.status, response.ok)
 
       if (response.ok) {
         const data = await response.json()
-        console.log('Admin set data:', data)
         setMessage('✅ Admin status set successfully! Refresh the page.')
       } else {
         const errorData = await response.json()

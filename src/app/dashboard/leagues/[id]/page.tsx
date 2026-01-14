@@ -2,9 +2,10 @@ import { UserButton } from '@clerk/nextjs'
 import { currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { unstable_cache } from 'next/cache'
 import { supabaseAdmin } from '@/lib/supabase'
 import { Badge } from '@/components/ui/Badge'
-import { Trophy, Target, BarChart3, Settings, ArrowLeft, Table, Award, MessageCircle } from 'lucide-react'
+import { Trophy, Target, BarChart3, Settings, ArrowLeft, Table, Award, MessageCircle, Calendar } from 'lucide-react'
 import Image from 'next/image'
 
 interface LeagueDashboardPageProps {
@@ -12,6 +13,42 @@ interface LeagueDashboardPageProps {
     id: string
   }>
 }
+
+// Cached function to get league data with user access info in one query
+const getLeagueData = unstable_cache(
+  async (leagueId: string, userId: string) => {
+    // Run all queries in parallel for performance
+    const [leagueResult, squadResult, cupResult] = await Promise.all([
+      supabaseAdmin
+        .from('leagues')
+        .select('id, name, season, is_active, admin_id')
+        .eq('id', leagueId)
+        .single(),
+      supabaseAdmin
+        .from('squads')
+        .select('id')
+        .eq('league_id', leagueId)
+        .eq('manager_id', userId)
+        .single(),
+      supabaseAdmin
+        .from('cups')
+        .select('id, name, stage')
+        .eq('league_id', leagueId)
+        .single()
+    ])
+
+    return {
+      league: leagueResult.data,
+      squad: squadResult.data,
+      cup: cupResult.data
+    }
+  },
+  ['league-dashboard'],
+  {
+    revalidate: 30, // Cache for 30 seconds
+    tags: ['league-dashboard']
+  }
+)
 
 export default async function LeagueDashboardPage({ params }: LeagueDashboardPageProps) {
   const user = await currentUser()
@@ -33,12 +70,8 @@ export default async function LeagueDashboardPage({ params }: LeagueDashboardPag
     redirect('/sign-in')
   }
 
-  // Get league details
-  const { data: league } = await supabaseAdmin
-    .from('leagues')
-    .select('id, name, season, is_active, admin_id')
-    .eq('id', leagueId)
-    .single()
+  // Get all league data in parallel with caching
+  const { league, squad, cup } = await getLeagueData(leagueId, userRecord.id)
 
   if (!league) {
     redirect('/dashboard')
@@ -46,28 +79,12 @@ export default async function LeagueDashboardPage({ params }: LeagueDashboardPag
 
   // Check if user is admin of this league
   const isAdmin = league.admin_id === userRecord.id
-
-  // Check if user is a manager in this league (has a squad)
-  const { data: squad } = await supabaseAdmin
-    .from('squads')
-    .select('id')
-    .eq('league_id', leagueId)
-    .eq('manager_id', userRecord.id)
-    .single()
-
   const isManager = !!squad
 
   // User must be either admin or manager to access
   if (!isAdmin && !isManager) {
     redirect('/dashboard')
   }
-
-  // Check if league has a cup
-  const { data: cup } = await supabaseAdmin
-    .from('cups')
-    .select('id, name, stage')
-    .eq('league_id', leagueId)
-    .single()
 
   const hasCup = !!cup
 
@@ -140,6 +157,15 @@ export default async function LeagueDashboardPage({ params }: LeagueDashboardPag
                     <Table size={24} className="text-[#10B981]" />
                   </div>
                   <h3 className="text-base font-bold text-gray-900">Tabela</h3>
+                </div>
+              </Link>
+
+              <Link href={`/dashboard/leagues/${leagueId}/schedule`} className="mx-2">
+                <div className="bg-white rounded-xl border border-gray-200 hover:shadow-lg group cursor-pointer transition-shadow duration-200 p-4 flex items-center gap-4">
+                  <div className="w-12 h-12 shrink-0 rounded-lg bg-[#8B5CF6]/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Calendar size={24} className="text-[#8B5CF6]" />
+                  </div>
+                  <h3 className="text-base font-bold text-gray-900">Terminarz</h3>
                 </div>
               </Link>
 
@@ -224,6 +250,15 @@ export default async function LeagueDashboardPage({ params }: LeagueDashboardPag
                     <Table size={32} className="text-[#10B981]" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900" style={{ marginBottom: '8px' }}>Tabela</h3>
+                </div>
+              </Link>
+
+              <Link href={`/dashboard/leagues/${leagueId}/schedule`}>
+                <div className="bg-white rounded-2xl border border-gray-200 hover-lift hover:shadow-xl group cursor-pointer min-w-[200px] text-center transition-shadow duration-200" style={{ padding: '40px 32px' }}>
+                  <div className="w-16 h-16 mx-auto rounded-xl bg-[#8B5CF6]/10 flex items-center justify-center group-hover:scale-110 transition-transform" style={{ marginBottom: '24px' }}>
+                    <Calendar size={32} className="text-[#8B5CF6]" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900" style={{ marginBottom: '8px' }}>Terminarz</h3>
                 </div>
               </Link>
 

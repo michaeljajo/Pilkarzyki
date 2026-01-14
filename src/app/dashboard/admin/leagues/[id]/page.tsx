@@ -331,17 +331,17 @@ export default function LeagueDetailsPage() {
   const filteredUsers = allUsers.filter(user => !currentManagerIds.includes(user.id))
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-6 sm:space-y-8 lg:space-y-12">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col gap-3 -mt-16"
+        className="flex flex-col gap-2 sm:gap-3"
       >
-        <h1 className="text-5xl font-bold text-[var(--foreground)]">
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--foreground)]">
           Przegląd Ligi
         </h1>
-        <p className="text-xl text-[var(--foreground-secondary)]">
+        <p className="text-base sm:text-lg lg:text-xl text-[var(--foreground-secondary)]">
           Zarządzaj wszystkimi aspektami swojej ligi
         </p>
       </motion.div>
@@ -360,7 +360,7 @@ export default function LeagueDetailsPage() {
       )}
 
       {/* League Name & Cup Access & Export */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
         <Card className="hover-lift">
           <CardHeader>
             <CardTitle className="flex items-center gap-3">
@@ -377,19 +377,19 @@ export default function LeagueDetailsPage() {
                   placeholder="Enter league name"
                   fullWidth
                 />
-                <div className="flex gap-4">
-                  <Button onClick={updateLeagueName} loading={saving} icon={<CheckCircle size={18} />}>
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                  <Button onClick={updateLeagueName} loading={saving} icon={<CheckCircle size={18} />} className="w-full sm:w-auto">
                     Zapisz
                   </Button>
-                  <Button onClick={() => setEditingName(false)} variant="secondary">
+                  <Button onClick={() => setEditingName(false)} variant="secondary" className="w-full sm:w-auto">
                     Anuluj
                   </Button>
                 </div>
               </div>
             ) : (
-              <div className="flex justify-between items-center">
-                <span className="text-3xl font-semibold text-[var(--foreground)]">{league?.name}</span>
-                <Button onClick={() => setEditingName(true)} variant="ghost" icon={<Edit3 size={18} />}>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <span className="text-2xl sm:text-3xl font-semibold text-[var(--foreground)]">{league?.name}</span>
+                <Button onClick={() => setEditingName(true)} variant="ghost" icon={<Edit3 size={18} />} className="w-full sm:w-auto">
                   Edytuj
                 </Button>
               </div>
@@ -397,14 +397,14 @@ export default function LeagueDetailsPage() {
           </CardContent>
         </Card>
 
-        <Card className="hover-lift bg-gradient-to-br from-yellow-50 to-amber-50 border-yellow-200">
+        <Card className="hover-lift bg-gradient-to-br from-yellow-50 to-amber-50 border-yellow-200 md:col-span-2 lg:col-span-1">
           <CardHeader>
             <CardTitle className="flex items-center gap-3 text-yellow-800">
               🏆 Turniej Pucharowy
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-base text-yellow-700 mb-6">
+            <p className="text-sm sm:text-base text-yellow-700 mb-4 sm:mb-6">
               Zarządzaj turniejami pucharowymi równolegle z ligą
             </p>
             <Button
@@ -418,7 +418,7 @@ export default function LeagueDetailsPage() {
           </CardContent>
         </Card>
 
-        <Card className="hover-lift bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+        <Card className="hover-lift bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 md:col-span-2 lg:col-span-1">
           <CardHeader>
             <CardTitle className="flex items-center gap-3 text-green-800">
               <Download size={28} className="text-green-600" />
@@ -426,7 +426,7 @@ export default function LeagueDetailsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-base text-green-700 mb-6">
+            <p className="text-sm sm:text-base text-green-700 mb-4 sm:mb-6">
               Eksportuj wszystkie dane ligi i pucharu do pliku Excel
             </p>
             <Button
@@ -473,33 +473,33 @@ export default function LeagueDetailsPage() {
               }}
             />
           ) : (
-            <div className="space-y-5 -ml-2">
+            <div className="space-y-3 sm:space-y-5">
               {managers.map((manager, index) => (
                 <motion.div
                   key={manager.id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="flex justify-between items-center p-6 pl-8 bg-[var(--background-tertiary)] rounded-2xl hover:bg-[var(--background-tertiary)]/90 transition-colors group"
+                  className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 sm:p-6 bg-[var(--background-tertiary)] rounded-2xl hover:bg-[var(--background-tertiary)]/90 transition-colors group"
                 >
-                  <div className="flex items-center gap-5">
+                  <div className="flex items-center gap-3 sm:gap-5 w-full sm:w-auto">
                     <Avatar
                       fallback={`${manager.firstName} ${manager.lastName}`}
                       size="lg"
                     />
-                    <div>
-                      <div className="font-semibold text-lg text-[var(--foreground)]">
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-base sm:text-lg text-[var(--foreground)] truncate">
                         {manager.firstName} {manager.lastName}
                       </div>
-                      <div className="text-base text-[var(--foreground-secondary)] mt-1">{manager.email}</div>
+                      <div className="text-sm sm:text-base text-[var(--foreground-secondary)] mt-1 truncate">{manager.email}</div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <span className="text-base text-[var(--foreground-tertiary)]">Menedżer #{index + 1}</span>
+                  <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto justify-between sm:justify-end">
+                    <span className="text-sm sm:text-base text-[var(--foreground-tertiary)]">Menedżer #{index + 1}</span>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-[var(--danger)] hover:bg-[var(--danger)]/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="text-[var(--danger)] hover:bg-[var(--danger)]/10 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                       onClick={() => removeManager(manager.id, `${manager.firstName} ${manager.lastName}`)}
                       disabled={saving}
                       icon={<Trash2 size={16} />}
@@ -565,21 +565,21 @@ export default function LeagueDetailsPage() {
               }
             />
           ) : (
-            <div className="space-y-8 max-h-[500px] overflow-y-auto pr-3 -ml-2">
+            <div className="space-y-4 sm:space-y-6 lg:space-y-8 max-h-[500px] overflow-y-auto pr-2 sm:pr-3">
               {schedule.map((gameweek, idx) => (
                 <motion.div
                   key={gameweek.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.05 }}
-                  className="border border-[var(--navy-border)]/30 rounded-2xl p-8 pl-10 bg-[var(--background-tertiary)]/60"
+                  className="border border-[var(--navy-border)]/30 rounded-2xl p-4 sm:p-6 lg:p-8 bg-[var(--background-tertiary)]/60"
                 >
-                  <div className="flex justify-between items-center mb-6">
-                    <h4 className="font-semibold text-2xl text-[var(--foreground)]">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4 sm:mb-6">
+                    <h4 className="font-semibold text-xl sm:text-2xl text-[var(--foreground)]">
                       Kolejka {gameweek.week}
                     </h4>
                     <span
-                      className={`px-4 py-2 text-sm font-semibold rounded-full ${
+                      className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-full ${
                         gameweek.is_completed
                           ? 'bg-[var(--success)]/20 text-[var(--success)]'
                           : 'bg-[var(--warning)]/20 text-[var(--warning)]'
@@ -590,23 +590,23 @@ export default function LeagueDetailsPage() {
                   </div>
 
                   {gameweek.matches && gameweek.matches.length > 0 ? (
-                    <div className="space-y-4">
+                    <div className="space-y-3 sm:space-y-4">
                       {gameweek.matches.map((match) => (
                         <div
                           key={match.id}
-                          className="flex justify-between items-center p-5 pl-6 bg-[var(--background-secondary)] rounded-xl"
+                          className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0 p-3 sm:p-5 bg-[var(--background-secondary)] rounded-xl"
                         >
-                          <div className="flex items-center gap-5">
-                            <span className="font-medium text-base text-[var(--foreground)]">
+                          <div className="flex flex-wrap items-center gap-2 sm:gap-5 w-full sm:w-auto">
+                            <span className="font-medium text-sm sm:text-base text-[var(--foreground)]">
                               {match.home_manager?.first_name} {match.home_manager?.last_name}
                             </span>
-                            <span className="text-[var(--foreground-tertiary)]">vs</span>
-                            <span className="font-medium text-base text-[var(--foreground)]">
+                            <span className="text-[var(--foreground-tertiary)] text-sm sm:text-base">vs</span>
+                            <span className="font-medium text-sm sm:text-base text-[var(--foreground)]">
                               {match.away_manager?.first_name} {match.away_manager?.last_name}
                             </span>
                           </div>
                           {match.is_completed && (
-                            <div className="text-base font-bold text-[var(--mineral-green)]">
+                            <div className="text-sm sm:text-base font-bold text-[var(--mineral-green)]">
                               {match.home_score} - {match.away_score}
                             </div>
                           )}
@@ -614,7 +614,7 @@ export default function LeagueDetailsPage() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-[var(--foreground-secondary)] text-base">Brak meczy w tej kolejce</p>
+                    <p className="text-[var(--foreground-secondary)] text-sm sm:text-base">Brak meczy w tej kolejce</p>
                   )}
                 </motion.div>
               ))}
@@ -634,7 +634,7 @@ export default function LeagueDetailsPage() {
         description="Wybierz użytkownika z listy, aby dodać go jako menedżera"
         icon={<UserPlus size={24} />}
         footer={
-          <div className="flex gap-3 justify-end">
+          <div className="flex flex-col sm:flex-row gap-3 justify-end">
             <Button
               type="button"
               variant="secondary"
@@ -643,6 +643,7 @@ export default function LeagueDetailsPage() {
                 setSelectedUserId('')
               }}
               disabled={saving}
+              className="w-full sm:w-auto"
             >
               Anuluj
             </Button>
@@ -652,6 +653,7 @@ export default function LeagueDetailsPage() {
               loading={saving}
               disabled={filteredUsers.length === 0 || !selectedUserId}
               icon={<UserPlus size={18} />}
+              className="w-full sm:w-auto"
             >
               Dodaj Menedżera
             </Button>

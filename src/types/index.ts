@@ -132,6 +132,36 @@ export type Position = 'Goalkeeper' | 'Defender' | 'Midfielder' | 'Forward'
 
 export type UserRole = 'admin' | 'manager'
 
+export type TransferType = 'initial' | 'draft' | 'swap'
+
+// Player transfer tracking for mid-season drafts
+export interface PlayerTransfer {
+  id: string
+  playerId: string
+  managerId?: string  // NULL for unassigned players
+  effectiveFrom: Date
+  effectiveUntil?: Date  // NULL for current/active assignment
+  transferType: TransferType
+  createdAt: Date
+  createdBy?: string  // Admin who created the transfer
+  notes?: string
+  updatedAt: Date
+}
+
+// Database response type (snake_case)
+export interface PlayerTransferRow {
+  id: string
+  player_id: string
+  manager_id?: string
+  effective_from: string
+  effective_until?: string
+  transfer_type: TransferType
+  created_at: string
+  created_by?: string
+  notes?: string
+  updated_at: string
+}
+
 export interface PlayerImport {
   Name: string  // Full name (first name + surname combined)
   Position: Position

@@ -10,7 +10,6 @@ export async function GET(
   try {
     const { userId } = await auth()
     const { id } = await params
-    console.log('GET /api/leagues/[id]/gameweeks - userId:', userId, 'leagueId:', id)
 
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -28,7 +27,6 @@ export async function GET(
       .eq('league_id', id)
       .order('week', { ascending: true })
 
-    console.log('Gameweeks query result:', { data, error })
 
     if (error) {
       console.error('Error fetching gameweeks:', error)
@@ -49,7 +47,6 @@ export async function POST(
   try {
     const { userId } = await auth()
     const { id } = await params
-    console.log('POST /api/leagues/[id]/gameweeks - userId:', userId, 'leagueId:', id)
 
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -62,7 +59,6 @@ export async function POST(
     }
 
     const { gameweeks } = await request.json()
-    console.log('Creating gameweeks:', gameweeks)
 
     // Check if league exists
     const { data: league, error: leagueError } = await supabaseAdmin
@@ -95,7 +91,6 @@ export async function POST(
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    console.log('Successfully created gameweeks:', data)
     return NextResponse.json({ gameweeks: data })
   } catch (error) {
     console.error('POST gameweeks catch error:', error)

@@ -369,16 +369,16 @@ export default function LeagueResultsPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-4">
-      <div className="flex justify-between items-center mb-4">
+    <div className="max-w-7xl mx-auto p-3 sm:p-4 lg:p-6">
+      <div className="flex justify-between items-center mb-3 sm:mb-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Results</h1>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Results</h1>
         </div>
       </div>
 
       {/* Gameweek Selector */}
-      <div className="mb-4 bg-white rounded-lg border border-gray-200 p-4">
-        <div className="grid md:grid-cols-2 gap-3">
+      <div className="mb-3 sm:mb-4 bg-white rounded-lg border border-gray-200 p-3 sm:p-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Select Gameweek
@@ -386,7 +386,7 @@ export default function LeagueResultsPage() {
             <select
               value={selectedGameweek}
               onChange={(e) => setSelectedGameweek(e.target.value)}
-              className="w-full p-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-2 sm:p-2.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Choose a gameweek...</option>
               {gameweeks.map((gameweek) => (
@@ -401,7 +401,7 @@ export default function LeagueResultsPage() {
               <button
                 onClick={saveAllResults}
                 disabled={saving}
-                className="w-full px-4 py-2 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+                className="w-full px-4 py-2 sm:py-2.5 text-sm sm:text-base bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 font-medium"
               >
                 {saving ? 'Saving...' : 'Save All Results'}
               </button>
@@ -499,53 +499,53 @@ export default function LeagueResultsPage() {
                       const awayPlayers = match.away_lineup?.players || []
 
                 return (
-                  <div key={match.id} className="bg-white border-2 border-[#29544D] rounded-2xl hover:shadow-lg transition-shadow duration-200" style={{ padding: '20px' }}>
+                  <div key={match.id} className="bg-white border-2 border-[#29544D] rounded-2xl hover:shadow-lg transition-shadow duration-200 p-2 sm:p-5">
                     {/* Save Button */}
-                    <div className="flex justify-end mb-3">
+                    <div className="flex justify-end mb-2 sm:mb-3">
                       <button
                         onClick={() => saveIndividualMatch(match.id)}
                         disabled={saving}
-                        className="px-4 py-1 text-sm bg-[#29544D] text-white rounded-lg hover:bg-[#1f3d37] disabled:opacity-50"
+                        className="px-2 sm:px-4 py-0.5 sm:py-1 text-xs sm:text-sm bg-[#29544D] text-white rounded-lg hover:bg-[#1f3d37] disabled:opacity-50"
                       >
                         {saving ? 'Zapisywanie...' : 'Zapisz wynik'}
                       </button>
                     </div>
 
                     {/* Match Score Header */}
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex-1" style={{ paddingRight: '24px' }}>
-                        <p className={`text-lg font-semibold ${getManagerNameColor(homePlayers)}`}>
+                    <div className="flex items-center justify-between mb-2 sm:mb-3">
+                      <div className="flex-1 pr-2 sm:pr-6">
+                        <p className={`text-sm sm:text-lg font-semibold ${getManagerNameColor(homePlayers)}`}>
                           {getManagerDisplayName(match.home_manager)}
                         </p>
                       </div>
-                      <div className="flex items-center gap-4 px-8">
-                        <span className="text-3xl font-bold text-[#061852]">{homeGoals}</span>
-                        <span className="text-2xl font-medium text-gray-400">-</span>
-                        <span className="text-3xl font-bold text-[#061852]">{awayGoals}</span>
+                      <div className="flex items-center gap-2 sm:gap-4 px-2 sm:px-8">
+                        <span className="text-xl sm:text-3xl font-bold text-[#061852]">{homeGoals}</span>
+                        <span className="text-base sm:text-2xl font-medium text-gray-400">-</span>
+                        <span className="text-xl sm:text-3xl font-bold text-[#061852]">{awayGoals}</span>
                       </div>
-                      <div className="flex-1 text-right" style={{ paddingLeft: '24px' }}>
-                        <p className={`text-lg font-semibold ${getManagerNameColor(awayPlayers)}`}>
+                      <div className="flex-1 text-right pl-2 sm:pl-6">
+                        <p className={`text-sm sm:text-lg font-semibold ${getManagerNameColor(awayPlayers)}`}>
                           {getManagerDisplayName(match.away_manager)}
                         </p>
                       </div>
                     </div>
 
                     {/* Player Details */}
-                    <div className="flex items-start justify-between pt-3 border-t-2 border-[#DECF99]">
+                    <div className="flex items-start justify-between pt-2 sm:pt-3 border-t-2 border-[#DECF99]">
                       {/* Home Team Players */}
-                      <div className="flex-1 space-y-1" style={{ paddingRight: '32px' }}>
+                      <div className="flex-1 space-y-0.5 sm:space-y-1 pr-4 sm:pr-12">
                         {homePlayers.length > 0 ? (
                           homePlayers.map((player) => {
                             const goals = playerGoals[player.id] || 0
                             const hasPlayed = playerHasPlayed[player.id] || false
                             return (
-                              <div key={player.id} className="flex items-baseline gap-2 h-[20px]">
+                              <div key={player.id} className="flex items-start gap-1 sm:gap-2 min-h-[24px] sm:min-h-[32px]">
                                 <input
                                   type="checkbox"
                                   checked={hasPlayed}
                                   onChange={(e) => setPlayerHasPlayed(prev => ({ ...prev, [player.id]: e.target.checked }))}
                                   disabled={saving}
-                                  className="w-4 h-4 cursor-pointer disabled:cursor-not-allowed"
+                                  className="w-3 h-3 sm:w-4 sm:h-4 cursor-pointer disabled:cursor-not-allowed mt-0.5"
                                   title="Oznacz, że zawodnik rozegrał mecz"
                                 />
                                 <input
@@ -556,57 +556,51 @@ export default function LeagueResultsPage() {
                                   onChange={(e) => handlePlayerGoalsChange(player.id, e.target.value)}
                                   onFocus={handlePlayerGoalsFocus}
                                   disabled={saving}
-                                  className={`w-12 px-1 py-0.5 text-xs text-center border rounded focus:outline-none focus:ring-1 disabled:bg-gray-100 ${
+                                  className={`w-8 sm:w-12 px-0.5 sm:px-1 py-0 sm:py-0.5 text-[10px] sm:text-xs text-center border rounded focus:outline-none focus:ring-1 disabled:bg-gray-100 ${
                                     goals === -1
                                       ? 'border-red-300 bg-red-50 text-red-700 focus:ring-red-500'
                                       : 'border-gray-300 focus:ring-[#29544D]'
                                   }`}
                                 />
-                                <p className={`text-sm leading-5 ${
+                                <p className={`text-[11px] sm:text-sm ${
                                   goals === -1 ? 'font-bold text-red-600' :
-                                  goals > 0 ? 'font-bold text-[#061852]' :
+                                  hasPlayed && goals > 0 ? 'font-bold text-[#061852]' :
+                                  hasPlayed && goals === 0 ? 'italic text-gray-600' :
                                   'text-gray-600'
                                 }`}>
                                   {player.name} {player.surname}
                                   {goals === -1 && <span className="ml-1 text-red-600">(OG)</span>}
+                                  {goals > 0 && Array.from({ length: goals }).map((_, i) => (
+                                    <Icon key={i} iconNode={soccerBall} size={10} className="text-[#061852] sm:w-3 sm:h-3 inline-block align-middle ml-0.5" strokeWidth={2} />
+                                  ))}
                                 </p>
-                                {goals > 0 && (
-                                  <div className="flex items-center gap-1">
-                                    {Array.from({ length: goals }).map((_, i) => (
-                                      <Icon key={i} iconNode={soccerBall} size={12} className="text-[#061852]" strokeWidth={2} />
-                                    ))}
-                                  </div>
-                                )}
                               </div>
                             )
                           })
                         ) : (
-                          <div className="flex items-baseline gap-2 h-[20px]">
-                            <p className="text-sm text-gray-400 italic leading-5">Nie ustawiono składu</p>
+                          <div className="flex items-baseline gap-2 min-h-[24px] sm:min-h-[32px]">
+                            <p className="text-[11px] sm:text-sm text-gray-400 italic">Nie ustawiono składu</p>
                           </div>
                         )}
                       </div>
 
                       {/* Away Team Players */}
-                      <div className="flex-1 text-right space-y-1" style={{ paddingLeft: '32px' }}>
+                      <div className="flex-1 text-right space-y-0.5 sm:space-y-1 pl-4 sm:pl-12">
                         {awayPlayers.length > 0 ? (
                           awayPlayers.map((player) => {
                             const goals = playerGoals[player.id] || 0
                             const hasPlayed = playerHasPlayed[player.id] || false
                             return (
-                              <div key={player.id} className="flex items-baseline justify-end gap-2 h-[20px]">
-                                {goals > 0 && (
-                                  <div className="flex items-center gap-1">
-                                    {Array.from({ length: goals }).map((_, i) => (
-                                      <Icon key={i} iconNode={soccerBall} size={12} className="text-[#061852]" strokeWidth={2} />
-                                    ))}
-                                  </div>
-                                )}
-                                <p className={`text-sm leading-5 ${
+                              <div key={player.id} className="flex items-start justify-end gap-1 sm:gap-2 min-h-[24px] sm:min-h-[32px]">
+                                <p className={`text-[11px] sm:text-sm text-right ${
                                   goals === -1 ? 'font-bold text-red-600' :
-                                  goals > 0 ? 'font-bold text-[#061852]' :
+                                  hasPlayed && goals > 0 ? 'font-bold text-[#061852]' :
+                                  hasPlayed && goals === 0 ? 'italic text-gray-600' :
                                   'text-gray-600'
                                 }`}>
+                                  {goals > 0 && Array.from({ length: goals }).map((_, i) => (
+                                    <Icon key={i} iconNode={soccerBall} size={10} className="text-[#061852] sm:w-3 sm:h-3 inline-block align-middle mr-0.5" strokeWidth={2} />
+                                  ))}
                                   {player.name} {player.surname}
                                   {goals === -1 && <span className="ml-1 text-red-600">(OG)</span>}
                                 </p>
@@ -618,7 +612,7 @@ export default function LeagueResultsPage() {
                                   onChange={(e) => handlePlayerGoalsChange(player.id, e.target.value)}
                                   onFocus={handlePlayerGoalsFocus}
                                   disabled={saving}
-                                  className={`w-12 px-1 py-0.5 text-xs text-center border rounded focus:outline-none focus:ring-1 disabled:bg-gray-100 ${
+                                  className={`w-8 sm:w-12 px-0.5 sm:px-1 py-0 sm:py-0.5 text-[10px] sm:text-xs text-center border rounded focus:outline-none focus:ring-1 disabled:bg-gray-100 ${
                                     goals === -1
                                       ? 'border-red-300 bg-red-50 text-red-700 focus:ring-red-500'
                                       : 'border-gray-300 focus:ring-[#29544D]'
@@ -629,15 +623,15 @@ export default function LeagueResultsPage() {
                                   checked={hasPlayed}
                                   onChange={(e) => setPlayerHasPlayed(prev => ({ ...prev, [player.id]: e.target.checked }))}
                                   disabled={saving}
-                                  className="w-4 h-4 cursor-pointer disabled:cursor-not-allowed"
+                                  className="w-3 h-3 sm:w-4 sm:h-4 cursor-pointer disabled:cursor-not-allowed mt-0.5"
                                   title="Oznacz, że zawodnik rozegrał mecz"
                                 />
                               </div>
                             )
                           })
                         ) : (
-                          <div className="flex items-baseline justify-end gap-2 h-[20px]">
-                            <p className="text-sm text-gray-400 italic leading-5">Nie ustawiono składu</p>
+                          <div className="flex items-baseline gap-2 justify-end min-h-[24px] sm:min-h-[32px]">
+                            <p className="text-[11px] sm:text-sm text-gray-400 italic">Nie ustawiono składu</p>
                           </div>
                         )}
                       </div>
@@ -689,53 +683,53 @@ export default function LeagueResultsPage() {
                         }
 
                         return (
-                          <div key={match.id} className="bg-white border-2 border-yellow-600 rounded-2xl hover:shadow-lg transition-shadow duration-200" style={{ padding: '20px' }}>
+                          <div key={match.id} className="bg-white border-2 border-yellow-600 rounded-2xl hover:shadow-lg transition-shadow duration-200 p-2 sm:p-5">
                             {/* Save Button */}
-                            <div className="flex justify-end mb-3">
+                            <div className="flex justify-end mb-2 sm:mb-3">
                               <button
                                 onClick={() => saveIndividualMatch(match.id)}
                                 disabled={saving}
-                                className="px-4 py-1 text-sm bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:opacity-50"
+                                className="px-2 sm:px-4 py-0.5 sm:py-1 text-xs sm:text-sm bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:opacity-50"
                               >
                                 {saving ? 'Zapisywanie...' : 'Zapisz wynik'}
                               </button>
                             </div>
 
                             {/* Match Score Header */}
-                            <div className="flex items-center justify-between mb-3">
-                              <div className="flex-1" style={{ paddingRight: '24px' }}>
-                                <p className={`text-lg font-semibold ${getManagerNameColor(homePlayers)}`}>
+                            <div className="flex items-center justify-between mb-2 sm:mb-3">
+                              <div className="flex-1 pr-2 sm:pr-6">
+                                <p className={`text-sm sm:text-lg font-semibold ${getManagerNameColor(homePlayers)}`}>
                                   {getManagerDisplayName(match.home_manager)}
                                 </p>
                               </div>
-                              <div className="flex items-center gap-4 px-8">
-                                <span className="text-3xl font-bold text-[#061852]">{homeGoals}</span>
-                                <span className="text-2xl font-medium text-gray-400">-</span>
-                                <span className="text-3xl font-bold text-[#061852]">{awayGoals}</span>
+                              <div className="flex items-center gap-2 sm:gap-4 px-2 sm:px-8">
+                                <span className="text-xl sm:text-3xl font-bold text-[#061852]">{homeGoals}</span>
+                                <span className="text-base sm:text-2xl font-medium text-gray-400">-</span>
+                                <span className="text-xl sm:text-3xl font-bold text-[#061852]">{awayGoals}</span>
                               </div>
-                              <div className="flex-1 text-right" style={{ paddingLeft: '24px' }}>
-                                <p className={`text-lg font-semibold ${getManagerNameColor(awayPlayers)}`}>
+                              <div className="flex-1 text-right pl-2 sm:pl-6">
+                                <p className={`text-sm sm:text-lg font-semibold ${getManagerNameColor(awayPlayers)}`}>
                                   {getManagerDisplayName(match.away_manager)}
                                 </p>
                               </div>
                             </div>
 
                             {/* Player Details */}
-                            <div className="flex items-start justify-between pt-3 border-t-2 border-yellow-200">
+                            <div className="flex items-start justify-between pt-2 sm:pt-3 border-t-2 border-yellow-200">
                               {/* Home Team Players */}
-                              <div className="flex-1 space-y-1" style={{ paddingRight: '32px' }}>
+                              <div className="flex-1 space-y-0.5 sm:space-y-1 pr-4 sm:pr-12">
                                 {homePlayers.length > 0 ? (
                                   homePlayers.map((player) => {
                                     const goals = playerGoals[player.id] || 0
                                     const hasPlayed = playerHasPlayed[player.id] || false
                                     return (
-                                      <div key={player.id} className="flex items-baseline gap-2 h-[20px]">
+                                      <div key={player.id} className="flex items-start gap-1 sm:gap-2 min-h-[24px] sm:min-h-[32px]">
                                         <input
                                           type="checkbox"
                                           checked={hasPlayed}
                                           onChange={(e) => setPlayerHasPlayed(prev => ({ ...prev, [player.id]: e.target.checked }))}
                                           disabled={saving}
-                                          className="w-4 h-4 cursor-pointer disabled:cursor-not-allowed"
+                                          className="w-3 h-3 sm:w-4 sm:h-4 cursor-pointer disabled:cursor-not-allowed mt-0.5"
                                           title="Oznacz, że zawodnik rozegrał mecz"
                                         />
                                         <input
@@ -746,57 +740,51 @@ export default function LeagueResultsPage() {
                                           onChange={(e) => handlePlayerGoalsChange(player.id, e.target.value)}
                                           onFocus={handlePlayerGoalsFocus}
                                           disabled={saving}
-                                          className={`w-12 px-1 py-0.5 text-xs text-center border rounded focus:outline-none focus:ring-1 disabled:bg-gray-100 ${
+                                          className={`w-8 sm:w-12 px-0.5 sm:px-1 py-0 sm:py-0.5 text-[10px] sm:text-xs text-center border rounded focus:outline-none focus:ring-1 disabled:bg-gray-100 ${
                                             goals === -1
                                               ? 'border-red-300 bg-red-50 text-red-700 focus:ring-red-500'
                                               : 'border-gray-300 focus:ring-yellow-600'
                                           }`}
                                         />
-                                        <p className={`text-sm leading-5 ${
+                                        <p className={`text-[11px] sm:text-sm ${
                                           goals === -1 ? 'font-bold text-red-600' :
-                                          goals > 0 ? 'font-bold text-[#061852]' :
+                                          hasPlayed && goals > 0 ? 'font-bold text-[#061852]' :
+                                          hasPlayed && goals === 0 ? 'italic text-gray-600' :
                                           'text-gray-600'
                                         }`}>
                                           {player.name} {player.surname}
                                           {goals === -1 && <span className="ml-1 text-red-600">(OG)</span>}
+                                          {goals > 0 && Array.from({ length: goals }).map((_, i) => (
+                                            <Icon key={i} iconNode={soccerBall} size={10} className="text-[#061852] sm:w-3 sm:h-3 inline-block align-middle ml-0.5" strokeWidth={2} />
+                                          ))}
                                         </p>
-                                        {goals > 0 && (
-                                          <div className="flex items-center gap-1">
-                                            {Array.from({ length: goals }).map((_, i) => (
-                                              <Icon key={i} iconNode={soccerBall} size={12} className="text-[#061852]" strokeWidth={2} />
-                                            ))}
-                                          </div>
-                                        )}
                                       </div>
                                     )
                                   })
                                 ) : (
-                                  <div className="flex items-baseline gap-2 h-[20px]">
-                                    <p className="text-sm text-gray-400 italic leading-5">Nie ustawiono składu</p>
+                                  <div className="flex items-baseline gap-2 min-h-[24px] sm:min-h-[32px]">
+                                    <p className="text-[11px] sm:text-sm text-gray-400 italic">Nie ustawiono składu</p>
                                   </div>
                                 )}
                               </div>
 
                               {/* Away Team Players */}
-                              <div className="flex-1 text-right space-y-1" style={{ paddingLeft: '32px' }}>
+                              <div className="flex-1 text-right space-y-0.5 sm:space-y-1 pl-4 sm:pl-12">
                                 {awayPlayers.length > 0 ? (
                                   awayPlayers.map((player) => {
                                     const goals = playerGoals[player.id] || 0
                                     const hasPlayed = playerHasPlayed[player.id] || false
                                     return (
-                                      <div key={player.id} className="flex items-baseline justify-end gap-2 h-[20px]">
-                                        {goals > 0 && (
-                                          <div className="flex items-center gap-1">
-                                            {Array.from({ length: goals }).map((_, i) => (
-                                              <Icon key={i} iconNode={soccerBall} size={12} className="text-[#061852]" strokeWidth={2} />
-                                            ))}
-                                          </div>
-                                        )}
-                                        <p className={`text-sm leading-5 ${
+                                      <div key={player.id} className="flex items-start justify-end gap-1 sm:gap-2 min-h-[24px] sm:min-h-[32px]">
+                                        <p className={`text-[11px] sm:text-sm text-right ${
                                           goals === -1 ? 'font-bold text-red-600' :
-                                          goals > 0 ? 'font-bold text-[#061852]' :
+                                          hasPlayed && goals > 0 ? 'font-bold text-[#061852]' :
+                                          hasPlayed && goals === 0 ? 'italic text-gray-600' :
                                           'text-gray-600'
                                         }`}>
+                                          {goals > 0 && Array.from({ length: goals }).map((_, i) => (
+                                            <Icon key={i} iconNode={soccerBall} size={10} className="text-[#061852] sm:w-3 sm:h-3 inline-block align-middle mr-0.5" strokeWidth={2} />
+                                          ))}
                                           {player.name} {player.surname}
                                           {goals === -1 && <span className="ml-1 text-red-600">(OG)</span>}
                                         </p>
@@ -808,7 +796,7 @@ export default function LeagueResultsPage() {
                                           onChange={(e) => handlePlayerGoalsChange(player.id, e.target.value)}
                                           onFocus={handlePlayerGoalsFocus}
                                           disabled={saving}
-                                          className={`w-12 px-1 py-0.5 text-xs text-center border rounded focus:outline-none focus:ring-1 disabled:bg-gray-100 ${
+                                          className={`w-8 sm:w-12 px-0.5 sm:px-1 py-0 sm:py-0.5 text-[10px] sm:text-xs text-center border rounded focus:outline-none focus:ring-1 disabled:bg-gray-100 ${
                                             goals === -1
                                               ? 'border-red-300 bg-red-50 text-red-700 focus:ring-red-500'
                                               : 'border-gray-300 focus:ring-yellow-600'
@@ -819,15 +807,15 @@ export default function LeagueResultsPage() {
                                           checked={hasPlayed}
                                           onChange={(e) => setPlayerHasPlayed(prev => ({ ...prev, [player.id]: e.target.checked }))}
                                           disabled={saving}
-                                          className="w-4 h-4 cursor-pointer disabled:cursor-not-allowed"
+                                          className="w-3 h-3 sm:w-4 sm:h-4 cursor-pointer disabled:cursor-not-allowed mt-0.5"
                                           title="Oznacz, że zawodnik rozegrał mecz"
                                         />
                                       </div>
                                     )
                                   })
                                 ) : (
-                                  <div className="flex items-baseline justify-end gap-2 h-[20px]">
-                                    <p className="text-sm text-gray-400 italic leading-5">Nie ustawiono składu</p>
+                                  <div className="flex items-baseline gap-2 justify-end min-h-[24px] sm:min-h-[32px]">
+                                    <p className="text-[11px] sm:text-sm text-gray-400 italic">Nie ustawiono składu</p>
                                   </div>
                                 )}
                               </div>

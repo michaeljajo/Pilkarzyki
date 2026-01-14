@@ -13,7 +13,6 @@ export async function GET(request: NextRequest) {
     }
 
     const now = new Date()
-    console.log(`[Cron] Checking for gameweeks to complete at ${now.toISOString()}`)
 
     // Find all gameweeks that have passed their end_date but are not yet completed
     const { data: expiredGameweeks, error: fetchError } = await supabaseAdmin
@@ -28,14 +27,12 @@ export async function GET(request: NextRequest) {
     }
 
     if (!expiredGameweeks || expiredGameweeks.length === 0) {
-      console.log('[Cron] No gameweeks to complete')
       return NextResponse.json({
         message: 'No gameweeks to complete',
         completed: 0
       })
     }
 
-    console.log(`[Cron] Found ${expiredGameweeks.length} gameweeks to complete`)
 
     const completedGameweeks = []
     const errors = []
@@ -43,7 +40,6 @@ export async function GET(request: NextRequest) {
     // Process each expired gameweek
     for (const gameweek of expiredGameweeks) {
       try {
-        console.log(`[Cron] Completing gameweek ${gameweek.week} (ID: ${gameweek.id})`)
 
         // Mark gameweek as completed
         const { error: updateError } = await supabaseAdmin
@@ -79,10 +75,8 @@ export async function GET(request: NextRequest) {
             console.error(`[Cron] Error advancing league ${gameweek.league_id}:`, leagueError)
             errors.push({ gameweekId: gameweek.id, error: `League advancement failed: ${leagueError.message}` })
           } else {
-            console.log(`[Cron] League ${gameweek.league_id} advanced to gameweek ${nextIncompleteGameweek.week}`)
           }
         } else {
-          console.log(`[Cron] No incomplete gameweeks found for league ${gameweek.league_id}, season may be complete`)
         }
 
         completedGameweeks.push({
@@ -99,7 +93,6 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    console.log(`[Cron] Completed ${completedGameweeks.length} gameweeks`)
     if (errors.length > 0) {
       console.error(`[Cron] Encountered ${errors.length} errors`)
     }

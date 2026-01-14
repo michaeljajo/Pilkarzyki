@@ -1,13 +1,93 @@
-import { UserButton } from '@clerk/nextjs'
 import { currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { unstable_cache } from 'next/cache'
 import { supabaseAdmin } from '@/lib/supabase'
 import { Button } from '@/components/ui/Button'
-import { Badge } from '@/components/ui/Badge'
-import { Trophy, Plus, Settings } from 'lucide-react'
-import Image from 'next/image'
+import { Trophy, Plus } from 'lucide-react'
 import { LeagueCard } from '@/components/LeagueCard'
+import { DashboardNav } from '@/components/DashboardNav'
+
+// Cached function to get or create user record
+const getUserRecord = unstable_cache(
+  async (clerkId: string, email: string, firstName: string, lastName: string) => {
+    let { data: userRecord } = await supabaseAdmin
+      .from('users')
+      .select('id, is_admin')
+      .eq('clerk_id', clerkId)
+      .single()
+
+    if (!userRecord) {
+      const { data: newUser, error: createError } = await supabaseAdmin
+        .from('users')
+        .insert({
+          clerk_id: clerkId,
+          email,
+          first_name: firstName || email.split('@')[0] || 'User',
+          last_name: lastName || '',
+          is_admin: false
+        })
+        .select('id, is_admin')
+        .single()
+
+      if (createError || !newUser) {
+        console.error('Error creating user record:', createError)
+        return null
+      }
+
+      userRecord = newUser
+    }
+
+    return userRecord
+  },
+  ['user-record'],
+  {
+    revalidate: 60, // Cache for 60 seconds
+    tags: ['user-record']
+  }
+)
+
+// Cached function to get user's leagues
+const getUserLeagues = unstable_cache(
+  async (userId: string) => {
+    const [managerSquadsResult, adminLeaguesResult] = await Promise.all([
+      supabaseAdmin
+        .from('squads')
+        .select(`
+          league_id,
+          leagues!inner (
+            id,
+            name,
+            season,
+            is_active,
+            created_at,
+            admin_id
+          )
+        `)
+        .eq('manager_id', userId)
+        .eq('leagues.is_active', true),
+      supabaseAdmin
+        .from('leagues')
+        .select('id, name, season, is_active, created_at, admin_id')
+        .eq('admin_id', userId)
+        .eq('is_active', true)
+    ])
+
+    return {
+      managerSquads: managerSquadsResult.data,
+      adminLeagues: adminLeaguesResult.data,
+      errors: {
+        squadError: managerSquadsResult.error,
+        adminError: adminLeaguesResult.error
+      }
+    }
+  },
+  ['user-leagues'],
+  {
+    revalidate: 30, // Cache for 30 seconds - more frequent updates for league changes
+    tags: ['user-leagues']
+  }
+)
 
 export default async function DashboardPage() {
   const user = await currentUser()
@@ -16,68 +96,19 @@ export default async function DashboardPage() {
     redirect('/sign-in')
   }
 
-  // Get user's internal ID and admin status, or create if doesn't exist
-  let { data: userRecord } = await supabaseAdmin
-    .from('users')
-    .select('id, is_admin')
-    .eq('clerk_id', user.id)
-    .single()
+  const email = user.emailAddresses[0]?.emailAddress || ''
+  const firstName = user.firstName || ''
+  const lastName = user.lastName || ''
 
-  // Auto-create user record if it doesn't exist (webhook might not have fired yet)
+  // Get user record with caching (60s cache)
+  const userRecord = await getUserRecord(user.id, email, firstName, lastName)
+
   if (!userRecord) {
-    const email = user.emailAddresses[0]?.emailAddress || ''
-    const { data: newUser, error: createError } = await supabaseAdmin
-      .from('users')
-      .insert({
-        clerk_id: user.id,
-        email,
-        first_name: user.firstName || email.split('@')[0] || 'User',
-        last_name: user.lastName || '',
-        is_admin: false
-      })
-      .select('id, is_admin')
-      .single()
-
-    if (createError || !newUser) {
-      console.error('Error creating user record:', createError)
-      redirect('/sign-in')
-    }
-
-    userRecord = newUser
+    redirect('/sign-in')
   }
 
-  // Get leagues where user is a manager (has a squad)
-  const { data: managerSquads, error: squadError } = await supabaseAdmin
-    .from('squads')
-    .select(`
-      league_id,
-      leagues!inner (
-        id,
-        name,
-        season,
-        is_active,
-        created_at,
-        admin_id
-      )
-    `)
-    .eq('manager_id', userRecord.id)
-    .eq('leagues.is_active', true)
-
-  // Get leagues where user is admin
-  const { data: adminLeagues, error: adminError } = await supabaseAdmin
-    .from('leagues')
-    .select('id, name, season, is_active, created_at, admin_id')
-    .eq('admin_id', userRecord.id)
-    .eq('is_active', true)
-
-  // Debug logging
-  console.log('=== DASHBOARD DEBUG ===')
-  console.log('User email:', user.emailAddresses[0]?.emailAddress)
-  console.log('User internal ID:', userRecord.id)
-  console.log('Manager squads:', managerSquads)
-  console.log('Squad error:', squadError)
-  console.log('Admin leagues:', adminLeagues)
-  console.log('Admin error:', adminError)
+  // Get user's leagues with caching (30s cache) and optimized parallel queries
+  const { managerSquads, adminLeagues } = await getUserLeagues(userRecord.id)
 
   // Combine and deduplicate leagues
   // Type assertion for Supabase joined data
@@ -127,30 +158,7 @@ export default async function DashboardPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation Bar */}
-      <nav className="bg-white sticky top-0 z-50 border-b border-gray-200">
-        <div className="max-w-[1400px] mx-auto" style={{ paddingLeft: '48px', paddingRight: '48px' }}>
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-3">
-              <Image
-                src="/pilkarzyki-logo.png"
-                alt="Pilkarzyki"
-                width={200}
-                height={50}
-                priority
-              />
-            </div>
-            <div className="flex items-center gap-4">
-              {hasAdminAccess && (
-                <Badge variant="info" size="sm">
-                  <Settings size={12} />
-                  Admin
-                </Badge>
-              )}
-              <UserButton afterSignOutUrl="/" />
-            </div>
-          </div>
-        </div>
-      </nav>
+      <DashboardNav hasAdminAccess={hasAdminAccess} />
 
       {/* Main Content */}
       <main className="max-w-[1400px] mx-auto" style={{ paddingLeft: '48px', paddingRight: '48px', paddingTop: '64px', paddingBottom: '96px' }}>

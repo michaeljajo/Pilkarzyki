@@ -24,7 +24,6 @@ export async function POST(request: NextRequest) {
     }
 
     const now = new Date()
-    console.log(`[Admin] Manually completing gameweeks at ${now.toISOString()}`)
 
     // Find all gameweeks that have passed their end_date but are not yet completed
     const { data: expiredGameweeks, error: fetchError } = await supabaseAdmin
@@ -39,14 +38,12 @@ export async function POST(request: NextRequest) {
     }
 
     if (!expiredGameweeks || expiredGameweeks.length === 0) {
-      console.log('[Admin] No gameweeks to complete')
       return NextResponse.json({
         message: 'No gameweeks to complete',
         completed: 0
       })
     }
 
-    console.log(`[Admin] Found ${expiredGameweeks.length} gameweeks to complete`)
 
     const completedGameweeks = []
     const errors = []
@@ -54,7 +51,6 @@ export async function POST(request: NextRequest) {
     // Process each expired gameweek
     for (const gameweek of expiredGameweeks) {
       try {
-        console.log(`[Admin] Completing gameweek ${gameweek.week} (ID: ${gameweek.id})`)
 
         // Mark gameweek as completed
         const { error: updateError } = await supabaseAdmin
@@ -90,10 +86,8 @@ export async function POST(request: NextRequest) {
             console.error(`[Admin] Error advancing league ${gameweek.league_id}:`, leagueError)
             errors.push({ gameweekId: gameweek.id, error: `League advancement failed: ${leagueError.message}` })
           } else {
-            console.log(`[Admin] League ${gameweek.league_id} advanced to gameweek ${nextIncompleteGameweek.week}`)
           }
         } else {
-          console.log(`[Admin] No incomplete gameweeks found for league ${gameweek.league_id}, season may be complete`)
         }
 
         completedGameweeks.push({
@@ -110,7 +104,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log(`[Admin] Completed ${completedGameweeks.length} gameweeks`)
     if (errors.length > 0) {
       console.error(`[Admin] Encountered ${errors.length} errors`)
     }

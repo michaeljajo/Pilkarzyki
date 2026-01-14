@@ -13,7 +13,6 @@ export async function GET(request: NextRequest) {
     }
 
     const now = new Date()
-    console.log(`[Cron] Applying default lineups at ${now.toISOString()}`)
 
     // Find all gameweeks that have passed their lock_date but are not yet completed
     const { data: lockedGameweeks, error: fetchError } = await supabaseAdmin
@@ -28,7 +27,6 @@ export async function GET(request: NextRequest) {
     }
 
     if (!lockedGameweeks || lockedGameweeks.length === 0) {
-      console.log('[Cron] No locked gameweeks found')
       return NextResponse.json({
         message: 'No locked gameweeks to process',
         appliedLineups: 0,
@@ -36,7 +34,6 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    console.log(`[Cron] Found ${lockedGameweeks.length} locked gameweeks to process`)
 
     let totalAppliedLineups = 0
     let totalAppliedCupLineups = 0
@@ -45,7 +42,6 @@ export async function GET(request: NextRequest) {
     // Process each locked gameweek
     for (const gameweek of lockedGameweeks) {
       try {
-        console.log(`[Cron] Processing gameweek ${gameweek.week} (ID: ${gameweek.id})`)
 
         // Get all managers in this league (via squads)
         const { data: squads } = await supabaseAdmin
@@ -54,12 +50,10 @@ export async function GET(request: NextRequest) {
           .eq('league_id', gameweek.league_id)
 
         if (!squads || squads.length === 0) {
-          console.log(`[Cron] No squads found for league ${gameweek.league_id}`)
           continue
         }
 
         const managerIds = squads.map(s => s.manager_id)
-        console.log(`[Cron] Found ${managerIds.length} managers in league`)
 
         // Get existing lineups for this gameweek
         const { data: existingLineups } = await supabaseAdmin
@@ -70,7 +64,6 @@ export async function GET(request: NextRequest) {
         const managersWithLineups = new Set(existingLineups?.map(l => l.manager_id) || [])
         const managersWithoutLineups = managerIds.filter(id => !managersWithLineups.has(id))
 
-        console.log(`[Cron] ${managersWithoutLineups.length} managers without lineups`)
 
         // Apply default lineups for managers without lineups
         for (const managerId of managersWithoutLineups) {
@@ -99,11 +92,9 @@ export async function GET(request: NextRequest) {
               console.error(`[Cron] Error inserting default lineup for manager ${managerId}:`, insertError)
               errors.push({ managerId, gameweekId: gameweek.id, error: insertError.message })
             } else {
-              console.log(`[Cron] Applied default lineup for manager ${managerId}`)
               totalAppliedLineups++
             }
           } else {
-            console.log(`[Cron] Manager ${managerId} has no default lineup set`)
           }
         }
 
@@ -140,7 +131,6 @@ export async function GET(request: NextRequest) {
               id => !managersWithCupLineups.has(id)
             )
 
-            console.log(`[Cron] ${managersWithoutCupLineups.length} managers without cup lineups`)
 
             // Apply default cup lineups
             for (const managerId of managersWithoutCupLineups) {
@@ -167,11 +157,9 @@ export async function GET(request: NextRequest) {
                   console.error(`[Cron] Error inserting default cup lineup for manager ${managerId}:`, insertError)
                   errors.push({ managerId, cupGameweekId: cupGameweek.id, error: insertError.message })
                 } else {
-                  console.log(`[Cron] Applied default cup lineup for manager ${managerId}`)
                   totalAppliedCupLineups++
                 }
               } else {
-                console.log(`[Cron] Manager ${managerId} has no default cup lineup set`)
               }
             }
           }
@@ -186,7 +174,6 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    console.log(`[Cron] Applied ${totalAppliedLineups} default lineups and ${totalAppliedCupLineups} default cup lineups`)
     if (errors.length > 0) {
       console.error(`[Cron] Encountered ${errors.length} errors`)
     }

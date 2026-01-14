@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { batchGetManagersAtGameweek } from '@/utils/transfer-resolver'
 
 export async function GET(
   request: NextRequest,
@@ -15,21 +16,19 @@ export async function GET(
     const params = await context.params
     const leagueId = params.id
 
-    // Fetch all results for this league
+    // Fetch all results for this league with player and gameweek info
+    // NOTE: We don't join manager here anymore - we resolve it via transfer history
     const { data: results, error } = await supabaseAdmin
       .from('results')
       .select(`
         id,
         goals,
+        player_id,
+        gameweek_id,
         player:players!results_player_id_fkey (
           id,
           name,
-          manager:users!players_manager_id_fkey (
-            id,
-            first_name,
-            last_name,
-            email
-          )
+          surname
         ),
         gameweek:gameweeks!results_gameweek_id_fkey (
           id,
@@ -47,19 +46,15 @@ export async function GET(
       )
     }
 
-    // Get unique manager IDs from results
     interface ResultWithRelations {
       id: string
       goals: number
+      player_id: string
+      gameweek_id: string
       player: {
         id: string
         name: string
-        manager: {
-          id: string
-          first_name: string | null
-          last_name: string | null
-          email: string
-        } | null
+        surname: string
       } | null
       gameweek: {
         id: string
@@ -67,27 +62,62 @@ export async function GET(
       } | null
     }
 
+    const typedResults = results as unknown as ResultWithRelations[]
+
+    if (!typedResults || typedResults.length === 0) {
+      return NextResponse.json({ results: [] })
+    }
+
+    // Group results by gameweek for batch resolution
+    const gameweekPlayerMap = new Map<string, Set<string>>()
+    for (const result of typedResults) {
+      if (!gameweekPlayerMap.has(result.gameweek_id)) {
+        gameweekPlayerMap.set(result.gameweek_id, new Set())
+      }
+      gameweekPlayerMap.get(result.gameweek_id)!.add(result.player_id)
+    }
+
+    // Resolve historical managers for each gameweek
+    const historicalManagerMap = new Map<string, string | null>()
+    for (const [gameweekId, playerIds] of gameweekPlayerMap.entries()) {
+      const managerMap = await batchGetManagersAtGameweek(
+        Array.from(playerIds),
+        gameweekId
+      )
+      // Store with composite key: gameweek_id:player_id
+      for (const [playerId, managerId] of managerMap.entries()) {
+        historicalManagerMap.set(`${gameweekId}:${playerId}`, managerId)
+      }
+    }
+
+    // Get all unique manager IDs from historical data
     const managerIds = Array.from(
       new Set(
-        (results as unknown as ResultWithRelations[])
-          ?.map(r => r.player?.manager?.id)
-          .filter(Boolean) as string[]
+        Array.from(historicalManagerMap.values()).filter(Boolean) as string[]
       )
     )
 
-    // Fetch squad team names for this league
+    // Fetch manager details and squad names
+    const { data: managers } = await supabaseAdmin
+      .from('users')
+      .select('id, first_name, last_name, email')
+      .in('id', managerIds)
+
     const { data: squads } = await supabaseAdmin
       .from('squads')
       .select('manager_id, team_name')
       .eq('league_id', leagueId)
       .in('manager_id', managerIds)
 
+    const managerMap = new Map(managers?.map(m => [m.id, m]) || [])
     const squadMap = new Map(squads?.map(s => [s.manager_id, s]) || [])
 
-    // Transform the data for easier consumption
-    const transformedResults = (results as unknown as ResultWithRelations[])?.map((result) => {
-      const manager = result.player?.manager
-      const squad = manager ? squadMap.get(manager.id) : null
+    // Transform results with historical manager information
+    const transformedResults = typedResults.map((result) => {
+      const compositeKey = `${result.gameweek_id}:${result.player_id}`
+      const managerId = historicalManagerMap.get(compositeKey)
+      const manager = managerId ? managerMap.get(managerId) : null
+      const squad = managerId ? squadMap.get(managerId) : null
 
       let managerName = 'Unassigned'
       if (manager) {
@@ -101,14 +131,18 @@ export async function GET(
         }
       }
 
+      const playerFullName = result.player
+        ? `${result.player.name} ${result.player.surname}`.trim()
+        : 'Unknown'
+
       return {
         id: result.id,
-        player_name: result.player?.name || 'Unknown',
+        player_name: playerFullName,
         goals: result.goals,
         gameweek_week: result.gameweek?.week || 0,
         manager_name: managerName,
       }
-    }) || []
+    })
 
     return NextResponse.json({ results: transformedResults })
   } catch (error) {

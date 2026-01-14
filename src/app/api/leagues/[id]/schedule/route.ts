@@ -10,13 +10,11 @@ export async function POST(
 ) {
   try {
     const { userId } = await auth()
-    console.log('POST schedule - userId:', userId)
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const { id: leagueId } = await context.params
-    console.log('POST schedule - leagueId:', leagueId)
 
     // Verify user is admin of this league
     const { isAdmin, error: authError } = await verifyLeagueAdmin(userId, leagueId)
@@ -47,13 +45,11 @@ export async function POST(
     }
 
     // Get all managers for this league
-    console.log('Fetching managers for leagueId (using squads table):', leagueId)
     const { data: managers, error: managersError } = await supabaseAdmin
       .from('squads')
       .select('manager_id')
       .eq('league_id', leagueId)
 
-    console.log('Managers query result:', { managers, managersError })
 
     if (managersError) {
       console.error('Managers query error:', managersError)
@@ -69,24 +65,19 @@ export async function POST(
 
     // Extract manager IDs
     const managerIds = managers.map(m => m.manager_id)
-    console.log('Manager IDs:', managerIds)
 
     // Calculate total gameweeks using double round-robin formula: 2 * (n - 1)
     const totalGameweeks = 2 * (managerIds.length - 1)
-    console.log('Total gameweeks to create:', totalGameweeks)
 
     // Check if schedule already exists
-    console.log('Checking for existing schedule...')
     const { data: existingGameweeks } = await supabaseAdmin
       .from('gameweeks')
       .select('id')
       .eq('league_id', leagueId)
       .limit(1)
 
-    console.log('Existing gameweeks check:', existingGameweeks)
 
     if (existingGameweeks && existingGameweeks.length > 0) {
-      console.log('Schedule already exists, returning error')
       return NextResponse.json(
         { error: 'Schedule already exists. Delete existing schedule first.' },
         { status: 400 }
@@ -94,10 +85,7 @@ export async function POST(
     }
 
     // Generate round-robin schedule
-    console.log('Generating round-robin schedule...')
     const scheduleMatches = generateRoundRobinSchedule(managerIds)
-    console.log('Generated schedule matches:', scheduleMatches.length)
-    console.log('Schedule matches detail:', scheduleMatches)
 
     // Create simplified gameweeks (just week numbers)
     // Add start_date, end_date, and lock_date as required by database schema
@@ -119,7 +107,6 @@ export async function POST(
       }
     })
 
-    console.log('Creating gameweeks with dates:', { totalGameweeks, gameweeksToInsert })
 
     // Insert gameweeks
     const { data: insertedGameweeks, error: gameweeksError } = await supabaseAdmin
@@ -127,7 +114,6 @@ export async function POST(
       .insert(gameweeksToInsert)
       .select('id, week')
 
-    console.log('Gameweeks creation result:', { insertedGameweeks, gameweeksError })
 
     if (gameweeksError) {
       return NextResponse.json({ error: 'Failed to create gameweeks' }, { status: 500 })
@@ -140,7 +126,6 @@ export async function POST(
         return acc
       }, {} as Record<number, string>)
 
-      console.log('Gameweek mapping:', gameweekMap)
 
       // Prepare match data for insertion
       const matchesToInsert = scheduleMatches.map(match => ({
@@ -153,7 +138,6 @@ export async function POST(
         is_completed: false
       }))
 
-      console.log('Matches to insert:', matchesToInsert)
 
       // Insert matches
       const { data: insertedMatches, error: matchesError } = await supabaseAdmin
@@ -161,7 +145,6 @@ export async function POST(
         .insert(matchesToInsert)
         .select()
 
-      console.log('Matches creation result:', { insertedMatches, matchesError })
 
       if (matchesError) {
         console.error('Match creation error details:', matchesError)
@@ -286,7 +269,6 @@ export async function GET(
     }
 
     const { id: leagueId } = await context.params
-    console.log('GET schedule endpoint called for leagueId:', leagueId)
 
     // Verify user is admin of this league
     const { isAdmin, error: authError } = await verifyLeagueAdmin(userId, leagueId)
@@ -313,7 +295,6 @@ export async function GET(
       .eq('league_id', leagueId)
       .order('week', { ascending: true })
 
-    console.log('GET gameweeks query result:', {
       gameweeks: gameweeks ? gameweeks.length : 'null',
       totalMatches: gameweeks ? gameweeks.reduce((sum, gw) => sum + (gw.matches?.length || 0), 0) : 0,
       gameweeksError,
@@ -334,7 +315,6 @@ export async function GET(
       })
     })
 
-    console.log('Manager IDs extracted from matches:', Array.from(managerIds))
 
     // Fetch user data for all managers
     const { data: users, error: usersError } = await supabaseAdmin
@@ -342,7 +322,6 @@ export async function GET(
       .select('id, first_name, last_name, email')
       .in('id', Array.from(managerIds))
 
-    console.log('GET users query result:', {
       users: users ? users.length : 'null',
       usersError,
       fullUsersData: users
@@ -388,7 +367,6 @@ export async function GET(
       }))
     }))
 
-    console.log('Final schedule with user data:', {
       schedule: schedule ? schedule.length : 'null',
       totalGameweeks: schedule?.length,
       totalMatches: schedule?.reduce((sum, gw) => sum + (gw.matches?.length || 0), 0),
@@ -403,7 +381,6 @@ export async function GET(
         } : 'no matches'
       } : 'no gameweeks'
     })
-    console.log('Schedule compilation timestamp:', new Date().toISOString())
 
     return NextResponse.json({
       schedule: schedule || [],
