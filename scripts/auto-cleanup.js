@@ -10,9 +10,22 @@ const fs = require('fs');
 const path = require('path');
 
 const LOCK_FILE = path.join(process.cwd(), '.next', 'dev', 'lock');
+const MIDDLEWARE_BUILD = path.join(process.cwd(), '.next', 'server', 'middleware.js');
+const NEXT_DIR = path.join(process.cwd(), '.next');
 const PORTS_TO_CHECK = [3000, 3001, 3002];
 
 let cleanupNeeded = false;
+
+// Check for Next.js 16 middleware/proxy conflict (cached middleware.js from previous builds)
+if (fs.existsSync(MIDDLEWARE_BUILD)) {
+  console.log('⚠️  Old middleware cache detected (Next.js 16 uses proxy.ts), cleaning .next...');
+  try {
+    execSync('rm -rf .next', { stdio: 'pipe' });
+    console.log('✓ Cache cleaned');
+  } catch (e) {
+    console.error('⚠️  Failed to clean .next directory');
+  }
+}
 
 // Check if lock file exists
 if (fs.existsSync(LOCK_FILE)) {

@@ -7,9 +7,16 @@ Always refer to @RULES.md and apply rules which are listed there.
 ## Development Commands
 
 - **Development server**: `npm run dev` (uses Turbopack for faster builds)
+  - Includes auto-cleanup script that prevents port conflicts and middleware/proxy cache issues
+  - Automatically detects and removes stale Next.js 16 middleware cache from pre-migration builds
 - **Build**: `npm run build` (production build with Turbopack)
 - **Start**: `npm start` (production server)
 - **Lint**: `npm run lint` (ESLint)
+
+### Important Notes
+- **Next.js 16 Migration**: This project uses `proxy.ts` (not `middleware.ts`) for route handling
+- **Auto-cleanup**: The dev script automatically cleans stale caches and kills orphaned processes
+- **If localhost not responding**: The auto-cleanup should handle it, but manually run `rm -rf .next` if needed
 
 ## Architecture Overview
 
