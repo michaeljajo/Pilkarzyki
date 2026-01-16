@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import { GameweekMatchData, MatchWithLineups, PlayerWithResult } from '@/types'
 import { Icon, Trophy } from 'lucide-react'
 import { soccerBall } from '@lucide/lab'
+import { calculateMatchScore } from '@/utils/own-goal-calculator'
 
 interface League {
   id: string
@@ -493,10 +494,21 @@ export default function LeagueResultsPage() {
                         <h3 className="text-lg font-semibold text-gray-800 mb-3">Mecze Ligowe</h3>
                         <div className="space-y-6">
                           {matchData.matches.map((match) => {
-                      const homeGoals = match.home_lineup?.players?.reduce((sum, p) => sum + (playerGoals[p.id] || 0), 0) || 0
-                      const awayGoals = match.away_lineup?.players?.reduce((sum, p) => sum + (playerGoals[p.id] || 0), 0) || 0
                       const homePlayers = match.home_lineup?.players || []
                       const awayPlayers = match.away_lineup?.players || []
+
+                      // Use own-goal-calculator to properly handle own goals
+                      const homePlayerGoalsMap = new Map(
+                        homePlayers.map(p => [p.id, playerGoals[p.id] || 0])
+                      )
+                      const awayPlayerGoalsMap = new Map(
+                        awayPlayers.map(p => [p.id, playerGoals[p.id] || 0])
+                      )
+                      const { homeScore: homeGoals, awayScore: awayGoals } = calculateMatchScore(
+                        homePlayers.map(p => p.id),
+                        awayPlayers.map(p => p.id),
+                        new Map([...homePlayerGoalsMap, ...awayPlayerGoalsMap])
+                      )
 
                 return (
                   <div key={match.id} className="bg-white border-2 border-[#29544D] rounded-2xl hover:shadow-lg transition-shadow duration-200 p-2 sm:p-5">
@@ -667,10 +679,21 @@ export default function LeagueResultsPage() {
                     </div>
                     <div className="space-y-6">
                       {cupGameweek.matches.map((match) => {
-                        const homeGoals = match.home_lineup?.players?.reduce((sum, p) => sum + (playerGoals[p.id] || 0), 0) || 0
-                        const awayGoals = match.away_lineup?.players?.reduce((sum, p) => sum + (playerGoals[p.id] || 0), 0) || 0
                         const homePlayers = match.home_lineup?.players || []
                         const awayPlayers = match.away_lineup?.players || []
+
+                        // Use own-goal-calculator to properly handle own goals
+                        const homePlayerGoalsMap = new Map(
+                          homePlayers.map(p => [p.id, playerGoals[p.id] || 0])
+                        )
+                        const awayPlayerGoalsMap = new Map(
+                          awayPlayers.map(p => [p.id, playerGoals[p.id] || 0])
+                        )
+                        const { homeScore: homeGoals, awayScore: awayGoals } = calculateMatchScore(
+                          homePlayers.map(p => p.id),
+                          awayPlayers.map(p => p.id),
+                          new Map([...homePlayerGoalsMap, ...awayPlayerGoalsMap])
+                        )
 
                         const getManagerDisplayName = (manager: { first_name?: string; last_name?: string; email: string }) => {
                           if (manager?.first_name && manager?.last_name) {

@@ -3,11 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbo",
-    "dev:clean": "npm run kill:dev && rm -rf .next && next dev --turbo",
+    "dev": "node scripts/auto-cleanup.js && next dev --turbo",
+    "dev:force": "npm run kill:all && rm -rf .next && next dev --turbo",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
+    "kill:all": "bash scripts/kill-next.sh",
     "kill:dev": "lsof -ti:3000 | xargs kill -9 2>/dev/null || true"
   },
   "dependencies": {

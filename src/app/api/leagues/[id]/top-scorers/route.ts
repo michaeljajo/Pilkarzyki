@@ -160,7 +160,7 @@ export async function GET(
     // Resolve historical managers for each gameweek
     for (const [gameweekId, gameweekResults] of gameweekResultsMap.entries()) {
       const playerIds = gameweekResults.map(r => r.player_id)
-      const managerMap = await batchGetManagersAtGameweek(playerIds, gameweekId)
+      const managerMap = await batchGetManagersAtGameweek(playerIds, gameweekId, leagueId)
 
       // Aggregate goals by (player, manager) combination
       for (const result of gameweekResults) {

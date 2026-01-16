@@ -230,12 +230,13 @@ export async function POST(request: NextRequest) {
         }
 
         // Insert player (using the league name from the league being imported to)
+        // SAFEGUARD: Always use leagueName from the target league to prevent cross-league data
         const { data: player, error: playerError } = await supabaseAdmin
           .from('players')
           .insert({
             name: firstName,
             surname: surname,
-            league: leagueName,
+            league: leagueName, // CRITICAL: Must match the target league
             position: row.Position,
             club: row.Club,
             football_league: row.League || null,

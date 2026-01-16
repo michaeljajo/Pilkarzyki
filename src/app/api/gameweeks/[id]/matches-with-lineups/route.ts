@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { calculateLineupTotalGoals } from '@/utils/own-goal-calculator'
 
 export async function GET(
   request: NextRequest,
@@ -172,10 +173,14 @@ export async function GET(
           })
           .filter(Boolean)
 
-        // Calculate actual total goals from results
-        const calculatedTotalGoals = homePlayersWithResults.reduce((sum, player) => {
-          return sum + (player.goals_scored || 0)
-        }, 0)
+        // Calculate actual total goals from results (excluding own goals)
+        const playerGoalsMap = new Map(
+          homePlayersWithResults.map(p => [p.id, p.goals_scored || 0])
+        )
+        const calculatedTotalGoals = calculateLineupTotalGoals(
+          homeLineup.player_ids,
+          playerGoalsMap
+        )
 
         homeLineupWithPlayers = {
           ...homeLineup,
@@ -201,10 +206,14 @@ export async function GET(
           })
           .filter(Boolean)
 
-        // Calculate actual total goals from results
-        const calculatedTotalGoals = awayPlayersWithResults.reduce((sum, player) => {
-          return sum + (player.goals_scored || 0)
-        }, 0)
+        // Calculate actual total goals from results (excluding own goals)
+        const playerGoalsMap = new Map(
+          awayPlayersWithResults.map(p => [p.id, p.goals_scored || 0])
+        )
+        const calculatedTotalGoals = calculateLineupTotalGoals(
+          awayLineup.player_ids,
+          playerGoalsMap
+        )
 
         awayLineupWithPlayers = {
           ...awayLineup,

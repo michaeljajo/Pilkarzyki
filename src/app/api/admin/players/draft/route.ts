@@ -301,6 +301,7 @@ export async function POST(request: NextRequest) {
             newManagerId,
             effectiveDate,
             'draft',
+            leagueId,
             adminUser.id,
             `Draft transfer: ${oldManagerName} → ${newManagerName}`
           )
@@ -417,6 +418,7 @@ export async function POST(request: NextRequest) {
             newManager?.id || null,
             effectiveDate,
             'draft',
+            leagueId,
             adminUser.id,
             `New player added via draft`
           )
@@ -537,6 +539,7 @@ export async function POST(request: NextRequest) {
           null, // NULL manager = unassigned
           effectiveDate,
           'draft',
+          leagueId,
           adminUser.id,
           `Draft removal: Player no longer in squad`
         )

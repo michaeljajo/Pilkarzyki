@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { GameweekMatchData, MatchWithLineups, PlayerWithResult } from '@/types'
 import { Icon } from 'lucide-react'
 import { soccerBall } from '@lucide/lab'
+import { calculateMatchScore } from '@/utils/own-goal-calculator'
 
 interface League {
   id: string
@@ -344,10 +345,21 @@ export default function ResultsPage() {
           ) : (
             <div className="space-y-4 sm:space-y-6">
               {matchData.matches.map((match) => {
-                const homeGoals = match.home_lineup?.players?.reduce((sum, p) => sum + (playerGoals[p.id] || 0), 0) || 0
-                const awayGoals = match.away_lineup?.players?.reduce((sum, p) => sum + (playerGoals[p.id] || 0), 0) || 0
                 const homePlayers = match.home_lineup?.players || []
                 const awayPlayers = match.away_lineup?.players || []
+
+                // Use own-goal-calculator to properly handle own goals
+                const homePlayerGoalsMap = new Map(
+                  homePlayers.map(p => [p.id, playerGoals[p.id] || 0])
+                )
+                const awayPlayerGoalsMap = new Map(
+                  awayPlayers.map(p => [p.id, playerGoals[p.id] || 0])
+                )
+                const { homeScore: homeGoals, awayScore: awayGoals } = calculateMatchScore(
+                  homePlayers.map(p => p.id),
+                  awayPlayers.map(p => p.id),
+                  new Map([...homePlayerGoalsMap, ...awayPlayerGoalsMap])
+                )
 
                 const getManagerDisplayName = (manager: { first_name?: string; last_name?: string; email: string; squad?: { team_name?: string } | null }) => {
                   // Priority 1: Team name
@@ -430,19 +442,25 @@ export default function ResultsPage() {
                                 />
                                 <input
                                   type="number"
-                                  min="0"
-                                  max="10"
+                                  min="-1"
+                                  max="9"
                                   value={goals}
                                   onChange={(e) => handlePlayerGoalsChange(player.id, parseInt(e.target.value) || 0)}
                                   disabled={saving}
-                                  className="w-8 sm:w-12 px-0.5 sm:px-1 py-0 sm:py-0.5 text-[10px] sm:text-xs text-center border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#29544D] disabled:bg-gray-100"
+                                  className={`w-8 sm:w-12 px-0.5 sm:px-1 py-0 sm:py-0.5 text-[10px] sm:text-xs text-center border rounded focus:outline-none focus:ring-1 disabled:bg-gray-100 ${
+                                    goals === -1
+                                      ? 'border-red-300 bg-red-50 text-red-700 focus:ring-red-500'
+                                      : 'border-gray-300 focus:ring-[#29544D]'
+                                  }`}
                                 />
                                 <p className={`text-[11px] sm:text-sm ${
+                                  goals === -1 ? 'font-bold text-red-600' :
                                   hasPlayed && goals > 0 ? 'font-bold text-[#061852]' :
                                   hasPlayed && goals === 0 ? 'italic text-gray-600' :
                                   'text-gray-600'
                                 }`}>
                                   {player.name} {player.surname}
+                                  {goals === -1 && <span className="ml-1 text-red-600">(OG)</span>}
                                   {goals > 0 && Array.from({ length: goals }).map((_, i) => (
                                     <Icon key={i} iconNode={soccerBall} size={10} className="text-[#061852] sm:w-3 sm:h-3 inline-block align-middle ml-0.5" strokeWidth={2} />
                                   ))}
@@ -466,6 +484,7 @@ export default function ResultsPage() {
                             return (
                               <div key={player.id} className="flex items-start justify-end gap-1 sm:gap-2 min-h-[24px] sm:min-h-[32px]">
                                 <p className={`text-[11px] sm:text-sm text-right ${
+                                  goals === -1 ? 'font-bold text-red-600' :
                                   hasPlayed && goals > 0 ? 'font-bold text-[#061852]' :
                                   hasPlayed && goals === 0 ? 'italic text-gray-600' :
                                   'text-gray-600'
@@ -474,15 +493,20 @@ export default function ResultsPage() {
                                     <Icon key={i} iconNode={soccerBall} size={10} className="text-[#061852] sm:w-3 sm:h-3 inline-block align-middle mr-0.5" strokeWidth={2} />
                                   ))}
                                   {player.name} {player.surname}
+                                  {goals === -1 && <span className="ml-1 text-red-600">(OG)</span>}
                                 </p>
                                 <input
                                   type="number"
-                                  min="0"
-                                  max="10"
+                                  min="-1"
+                                  max="9"
                                   value={goals}
                                   onChange={(e) => handlePlayerGoalsChange(player.id, parseInt(e.target.value) || 0)}
                                   disabled={saving}
-                                  className="w-8 sm:w-12 px-0.5 sm:px-1 py-0 sm:py-0.5 text-[10px] sm:text-xs text-center border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#29544D] disabled:bg-gray-100"
+                                  className={`w-8 sm:w-12 px-0.5 sm:px-1 py-0 sm:py-0.5 text-[10px] sm:text-xs text-center border rounded focus:outline-none focus:ring-1 disabled:bg-gray-100 ${
+                                    goals === -1
+                                      ? 'border-red-300 bg-red-50 text-red-700 focus:ring-red-500'
+                                      : 'border-gray-300 focus:ring-[#29544D]'
+                                  }`}
                                 />
                                 <input
                                   type="checkbox"

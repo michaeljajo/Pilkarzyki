@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode, useState } from 'react'
+import { ReactNode, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { UserButton, useUser } from '@clerk/nextjs'
@@ -8,7 +8,7 @@ import { cn } from '@/utils/cn'
 import { LeagueAdminNav } from './LeagueAdminNav'
 import { LeagueAdminProvider, useLeagueAdmin } from '@/contexts/LeagueAdminContext'
 import Image from 'next/image'
-import { Menu, X } from 'lucide-react'
+import { Menu, X, ChevronDown } from 'lucide-react'
 
 interface AdminLayoutClientProps {
   children: ReactNode
@@ -23,8 +23,37 @@ function AdminLayoutContent({ children }: { children: ReactNode }) {
   const { user } = useUser()
   const { leagueId, leagueName } = useLeagueAdmin()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [hasCup, setHasCup] = useState(false)
+  const [loadingCup, setLoadingCup] = useState(true)
 
   const closeSidebar = () => setSidebarOpen(false)
+
+  // Check if we're in the global admin area (not league-specific)
+  const isGlobalAdmin = !leagueId
+
+  // Check if league has a cup
+  useEffect(() => {
+    async function checkForCup() {
+      if (!leagueId) {
+        setLoadingCup(false)
+        return
+      }
+
+      try {
+        const response = await fetch(`/api/cups?leagueId=${leagueId}`)
+        if (response.ok) {
+          const data = await response.json()
+          const cupExists = data.cup !== null && data.cup !== undefined
+          setHasCup(cupExists)
+        }
+      } catch (error) {
+        console.error('Failed to check for cup:', error)
+      } finally {
+        setLoadingCup(false)
+      }
+    }
+    checkForCup()
+  }, [leagueId])
 
   return (
     <div className="min-h-screen bg-white">
@@ -32,6 +61,7 @@ function AdminLayoutContent({ children }: { children: ReactNode }) {
       <nav className="bg-white sticky top-0 z-50 border-b border-gray-200">
         <div className="max-w-[1400px] mx-auto" style={{ paddingLeft: '48px', paddingRight: '48px' }}>
           <div className="flex justify-between items-center h-16">
+            {/* Left: Logo and Hamburger */}
             <div className="flex items-center gap-3">
               {/* Hamburger Menu - Mobile Only */}
               <button
@@ -55,8 +85,152 @@ function AdminLayoutContent({ children }: { children: ReactNode }) {
                 Admin
               </span>
             </div>
+
+            {/* Center: Navigation Buttons (Desktop Only) */}
+            <div className="hidden md:flex items-center gap-1">
+              {isGlobalAdmin ? (
+                // Global Admin Navigation
+                <>
+                  <Link
+                    href="/dashboard/admin/leagues"
+                    className={`min-h-[44px] py-3 text-sm font-medium rounded-xl transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 whitespace-nowrap inline-flex items-center justify-center ${
+                      pathname === '/dashboard/admin/leagues' || pathname.startsWith('/dashboard/admin/leagues/')
+                        ? 'bg-[#061852] text-white shadow-sm hover:bg-[#0a2475] hover:shadow-md focus:ring-[#061852]'
+                        : 'bg-transparent text-[#29544D] hover:bg-gray-100 focus:ring-gray-300'
+                    }`}
+                    style={{ paddingLeft: '2em', paddingRight: '2em' }}
+                  >
+                    Ligi
+                  </Link>
+                  <Link
+                    href="/dashboard/admin/results"
+                    className={`min-h-[44px] py-3 text-sm font-medium rounded-xl transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 whitespace-nowrap inline-flex items-center justify-center ${
+                      pathname === '/dashboard/admin/results'
+                        ? 'bg-[#061852] text-white shadow-sm hover:bg-[#0a2475] hover:shadow-md focus:ring-[#061852]'
+                        : 'bg-transparent text-[#29544D] hover:bg-gray-100 focus:ring-gray-300'
+                    }`}
+                    style={{ paddingLeft: '2em', paddingRight: '2em' }}
+                  >
+                    Wyniki
+                  </Link>
+                  <Link
+                    href="/dashboard"
+                    className="min-h-[44px] py-3 text-sm font-medium rounded-xl transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 whitespace-nowrap inline-flex items-center justify-center bg-transparent text-[#29544D] hover:bg-gray-100 focus:ring-gray-300"
+                    style={{ paddingLeft: '2em', paddingRight: '2em' }}
+                  >
+                    &lt;-Powrót
+                  </Link>
+                </>
+              ) : leagueId ? (
+                // League-Specific Navigation
+                <>
+                  {/* Skład */}
+                  <Link
+                    href={`/dashboard/leagues/${leagueId}/squad`}
+                    className="min-h-[44px] py-3 text-sm font-medium rounded-xl transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 whitespace-nowrap inline-flex items-center justify-center bg-transparent text-[#29544D] hover:bg-gray-100 focus:ring-gray-300"
+                    style={{ paddingLeft: '2em', paddingRight: '2em' }}
+                  >
+                    Skład
+                  </Link>
+
+                  {/* Liga Dropdown */}
+                  <div className="relative group">
+                    <button
+                      className="min-h-[44px] py-3 text-sm font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 whitespace-nowrap inline-flex items-center justify-center gap-1 bg-transparent text-[#29544D] hover:bg-gray-100 focus:ring-gray-300"
+                      style={{ paddingLeft: '2em', paddingRight: '2em' }}
+                    >
+                      Liga
+                      <ChevronDown size={16} className="transition-transform group-hover:rotate-180 text-[#29544D]" />
+                    </button>
+                    <div className="absolute left-0 mt-1 w-full bg-white rounded-xl shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                      <Link
+                        href={`/dashboard/leagues/${leagueId}/results`}
+                        className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 first:rounded-t-xl transition-colors text-center"
+                      >
+                        Wyniki
+                      </Link>
+                      <Link
+                        href={`/dashboard/leagues/${leagueId}/standings`}
+                        className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 last:rounded-b-xl transition-colors text-center"
+                      >
+                        Tabela
+                      </Link>
+                    </div>
+                  </div>
+
+                  {/* Puchar Dropdown */}
+                  {hasCup && (
+                    <div className="relative group">
+                      <button
+                        className="min-h-[44px] py-3 text-sm font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 whitespace-nowrap inline-flex items-center justify-center gap-1 bg-transparent text-[#29544D] hover:bg-gray-100 focus:ring-gray-300"
+                        style={{ paddingLeft: '2em', paddingRight: '2em' }}
+                      >
+                        Puchar
+                        <ChevronDown size={16} className="transition-transform group-hover:rotate-180 text-[#29544D]" />
+                      </button>
+                      <div className="absolute left-0 mt-1 w-full bg-white rounded-xl shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                        <Link
+                          href={`/dashboard/leagues/${leagueId}/cup/results`}
+                          className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 first:rounded-t-xl transition-colors text-center"
+                        >
+                          Wyniki
+                        </Link>
+                        <Link
+                          href={`/dashboard/leagues/${leagueId}/cup/standings`}
+                          className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 last:rounded-b-xl transition-colors text-center"
+                        >
+                          Tabela
+                        </Link>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Terminarz */}
+                  <Link
+                    href={`/dashboard/leagues/${leagueId}/schedule`}
+                    className="min-h-[44px] py-3 text-sm font-medium rounded-xl transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 whitespace-nowrap inline-flex items-center justify-center bg-transparent text-[#29544D] hover:bg-gray-100 focus:ring-gray-300"
+                    style={{ paddingLeft: '2em', paddingRight: '2em' }}
+                  >
+                    Terminarz
+                  </Link>
+
+                  {/* Strzelcy */}
+                  <Link
+                    href={`/dashboard/leagues/${leagueId}/top-scorers`}
+                    className="min-h-[44px] py-3 text-sm font-medium rounded-xl transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 whitespace-nowrap inline-flex items-center justify-center bg-transparent text-[#29544D] hover:bg-gray-100 focus:ring-gray-300"
+                    style={{ paddingLeft: '2em', paddingRight: '2em' }}
+                  >
+                    Strzelcy
+                  </Link>
+
+                  {/* Admin */}
+                  <Link
+                    href={`/dashboard/admin/leagues/${leagueId}`}
+                    className={`min-h-[44px] py-3 text-sm font-medium rounded-xl transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 whitespace-nowrap inline-flex items-center justify-center ${
+                      pathname.startsWith(`/dashboard/admin/leagues/${leagueId}`)
+                        ? 'bg-[#061852] text-white shadow-sm hover:bg-[#0a2475] hover:shadow-md focus:ring-[#061852]'
+                        : 'bg-transparent text-[#29544D] hover:bg-gray-100 focus:ring-gray-300'
+                    }`}
+                    style={{ paddingLeft: '2em', paddingRight: '2em' }}
+                  >
+                    Admin
+                  </Link>
+
+                  {/* <-Powrót */}
+                  <Link
+                    href={`/dashboard/leagues/${leagueId}`}
+                    className="min-h-[44px] py-3 text-sm font-medium rounded-xl transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 whitespace-nowrap inline-flex items-center justify-center bg-transparent text-[#29544D] hover:bg-gray-100 focus:ring-gray-300"
+                    style={{ paddingLeft: '2em', paddingRight: '2em' }}
+                  >
+                    &lt;-Powrót
+                  </Link>
+                </>
+              ) : null}
+            </div>
+
+            {/* Right: User Profile */}
             <div className="flex items-center gap-4" suppressHydrationWarning>
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-gray-600 hidden md:block">
                 {user?.firstName} {user?.lastName}
               </span>
               <UserButton afterSignOutUrl="/" />

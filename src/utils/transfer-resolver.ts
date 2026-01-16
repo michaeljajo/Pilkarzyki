@@ -100,6 +100,7 @@ export async function getPlayerTransferHistory(
  * @param managerId - UUID of the new manager (null for unassigned)
  * @param effectiveFrom - Date when transfer becomes effective
  * @param transferType - Type of transfer (initial, draft, swap)
+ * @param leagueId - UUID of the league (required for data isolation)
  * @param createdBy - UUID of admin creating the transfer
  * @param notes - Optional notes about the transfer
  * @returns Created transfer record or null on error
@@ -109,15 +110,36 @@ export async function createPlayerTransfer(
   managerId: string | null,
   effectiveFrom: Date,
   transferType: 'initial' | 'draft' | 'swap',
+  leagueId: string,
   createdBy?: string,
   notes?: string
 ): Promise<PlayerTransferRow | null> {
   try {
+    // Verify the player belongs to the specified league
+    const { data: player } = await supabaseAdmin
+      .from('players')
+      .select('id, league, leagues!inner(id)')
+      .eq('id', playerId)
+      .single()
+
+    if (!player) {
+      console.error('Player not found:', playerId)
+      return null
+    }
+
+    // Type assertion for joined data
+    const playerLeague = player.leagues as any
+    if (playerLeague?.id !== leagueId) {
+      console.error('Player does not belong to the specified league')
+      return null
+    }
+
     const { data, error } = await supabaseAdmin
       .from('player_transfers')
       .insert({
         player_id: playerId,
         manager_id: managerId,
+        league_id: leagueId,
         effective_from: effectiveFrom.toISOString(),
         effective_until: null, // New transfer is active
         transfer_type: transferType,
@@ -145,11 +167,13 @@ export async function createPlayerTransfer(
  *
  * @param playerIds - Array of player UUIDs
  * @param gameweekId - UUID of the gameweek
+ * @param leagueId - UUID of the league (required for proper data isolation)
  * @returns Map of playerId -> managerId (or null)
  */
 export async function batchGetManagersAtGameweek(
   playerIds: string[],
-  gameweekId: string
+  gameweekId: string,
+  leagueId: string
 ): Promise<Map<string, string | null>> {
   const resultMap = new Map<string, string | null>()
 
@@ -158,10 +182,10 @@ export async function batchGetManagersAtGameweek(
   }
 
   try {
-    // Get gameweek start date
+    // Get gameweek start date and verify league
     const { data: gameweek, error: gameweekError } = await supabaseAdmin
       .from('gameweeks')
-      .select('start_date')
+      .select('start_date, league_id')
       .eq('id', gameweekId)
       .single()
 
@@ -170,13 +194,21 @@ export async function batchGetManagersAtGameweek(
       return resultMap
     }
 
+    // Verify gameweek belongs to the specified league
+    if (gameweek.league_id !== leagueId) {
+      console.error('Gameweek does not belong to specified league')
+      return resultMap
+    }
+
     const gameweekStart = gameweek.start_date
 
     // Fetch all relevant transfers in one query
+    // CRITICAL: Filter by league_id to prevent cross-league data leakage
     const { data: transfers, error: transfersError } = await supabaseAdmin
       .from('player_transfers')
       .select('player_id, manager_id, effective_from, effective_until')
       .in('player_id', playerIds)
+      .eq('league_id', leagueId)
       .lte('effective_from', gameweekStart)
       .or(`effective_until.is.null,effective_until.gte.${gameweekStart}`)
 

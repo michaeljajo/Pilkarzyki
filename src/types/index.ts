@@ -139,6 +139,7 @@ export interface PlayerTransfer {
   id: string
   playerId: string
   managerId?: string  // NULL for unassigned players
+  leagueId: string  // Required for data isolation
   effectiveFrom: Date
   effectiveUntil?: Date  // NULL for current/active assignment
   transferType: TransferType
@@ -153,6 +154,7 @@ export interface PlayerTransferRow {
   id: string
   player_id: string
   manager_id?: string
+  league_id: string  // Required for data isolation
   effective_from: string
   effective_until?: string
   transfer_type: TransferType

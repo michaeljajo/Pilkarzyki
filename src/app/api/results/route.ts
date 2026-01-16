@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { recalculateLeagueStandings } from '@/utils/standings-calculator'
+import { calculateMatchScore } from '@/utils/own-goal-calculator'
 
 export async function GET(request: NextRequest) {
   try {
@@ -148,20 +149,12 @@ export async function POST(request: NextRequest) {
             const homeLineup = lineupsMap.get(match.home_manager_id)
             const awayLineup = lineupsMap.get(match.away_manager_id)
 
-            let homeScore = 0
-            let awayScore = 0
-
-            if (homeLineup?.player_ids && homeLineup.player_ids.length > 0) {
-              homeScore = homeLineup.player_ids.reduce((sum: number, playerId: string) => {
-                return sum + (resultsMap.get(playerId) || 0)
-              }, 0)
-            }
-
-            if (awayLineup?.player_ids && awayLineup.player_ids.length > 0) {
-              awayScore = awayLineup.player_ids.reduce((sum: number, playerId: string) => {
-                return sum + (resultsMap.get(playerId) || 0)
-              }, 0)
-            }
+            // Use utility function to calculate scores with own goal logic
+            const { homeScore, awayScore } = calculateMatchScore(
+              homeLineup?.player_ids || [],
+              awayLineup?.player_ids || [],
+              resultsMap
+            )
 
             // Update match scores
             await supabaseAdmin

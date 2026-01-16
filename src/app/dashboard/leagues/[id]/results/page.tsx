@@ -272,8 +272,9 @@ export default function LeagueResultsPage({ params }: LeagueResultsPageProps) {
               ) : (
                 <div className="space-y-6">
                   {matchData.matches.map((match) => {
-                    const homeGoals = match.home_lineup?.total_goals || 0
-                    const awayGoals = match.away_lineup?.total_goals || 0
+                    // Use match scores (which include own goals for opponent) instead of lineup total_goals
+                    const homeGoals = match.home_score ?? match.home_lineup?.total_goals ?? 0
+                    const awayGoals = match.away_score ?? match.away_lineup?.total_goals ?? 0
                     const homePlayers = match.home_lineup?.players || []
                     const awayPlayers = match.away_lineup?.players || []
 

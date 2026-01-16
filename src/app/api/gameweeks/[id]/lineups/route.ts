@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { recalculateLeagueStandings, recalculateCupGroupStandings } from '@/utils/standings-calculator'
+import { calculateMatchScore, calculateLineupTotalGoals } from '@/utils/own-goal-calculator'
 
 export async function GET(
   request: NextRequest,
@@ -207,15 +208,16 @@ export async function PUT(
 
       const resultsMap = new Map(allResults?.map(r => [r.player_id, r.goals]) || [])
 
-      // Calculate totals and prepare batch update
+      // Calculate totals and prepare batch update (excluding own goals)
       const lineupUpdates = lineups.map(lineup => {
         if (!lineup.player_ids || lineup.player_ids.length === 0) {
           return { id: lineup.id, total_goals: 0 }
         }
 
-        const totalGoals = lineup.player_ids.reduce((sum: number, playerId: string) => {
-          return sum + (resultsMap.get(playerId) || 0)
-        }, 0)
+        const totalGoals = calculateLineupTotalGoals(
+          lineup.player_ids,
+          resultsMap
+        )
 
         return { id: lineup.id, total_goals: totalGoals }
       })
@@ -260,25 +262,17 @@ export async function PUT(
 
       const resultsMap = new Map(allResults?.map(r => [r.player_id, r.goals]) || [])
 
-      // Calculate match scores without additional queries
+      // Calculate match scores without additional queries (with own goal logic)
       const matchUpdates = matches.map(match => {
         const homeLineup = lineupsMapByManager.get(match.home_manager_id)
         const awayLineup = lineupsMapByManager.get(match.away_manager_id)
 
-        let homeScore = 0
-        let awayScore = 0
-
-        if (homeLineup?.player_ids && homeLineup.player_ids.length > 0) {
-          homeScore = homeLineup.player_ids.reduce((sum: number, playerId: string) => {
-            return sum + (resultsMap.get(playerId) || 0)
-          }, 0)
-        }
-
-        if (awayLineup?.player_ids && awayLineup.player_ids.length > 0) {
-          awayScore = awayLineup.player_ids.reduce((sum: number, playerId: string) => {
-            return sum + (resultsMap.get(playerId) || 0)
-          }, 0)
-        }
+        // Use utility function to calculate scores with own goal logic
+        const { homeScore, awayScore } = calculateMatchScore(
+          homeLineup?.player_ids || [],
+          awayLineup?.player_ids || [],
+          resultsMap
+        )
 
         return {
           id: match.id,
@@ -343,25 +337,17 @@ export async function PUT(
 
           const resultsMap = new Map(allResults?.map(r => [r.player_id, r.goals]) || [])
 
-          // Calculate cup match scores
+          // Calculate cup match scores (with own goal logic)
           const cupMatchUpdates = cupMatches.map(match => {
             const homeLineup = cupLineupsMapByManager.get(match.home_manager_id)
             const awayLineup = cupLineupsMapByManager.get(match.away_manager_id)
 
-            let homeScore = 0
-            let awayScore = 0
-
-            if (homeLineup?.player_ids && homeLineup.player_ids.length > 0) {
-              homeScore = homeLineup.player_ids.reduce((sum: number, playerId: string) => {
-                return sum + (resultsMap.get(playerId) || 0)
-              }, 0)
-            }
-
-            if (awayLineup?.player_ids && awayLineup.player_ids.length > 0) {
-              awayScore = awayLineup.player_ids.reduce((sum: number, playerId: string) => {
-                return sum + (resultsMap.get(playerId) || 0)
-              }, 0)
-            }
+            // Use utility function to calculate scores with own goal logic
+            const { homeScore, awayScore } = calculateMatchScore(
+              homeLineup?.player_ids || [],
+              awayLineup?.player_ids || [],
+              resultsMap
+            )
 
             return {
               id: match.id,
@@ -387,13 +373,14 @@ export async function PUT(
             }
           }
 
-          // Update cup lineup total_goals
+          // Update cup lineup total_goals (excluding own goals)
           if (cupLineups && cupLineups.length > 0) {
             for (const lineup of cupLineups) {
               if (lineup.player_ids && lineup.player_ids.length > 0) {
-                const totalGoals = lineup.player_ids.reduce((sum: number, playerId: string) => {
-                  return sum + (resultsMap.get(playerId) || 0)
-                }, 0)
+                const totalGoals = calculateLineupTotalGoals(
+                  lineup.player_ids,
+                  resultsMap
+                )
 
                 await supabaseAdmin
                   .from('cup_lineups')

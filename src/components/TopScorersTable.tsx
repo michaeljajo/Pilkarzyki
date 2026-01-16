@@ -193,7 +193,7 @@ export function TopScorersTable({
               <tbody className="divide-y divide-gray-200">
                 {filteredScorers.map((scorer, index) => (
                   <tr
-                    key={scorer.playerId}
+                    key={`${scorer.playerId}-${scorer.managerId}`}
                     className="hover:bg-gray-50 transition-colors"
                   >
                     <td className="py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-center">
@@ -228,7 +228,7 @@ export function TopScorersTable({
           <div className="md:hidden space-y-3">
             {filteredScorers.map((scorer, index) => (
               <div
-                key={scorer.playerId}
+                key={`${scorer.playerId}-${scorer.managerId}`}
                 className="bg-white rounded-lg border border-gray-200 p-4"
               >
                 <div className="flex items-start justify-between mb-3">

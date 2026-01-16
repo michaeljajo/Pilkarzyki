@@ -82,7 +82,8 @@ export async function GET(
     for (const [gameweekId, playerIds] of gameweekPlayerMap.entries()) {
       const managerMap = await batchGetManagersAtGameweek(
         Array.from(playerIds),
-        gameweekId
+        gameweekId,
+        leagueId
       )
       // Store with composite key: gameweek_id:player_id
       for (const [playerId, managerId] of managerMap.entries()) {
