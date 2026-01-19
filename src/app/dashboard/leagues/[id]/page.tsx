@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { unstable_cache } from 'next/cache'
 import { supabaseAdmin } from '@/lib/supabase'
 import { Badge } from '@/components/ui/Badge'
-import { Trophy, Target, BarChart3, Settings, ArrowLeft, Table, Award, MessageCircle, Calendar } from 'lucide-react'
+import { Trophy, Target, BarChart3, Settings, ArrowLeft, Table, Award, MessageCircle, Calendar, Users } from 'lucide-react'
 import Image from 'next/image'
 
 interface LeagueDashboardPageProps {
@@ -201,6 +201,15 @@ export default async function LeagueDashboardPage({ params }: LeagueDashboardPag
                 </div>
               </Link>
 
+              <Link href={`/dashboard/leagues/${leagueId}/squads`} className="mx-2">
+                <div className="bg-white rounded-xl border border-gray-200 hover:shadow-lg group cursor-pointer transition-shadow duration-200 p-4 flex items-center gap-4">
+                  <div className="w-12 h-12 shrink-0 rounded-lg bg-[#EC4899]/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Users size={24} className="text-[#EC4899]" />
+                  </div>
+                  <h3 className="text-base font-bold text-gray-900">Składy</h3>
+                </div>
+              </Link>
+
               <Link href={`/dashboard/leagues/${leagueId}/tablica`} className="mx-2">
                 <div className="bg-white rounded-xl border border-gray-200 hover:shadow-lg group cursor-pointer transition-shadow duration-200 p-4 flex items-center gap-4">
                   <div className="w-12 h-12 shrink-0 rounded-lg bg-[#6366F1]/10 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -268,6 +277,15 @@ export default async function LeagueDashboardPage({ params }: LeagueDashboardPag
                     <Award size={32} className="text-[#F59E0B]" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900" style={{ marginBottom: '8px' }}>Strzelcy</h3>
+                </div>
+              </Link>
+
+              <Link href={`/dashboard/leagues/${leagueId}/squads`}>
+                <div className="bg-white rounded-2xl border border-gray-200 hover-lift hover:shadow-xl group cursor-pointer min-w-[200px] text-center transition-shadow duration-200" style={{ padding: '40px 32px' }}>
+                  <div className="w-16 h-16 mx-auto rounded-xl bg-[#EC4899]/10 flex items-center justify-center group-hover:scale-110 transition-transform" style={{ marginBottom: '24px' }}>
+                    <Users size={32} className="text-[#EC4899]" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900" style={{ marginBottom: '8px' }}>Składy</h3>
                 </div>
               </Link>
 

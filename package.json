@@ -54,6 +54,6 @@
     "typescript": "^5"
   },
   "optionalDependencies": {
-    "@next/swc-darwin-x64": "^16.1.1"
+    "@next/swc-darwin-x64": "^16.1.3"
   }
 }
