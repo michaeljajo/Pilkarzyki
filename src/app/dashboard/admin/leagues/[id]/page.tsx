@@ -48,10 +48,11 @@ export default function LeagueDetailsPage() {
   const [selectedUserId, setSelectedUserId] = useState('')
 
   useEffect(() => {
+    // Redirect to results page - most frequently used page
     if (params.id) {
-      fetchLeagueData(params.id as string)
+      router.replace(`/dashboard/admin/leagues/${params.id}/results`)
     }
-  }, [params.id])
+  }, [params.id, router])
 
   // Clear messages after 5 seconds
   useEffect(() => {
