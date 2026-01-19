@@ -1,0 +1,10 @@
+var R=require("../../../../../chunks/[turbopack]_runtime.js")("server/app/api/cups/[id]/groups/route.js")
+R.c("server/chunks/node_modules_ed91caef._.js")
+R.c("server/chunks/node_modules_next_249ae2e6._.js")
+R.c("server/chunks/node_modules_@clerk_backend_dist_3e86ea90._.js")
+R.c("server/chunks/node_modules_@supabase_auth-js_dist_module_02e1b12e._.js")
+R.c("server/chunks/node_modules_38502b90._.js")
+R.c("server/chunks/[root-of-the-server]__f42f7972._.js")
+R.c("server/chunks/_next-internal_server_app_api_cups_[id]_groups_route_actions_5d2e9d9f.js")
+R.m("[project]/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/src/app/api/cups/[id]/groups/route.ts [app-route] (ecmascript)\" } [app-route] (ecmascript)")
+module.exports=R.m("[project]/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/src/app/api/cups/[id]/groups/route.ts [app-route] (ecmascript)\" } [app-route] (ecmascript)").exports

@@ -1,0 +1,53 @@
+[00:00:09.501] Server  WARN    ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+[00:00:10.581] Server  LOG     ✓ Ready in 8.8s
+[00:04:14.601] Server  LOG     ○ Compiling / ...
+[00:04:29.653] Server  LOG     ○ Compiling /dashboard ...
+[00:04:34.671] Server  LOG     === DASHBOARD DEBUG ===
+[00:04:34.672] Server  LOG     User email: "michaeljajo@gmail.com"
+[00:04:34.672] Server  LOG     User internal ID: "278b361c-ac94-4844-88eb-204af430c8ea"
+[00:04:34.676] Server  LOG     Manager squads: [{...},{...}]
+[00:04:34.676] Server  LOG     Squad error: null
+[00:04:34.677] Server  LOG     Admin leagues: [{...},{...},{...}]
+[00:04:34.678] Server  LOG     Admin error: null
+[00:04:38.985] Browser WARN    Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview
+[00:04:39.500] Browser WARN    Image with src "/pilkarzyki-logo.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:04:45.967] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[00:04:53.305] Server  LOG     GET /api/manager/leagues - endpoint hit! [FIXED]
+[00:04:53.407] Server  LOG     GET /api/manager/leagues - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4"
+[00:04:53.414] Server  LOG     GET /api/manager/leagues - Fetching specific league: "8b6d933e-e011-4fd5-8bc0-8344e2841192"
+[00:04:53.416] Server  LOG     GET /api/manager/leagues specific - Starting with userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "8b6d933e-e011-4fd5-8bc0-8344e2841192"
+[00:04:53.615] Server  LOG     GET /api/manager/leagues specific - User found: {}
+[00:04:53.794] Server  LOG     GET /api/manager/leagues specific - League query result: {}
+[00:05:12.267] Server  LOG     ✓ Finished filesystem cache database compaction in 13.4s
+[00:06:16.632] Server  LOG     🔍 Raw Clerk users response: {}
+[00:06:16.633] Server  LOG     🧹 Deduplication: 18 → 18 users
+[00:06:16.636] Server  LOG     ✅ Final transformed users count: 18
+[00:06:17.936] Server  LOG     GET /api/leagues/[id] - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "8b6d933e-e011-4fd5-8bc0-8344e2841192"
+[00:06:17.938] Server  LOG     GET /api/leagues/[id] - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "8b6d933e-e011-4fd5-8bc0-8344e2841192"
+[00:06:17.956] Server  LOG     GET schedule endpoint called for leagueId: "8b6d933e-e011-4fd5-8bc0-8344e2841192"
+[00:06:17.961] Server  LOG     GET schedule endpoint called for leagueId: "8b6d933e-e011-4fd5-8bc0-8344e2841192"
+[00:06:17.985] Server  LOG     GET /api/leagues/[id]/managers - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "8b6d933e-e011-4fd5-8bc0-8344e2841192"
+[00:06:17.988] Server  LOG     GET /api/leagues/[id]/managers - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "8b6d933e-e011-4fd5-8bc0-8344e2841192"
+[00:06:18.126] Server  LOG     League query result: {}
+[00:06:18.187] Server  LOG     League query result: {}
+[00:06:18.266] Server  LOG     GET gameweeks query result: {}
+[00:06:18.266] Server  LOG     Manager IDs extracted from matches: ["dc2c9b5a-5345-41fd-b195-908fe7bb0f75","94906a41-e200-4952-9666-3dc597057036","c9ab9b06-ed0d-44bf-9677-332d1f002b05","8c561b91-a101-4ab1-95ff-a3a3e0c98d43","ac6363b5-e809-4ef7-a34c-343bcb3777c6","ac4fe9b1-8b9f-4a63-ac80-5346224c14f5","5c39d406-699e-418f-9a5a-17e643b92759","278b361c-ac94-4844-88eb-204af430c8ea","ea731b13-3662-46a7-986e-fd0b60f20f1e","7ebe1434-8ef6-4870-b6fb-d63e8aa4ebc8","1a7ffc6b-0e10-41c5-914e-5f6f1ac5d698","3c12ffd8-8589-4fe8-93f1-3779aed9517f","9c18e882-5fbb-4b75-b731-a2cc475e5441","3907e4b4-4140-4dab-94a1-2982787bba8f","b9680097-295e-4f40-a38f-ba54f75bcb7c","16bfd614-2ee2-4fb3-9be3-6085990c7e2c"]
+[00:06:18.278] Server  LOG     GET gameweeks query result: {}
+[00:06:18.278] Server  LOG     Manager IDs extracted from matches: ["dc2c9b5a-5345-41fd-b195-908fe7bb0f75","94906a41-e200-4952-9666-3dc597057036","c9ab9b06-ed0d-44bf-9677-332d1f002b05","8c561b91-a101-4ab1-95ff-a3a3e0c98d43","ac6363b5-e809-4ef7-a34c-343bcb3777c6","ac4fe9b1-8b9f-4a63-ac80-5346224c14f5","5c39d406-699e-418f-9a5a-17e643b92759","278b361c-ac94-4844-88eb-204af430c8ea","ea731b13-3662-46a7-986e-fd0b60f20f1e","7ebe1434-8ef6-4870-b6fb-d63e8aa4ebc8","1a7ffc6b-0e10-41c5-914e-5f6f1ac5d698","3c12ffd8-8589-4fe8-93f1-3779aed9517f","9c18e882-5fbb-4b75-b731-a2cc475e5441","3907e4b4-4140-4dab-94a1-2982787bba8f","b9680097-295e-4f40-a38f-ba54f75bcb7c","16bfd614-2ee2-4fb3-9be3-6085990c7e2c"]
+[00:06:18.337] Server  LOG     GET users query result: {}
+[00:06:18.345] Server  LOG     Managers query result: {}
+[00:06:18.349] Server  LOG     GET users query result: {}
+[00:06:18.356] Server  LOG     Managers query result: {}
+[00:06:18.401] Server  LOG     🔍 Raw Clerk users response: {}
+[00:06:18.401] Server  LOG     🧹 Deduplication: 18 → 18 users
+[00:06:18.401] Server  LOG     ✅ Final transformed users count: 18
+[00:06:18.419] Server  LOG     Final schedule with user data: {}
+[00:06:18.420] Server  LOG     Schedule compilation timestamp: "2026-01-13T10:21:11.339Z"
+[00:06:18.428] Server  LOG     Final schedule with user data: {}
+[00:06:18.428] Server  LOG     Schedule compilation timestamp: "2026-01-13T10:21:11.347Z"
+[00:06:21.080] Server  LOG     GET /api/manager/leagues - endpoint hit! [FIXED]
+[00:06:21.081] Server  LOG     GET /api/manager/leagues - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4"
+[00:06:21.082] Server  LOG     GET /api/manager/leagues - Fetching specific league: "8b6d933e-e011-4fd5-8bc0-8344e2841192"
+[00:06:21.082] Server  LOG     GET /api/manager/leagues specific - Starting with userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "8b6d933e-e011-4fd5-8bc0-8344e2841192"
+[00:06:21.336] Server  LOG     GET /api/manager/leagues specific - User found: {}
+[00:06:21.467] Server  LOG     GET /api/manager/leagues specific - League query result: {}

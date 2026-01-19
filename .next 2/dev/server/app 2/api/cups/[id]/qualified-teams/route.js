@@ -1,0 +1,10 @@
+var R=require("../../../../../chunks/[turbopack]_runtime.js")("server/app/api/cups/[id]/qualified-teams/route.js")
+R.c("server/chunks/node_modules_a12e270c._.js")
+R.c("server/chunks/node_modules_next_cb9df2e2._.js")
+R.c("server/chunks/node_modules_@clerk_backend_dist_3e86ea90._.js")
+R.c("server/chunks/node_modules_@supabase_auth-js_dist_module_02e1b12e._.js")
+R.c("server/chunks/node_modules_38502b90._.js")
+R.c("server/chunks/[root-of-the-server]__be2bf66e._.js")
+R.c("server/chunks/_next-internal_server_app_api_cups_[id]_qualified-teams_route_actions_f119ab10.js")
+R.m("[project]/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/src/app/api/cups/[id]/qualified-teams/route.ts [app-route] (ecmascript)\" } [app-route] (ecmascript)")
+module.exports=R.m("[project]/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/src/app/api/cups/[id]/qualified-teams/route.ts [app-route] (ecmascript)\" } [app-route] (ecmascript)").exports

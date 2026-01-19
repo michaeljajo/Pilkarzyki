@@ -12,7 +12,7 @@ export interface User {
 export interface League {
   id: string
   name: string
-  adminId: string
+  adminId: string // DEPRECATED: Use league_admins table instead
   maxManagers?: number // Database still has this column - needs manual migration
   currentGameweek: number
   season: string
@@ -21,6 +21,24 @@ export interface League {
   isActive: boolean
   createdAt: Date
   updatedAt: Date
+}
+
+// League admin relationship (many-to-many)
+export interface LeagueAdmin {
+  id: string
+  leagueId: string
+  userId: string
+  createdAt: Date
+  createdBy?: string
+}
+
+// Database response type (snake_case)
+export interface LeagueAdminRow {
+  id: string
+  league_id: string
+  user_id: string
+  created_at: string
+  created_by?: string
 }
 
 export interface Player {

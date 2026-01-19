@@ -1,0 +1,944 @@
+{
+  "node": {
+    "009767fd3e56cdb223d1e618baeaf2561aa95b4ba7": {
+      "workers": {
+        "app/_not-found/page": {
+          "moduleId": "[project]/.next-internal/server/app/_not-found/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "collectKeylessMetadata",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/dashboard/admin/leagues/[id]/cup/knockout-draw/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/cup/knockout-draw/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "collectKeylessMetadata",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/dashboard/admin/leagues/[id]/cup/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/cup/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "collectKeylessMetadata",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/dashboard/admin/leagues/[id]/gameweeks/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/gameweeks/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "collectKeylessMetadata",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/dashboard/admin/leagues/[id]/lineups/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/lineups/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "collectKeylessMetadata",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/dashboard/admin/leagues/[id]/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "collectKeylessMetadata",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/dashboard/admin/leagues/[id]/players/draft/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/players/draft/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "collectKeylessMetadata",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/dashboard/admin/leagues/[id]/players/import/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/players/import/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "collectKeylessMetadata",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/dashboard/admin/leagues/[id]/players/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/players/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "collectKeylessMetadata",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/dashboard/admin/leagues/[id]/results/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/results/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "collectKeylessMetadata",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/dashboard/leagues/[id]/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/leagues/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "collectKeylessMetadata",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/dashboard/leagues/[id]/results/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/leagues/[id]/results/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "collectKeylessMetadata",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/dashboard/leagues/[id]/squad/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/leagues/[id]/squad/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "collectKeylessMetadata",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/dashboard/leagues/[id]/standings/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/leagues/[id]/standings/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "collectKeylessMetadata",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/dashboard/leagues/[id]/top-scorers/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/leagues/[id]/top-scorers/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "collectKeylessMetadata",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/dashboard/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "collectKeylessMetadata",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/page": {
+          "moduleId": "[project]/.next-internal/server/app/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "collectKeylessMetadata",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/sign-in/[[...sign-in]]/page": {
+          "moduleId": "[project]/.next-internal/server/app/sign-in/[[...sign-in]]/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "collectKeylessMetadata",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        }
+      },
+      "layer": {
+        "app/_not-found/page": "rsc",
+        "app/dashboard/admin/leagues/[id]/cup/knockout-draw/page": "rsc",
+        "app/dashboard/admin/leagues/[id]/cup/page": "rsc",
+        "app/dashboard/admin/leagues/[id]/gameweeks/page": "rsc",
+        "app/dashboard/admin/leagues/[id]/lineups/page": "rsc",
+        "app/dashboard/admin/leagues/[id]/page": "rsc",
+        "app/dashboard/admin/leagues/[id]/players/draft/page": "rsc",
+        "app/dashboard/admin/leagues/[id]/players/import/page": "rsc",
+        "app/dashboard/admin/leagues/[id]/players/page": "rsc",
+        "app/dashboard/admin/leagues/[id]/results/page": "rsc",
+        "app/dashboard/leagues/[id]/page": "rsc",
+        "app/dashboard/leagues/[id]/results/page": "rsc",
+        "app/dashboard/leagues/[id]/squad/page": "rsc",
+        "app/dashboard/leagues/[id]/standings/page": "rsc",
+        "app/dashboard/leagues/[id]/top-scorers/page": "rsc",
+        "app/dashboard/page": "rsc",
+        "app/page": "rsc",
+        "app/sign-in/[[...sign-in]]/page": "rsc"
+      },
+      "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js",
+      "exportedName": "collectKeylessMetadata"
+    },
+    "40eca386691407a5685b588a61f9dc4bad740b2ea8": {
+      "workers": {
+        "app/_not-found/page": {
+          "moduleId": "[project]/.next-internal/server/app/_not-found/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "formatMetadataHeaders",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/dashboard/admin/leagues/[id]/cup/knockout-draw/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/cup/knockout-draw/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "formatMetadataHeaders",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/dashboard/admin/leagues/[id]/cup/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/cup/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "formatMetadataHeaders",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/dashboard/admin/leagues/[id]/gameweeks/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/gameweeks/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "formatMetadataHeaders",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/dashboard/admin/leagues/[id]/lineups/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/lineups/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "formatMetadataHeaders",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/dashboard/admin/leagues/[id]/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "formatMetadataHeaders",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/dashboard/admin/leagues/[id]/players/draft/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/players/draft/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "formatMetadataHeaders",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/dashboard/admin/leagues/[id]/players/import/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/players/import/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "formatMetadataHeaders",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/dashboard/admin/leagues/[id]/players/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/players/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "formatMetadataHeaders",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/dashboard/admin/leagues/[id]/results/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/results/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "formatMetadataHeaders",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/dashboard/leagues/[id]/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/leagues/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "formatMetadataHeaders",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/dashboard/leagues/[id]/results/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/leagues/[id]/results/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "formatMetadataHeaders",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/dashboard/leagues/[id]/squad/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/leagues/[id]/squad/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "formatMetadataHeaders",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/dashboard/leagues/[id]/standings/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/leagues/[id]/standings/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "formatMetadataHeaders",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/dashboard/leagues/[id]/top-scorers/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/leagues/[id]/top-scorers/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "formatMetadataHeaders",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/dashboard/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "formatMetadataHeaders",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/page": {
+          "moduleId": "[project]/.next-internal/server/app/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "formatMetadataHeaders",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/sign-in/[[...sign-in]]/page": {
+          "moduleId": "[project]/.next-internal/server/app/sign-in/[[...sign-in]]/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "formatMetadataHeaders",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        }
+      },
+      "layer": {
+        "app/_not-found/page": "rsc",
+        "app/dashboard/admin/leagues/[id]/cup/knockout-draw/page": "rsc",
+        "app/dashboard/admin/leagues/[id]/cup/page": "rsc",
+        "app/dashboard/admin/leagues/[id]/gameweeks/page": "rsc",
+        "app/dashboard/admin/leagues/[id]/lineups/page": "rsc",
+        "app/dashboard/admin/leagues/[id]/page": "rsc",
+        "app/dashboard/admin/leagues/[id]/players/draft/page": "rsc",
+        "app/dashboard/admin/leagues/[id]/players/import/page": "rsc",
+        "app/dashboard/admin/leagues/[id]/players/page": "rsc",
+        "app/dashboard/admin/leagues/[id]/results/page": "rsc",
+        "app/dashboard/leagues/[id]/page": "rsc",
+        "app/dashboard/leagues/[id]/results/page": "rsc",
+        "app/dashboard/leagues/[id]/squad/page": "rsc",
+        "app/dashboard/leagues/[id]/standings/page": "rsc",
+        "app/dashboard/leagues/[id]/top-scorers/page": "rsc",
+        "app/dashboard/page": "rsc",
+        "app/page": "rsc",
+        "app/sign-in/[[...sign-in]]/page": "rsc"
+      },
+      "filename": "node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js",
+      "exportedName": "formatMetadataHeaders"
+    },
+    "004933c8777c6a4a90cf2a58f628e84f0578d182e6": {
+      "workers": {
+        "app/_not-found/page": {
+          "moduleId": "[project]/.next-internal/server/app/_not-found/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createOrReadKeylessAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/cup/knockout-draw/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/cup/knockout-draw/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createOrReadKeylessAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/cup/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/cup/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createOrReadKeylessAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/gameweeks/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/gameweeks/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createOrReadKeylessAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/lineups/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/lineups/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createOrReadKeylessAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createOrReadKeylessAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/players/draft/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/players/draft/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createOrReadKeylessAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/players/import/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/players/import/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createOrReadKeylessAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/players/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/players/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createOrReadKeylessAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/results/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/results/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createOrReadKeylessAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/leagues/[id]/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/leagues/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createOrReadKeylessAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/leagues/[id]/results/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/leagues/[id]/results/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createOrReadKeylessAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/leagues/[id]/squad/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/leagues/[id]/squad/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createOrReadKeylessAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/leagues/[id]/standings/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/leagues/[id]/standings/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createOrReadKeylessAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/leagues/[id]/top-scorers/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/leagues/[id]/top-scorers/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createOrReadKeylessAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createOrReadKeylessAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/page": {
+          "moduleId": "[project]/.next-internal/server/app/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createOrReadKeylessAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/sign-in/[[...sign-in]]/page": {
+          "moduleId": "[project]/.next-internal/server/app/sign-in/[[...sign-in]]/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createOrReadKeylessAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        }
+      },
+      "layer": {
+        "app/_not-found/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/cup/knockout-draw/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/cup/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/gameweeks/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/lineups/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/players/draft/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/players/import/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/players/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/results/page": "action-browser",
+        "app/dashboard/leagues/[id]/page": "action-browser",
+        "app/dashboard/leagues/[id]/results/page": "action-browser",
+        "app/dashboard/leagues/[id]/squad/page": "action-browser",
+        "app/dashboard/leagues/[id]/standings/page": "action-browser",
+        "app/dashboard/leagues/[id]/top-scorers/page": "action-browser",
+        "app/dashboard/page": "action-browser",
+        "app/page": "action-browser",
+        "app/sign-in/[[...sign-in]]/page": "action-browser"
+      },
+      "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js",
+      "exportedName": "createOrReadKeylessAction"
+    },
+    "00b4804b1bd05cd5b69c40b84064469ad49237b0e7": {
+      "workers": {
+        "app/_not-found/page": {
+          "moduleId": "[project]/.next-internal/server/app/_not-found/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteKeylessAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/cup/knockout-draw/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/cup/knockout-draw/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteKeylessAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/cup/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/cup/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteKeylessAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/gameweeks/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/gameweeks/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteKeylessAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/lineups/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/lineups/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteKeylessAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteKeylessAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/players/draft/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/players/draft/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteKeylessAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/players/import/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/players/import/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteKeylessAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/players/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/players/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteKeylessAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/results/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/results/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteKeylessAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/leagues/[id]/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/leagues/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteKeylessAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/leagues/[id]/results/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/leagues/[id]/results/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteKeylessAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/leagues/[id]/squad/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/leagues/[id]/squad/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteKeylessAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/leagues/[id]/standings/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/leagues/[id]/standings/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteKeylessAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/leagues/[id]/top-scorers/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/leagues/[id]/top-scorers/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteKeylessAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteKeylessAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/page": {
+          "moduleId": "[project]/.next-internal/server/app/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteKeylessAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/sign-in/[[...sign-in]]/page": {
+          "moduleId": "[project]/.next-internal/server/app/sign-in/[[...sign-in]]/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteKeylessAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        }
+      },
+      "layer": {
+        "app/_not-found/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/cup/knockout-draw/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/cup/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/gameweeks/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/lineups/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/players/draft/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/players/import/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/players/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/results/page": "action-browser",
+        "app/dashboard/leagues/[id]/page": "action-browser",
+        "app/dashboard/leagues/[id]/results/page": "action-browser",
+        "app/dashboard/leagues/[id]/squad/page": "action-browser",
+        "app/dashboard/leagues/[id]/standings/page": "action-browser",
+        "app/dashboard/leagues/[id]/top-scorers/page": "action-browser",
+        "app/dashboard/page": "action-browser",
+        "app/page": "action-browser",
+        "app/sign-in/[[...sign-in]]/page": "action-browser"
+      },
+      "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js",
+      "exportedName": "deleteKeylessAction"
+    },
+    "00c9df1deedc1374c6c612240ded24450e336fbbd2": {
+      "workers": {
+        "app/_not-found/page": {
+          "moduleId": "[project]/.next-internal/server/app/_not-found/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "detectKeylessEnvDriftAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/cup/knockout-draw/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/cup/knockout-draw/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "detectKeylessEnvDriftAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/cup/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/cup/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "detectKeylessEnvDriftAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/gameweeks/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/gameweeks/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "detectKeylessEnvDriftAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/lineups/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/lineups/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "detectKeylessEnvDriftAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "detectKeylessEnvDriftAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/players/draft/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/players/draft/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "detectKeylessEnvDriftAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/players/import/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/players/import/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "detectKeylessEnvDriftAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/players/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/players/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "detectKeylessEnvDriftAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/results/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/results/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "detectKeylessEnvDriftAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/leagues/[id]/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/leagues/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "detectKeylessEnvDriftAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/leagues/[id]/results/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/leagues/[id]/results/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "detectKeylessEnvDriftAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/leagues/[id]/squad/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/leagues/[id]/squad/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "detectKeylessEnvDriftAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/leagues/[id]/standings/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/leagues/[id]/standings/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "detectKeylessEnvDriftAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/leagues/[id]/top-scorers/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/leagues/[id]/top-scorers/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "detectKeylessEnvDriftAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "detectKeylessEnvDriftAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/page": {
+          "moduleId": "[project]/.next-internal/server/app/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "detectKeylessEnvDriftAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/sign-in/[[...sign-in]]/page": {
+          "moduleId": "[project]/.next-internal/server/app/sign-in/[[...sign-in]]/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "detectKeylessEnvDriftAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        }
+      },
+      "layer": {
+        "app/_not-found/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/cup/knockout-draw/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/cup/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/gameweeks/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/lineups/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/players/draft/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/players/import/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/players/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/results/page": "action-browser",
+        "app/dashboard/leagues/[id]/page": "action-browser",
+        "app/dashboard/leagues/[id]/results/page": "action-browser",
+        "app/dashboard/leagues/[id]/squad/page": "action-browser",
+        "app/dashboard/leagues/[id]/standings/page": "action-browser",
+        "app/dashboard/leagues/[id]/top-scorers/page": "action-browser",
+        "app/dashboard/page": "action-browser",
+        "app/page": "action-browser",
+        "app/sign-in/[[...sign-in]]/page": "action-browser"
+      },
+      "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js",
+      "exportedName": "detectKeylessEnvDriftAction"
+    },
+    "402eaf482f59c358f9e88e64251b0e83d8008477fc": {
+      "workers": {
+        "app/_not-found/page": {
+          "moduleId": "[project]/.next-internal/server/app/_not-found/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "syncKeylessConfigAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/cup/knockout-draw/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/cup/knockout-draw/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "syncKeylessConfigAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/cup/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/cup/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "syncKeylessConfigAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/gameweeks/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/gameweeks/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "syncKeylessConfigAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/lineups/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/lineups/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "syncKeylessConfigAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "syncKeylessConfigAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/players/draft/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/players/draft/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "syncKeylessConfigAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/players/import/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/players/import/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "syncKeylessConfigAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/players/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/players/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "syncKeylessConfigAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/results/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/results/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "syncKeylessConfigAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/leagues/[id]/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/leagues/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "syncKeylessConfigAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/leagues/[id]/results/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/leagues/[id]/results/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "syncKeylessConfigAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/leagues/[id]/squad/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/leagues/[id]/squad/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "syncKeylessConfigAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/leagues/[id]/standings/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/leagues/[id]/standings/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "syncKeylessConfigAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/leagues/[id]/top-scorers/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/leagues/[id]/top-scorers/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "syncKeylessConfigAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/dashboard/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "syncKeylessConfigAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/page": {
+          "moduleId": "[project]/.next-internal/server/app/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "syncKeylessConfigAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/sign-in/[[...sign-in]]/page": {
+          "moduleId": "[project]/.next-internal/server/app/sign-in/[[...sign-in]]/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "syncKeylessConfigAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        }
+      },
+      "layer": {
+        "app/_not-found/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/cup/knockout-draw/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/cup/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/gameweeks/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/lineups/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/players/draft/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/players/import/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/players/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/results/page": "action-browser",
+        "app/dashboard/leagues/[id]/page": "action-browser",
+        "app/dashboard/leagues/[id]/results/page": "action-browser",
+        "app/dashboard/leagues/[id]/squad/page": "action-browser",
+        "app/dashboard/leagues/[id]/standings/page": "action-browser",
+        "app/dashboard/leagues/[id]/top-scorers/page": "action-browser",
+        "app/dashboard/page": "action-browser",
+        "app/page": "action-browser",
+        "app/sign-in/[[...sign-in]]/page": "action-browser"
+      },
+      "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js",
+      "exportedName": "syncKeylessConfigAction"
+    },
+    "0099c3b360aaf0ac247def590d4e9bbb7e9ad1112f": {
+      "workers": {
+        "app/_not-found/page": {
+          "moduleId": "[project]/.next-internal/server/app/_not-found/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "invalidateCacheAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/cup/knockout-draw/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/cup/knockout-draw/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "invalidateCacheAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/cup/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/cup/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "invalidateCacheAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/gameweeks/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/gameweeks/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "invalidateCacheAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/lineups/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/lineups/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "invalidateCacheAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "invalidateCacheAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/players/draft/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/players/draft/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "invalidateCacheAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/players/import/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/players/import/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "invalidateCacheAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/players/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/players/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "invalidateCacheAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
+        },
+        "app/dashboard/admin/leagues/[id]/results/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/admin/leagues/[id]/results/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "invalidateCacheAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
+        },
+        "app/dashboard/leagues/[id]/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/leagues/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "invalidateCacheAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
+        },
+        "app/dashboard/leagues/[id]/results/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/leagues/[id]/results/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "invalidateCacheAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
+        },
+        "app/dashboard/leagues/[id]/squad/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/leagues/[id]/squad/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "invalidateCacheAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
+        },
+        "app/dashboard/leagues/[id]/standings/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/leagues/[id]/standings/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "invalidateCacheAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
+        },
+        "app/dashboard/leagues/[id]/top-scorers/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/leagues/[id]/top-scorers/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "invalidateCacheAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
+        },
+        "app/dashboard/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "invalidateCacheAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
+        },
+        "app/page": {
+          "moduleId": "[project]/.next-internal/server/app/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "invalidateCacheAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
+        },
+        "app/sign-in/[[...sign-in]]/page": {
+          "moduleId": "[project]/.next-internal/server/app/sign-in/[[...sign-in]]/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "invalidateCacheAction",
+          "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
+        }
+      },
+      "layer": {
+        "app/_not-found/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/cup/knockout-draw/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/cup/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/gameweeks/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/lineups/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/players/draft/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/players/import/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/players/page": "action-browser",
+        "app/dashboard/admin/leagues/[id]/results/page": "action-browser",
+        "app/dashboard/leagues/[id]/page": "action-browser",
+        "app/dashboard/leagues/[id]/results/page": "action-browser",
+        "app/dashboard/leagues/[id]/squad/page": "action-browser",
+        "app/dashboard/leagues/[id]/standings/page": "action-browser",
+        "app/dashboard/leagues/[id]/top-scorers/page": "action-browser",
+        "app/dashboard/page": "action-browser",
+        "app/page": "action-browser",
+        "app/sign-in/[[...sign-in]]/page": "action-browser"
+      },
+      "filename": "node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js",
+      "exportedName": "invalidateCacheAction"
+    }
+  },
+  "edge": {},
+  "encryptionKey": "UlXl6+Lw9TSN145bcmEGB63YajvnGVkoV1Im8NyQmzI="
+}

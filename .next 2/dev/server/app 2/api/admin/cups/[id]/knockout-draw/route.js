@@ -1,0 +1,10 @@
+var R=require("../../../../../../chunks/[turbopack]_runtime.js")("server/app/api/admin/cups/[id]/knockout-draw/route.js")
+R.c("server/chunks/node_modules_d9664869._.js")
+R.c("server/chunks/node_modules_next_5351dd15._.js")
+R.c("server/chunks/node_modules_@clerk_backend_dist_3e86ea90._.js")
+R.c("server/chunks/node_modules_@supabase_auth-js_dist_module_02e1b12e._.js")
+R.c("server/chunks/node_modules_38502b90._.js")
+R.c("server/chunks/[root-of-the-server]__519ea716._.js")
+R.c("server/chunks/ce889_server_app_api_admin_cups_[id]_knockout-draw_route_actions_e7ddab4a.js")
+R.m("[project]/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/src/app/api/admin/cups/[id]/knockout-draw/route.ts [app-route] (ecmascript)\" } [app-route] (ecmascript)")
+module.exports=R.m("[project]/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/src/app/api/admin/cups/[id]/knockout-draw/route.ts [app-route] (ecmascript)\" } [app-route] (ecmascript)").exports

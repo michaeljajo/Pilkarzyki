@@ -1,0 +1,3 @@
+{
+  "/api/leagues/[id]/schedule/route": "app/api/leagues/[id]/schedule/route.js"
+}

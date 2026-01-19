@@ -1,0 +1,10 @@
+var R=require("../../../../../../chunks/[turbopack]_runtime.js")("server/app/api/manager/leagues/[id]/squad/route.js")
+R.c("server/chunks/node_modules_89ec7c20._.js")
+R.c("server/chunks/node_modules_next_be13f6f1._.js")
+R.c("server/chunks/node_modules_@supabase_auth-js_dist_module_02e1b12e._.js")
+R.c("server/chunks/node_modules_@clerk_backend_dist_3e86ea90._.js")
+R.c("server/chunks/node_modules_f1080bde._.js")
+R.c("server/chunks/[root-of-the-server]__638e1e0d._.js")
+R.c("server/chunks/_next-internal_server_app_api_manager_leagues_[id]_squad_route_actions_926e841e.js")
+R.m("[project]/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/src/app/api/manager/leagues/[id]/squad/route.ts [app-route] (ecmascript)\" } [app-route] (ecmascript)")
+module.exports=R.m("[project]/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/src/app/api/manager/leagues/[id]/squad/route.ts [app-route] (ecmascript)\" } [app-route] (ecmascript)").exports

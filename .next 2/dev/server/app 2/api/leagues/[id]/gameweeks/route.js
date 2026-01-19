@@ -1,0 +1,10 @@
+var R=require("../../../../../chunks/[turbopack]_runtime.js")("server/app/api/leagues/[id]/gameweeks/route.js")
+R.c("server/chunks/node_modules_0e490891._.js")
+R.c("server/chunks/node_modules_next_eb6eda30._.js")
+R.c("server/chunks/node_modules_@supabase_auth-js_dist_module_02e1b12e._.js")
+R.c("server/chunks/node_modules_@clerk_backend_dist_3e86ea90._.js")
+R.c("server/chunks/node_modules_f1080bde._.js")
+R.c("server/chunks/[root-of-the-server]__7f0ef033._.js")
+R.c("server/chunks/_next-internal_server_app_api_leagues_[id]_gameweeks_route_actions_987adec0.js")
+R.m("[project]/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/src/app/api/leagues/[id]/gameweeks/route.ts [app-route] (ecmascript)\" } [app-route] (ecmascript)")
+module.exports=R.m("[project]/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/src/app/api/leagues/[id]/gameweeks/route.ts [app-route] (ecmascript)\" } [app-route] (ecmascript)").exports

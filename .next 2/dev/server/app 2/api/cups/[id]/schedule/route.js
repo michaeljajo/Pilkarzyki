@@ -1,0 +1,10 @@
+var R=require("../../../../../chunks/[turbopack]_runtime.js")("server/app/api/cups/[id]/schedule/route.js")
+R.c("server/chunks/node_modules_ac26ba52._.js")
+R.c("server/chunks/node_modules_next_53dbb5d6._.js")
+R.c("server/chunks/node_modules_@clerk_backend_dist_3e86ea90._.js")
+R.c("server/chunks/node_modules_@supabase_auth-js_dist_module_02e1b12e._.js")
+R.c("server/chunks/node_modules_38502b90._.js")
+R.c("server/chunks/[root-of-the-server]__0fe1c915._.js")
+R.c("server/chunks/_next-internal_server_app_api_cups_[id]_schedule_route_actions_1f297d35.js")
+R.m("[project]/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/src/app/api/cups/[id]/schedule/route.ts [app-route] (ecmascript)\" } [app-route] (ecmascript)")
+module.exports=R.m("[project]/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/src/app/api/cups/[id]/schedule/route.ts [app-route] (ecmascript)\" } [app-route] (ecmascript)").exports

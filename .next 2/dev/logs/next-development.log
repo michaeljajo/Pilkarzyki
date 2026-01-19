@@ -1,0 +1,1397 @@
+[00:00:03.333] Server  WARN    ⚠ "Found lockfile missing swc dependencies," "patching..."
+[00:00:04.240] Server  WARN    ⚠ Lockfile was successfully patched, please run "npm install" to ensure @next/swc dependencies are downloaded
+[00:00:04.287] Server  WARN    ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+[00:00:05.356] Server  LOG     ✓ Ready in 4.1s
+[00:03:29.201] Server  LOG     ○ Compiling / ...
+[00:03:42.528] Browser ERROR   unhandledRejection: ChunkLoadError: Failed to load chunk /_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_c7192189._.js from module [turbopack]/browser/dev/hmr-client/hmr-client.ts [app-client] (ecmascript, async loader)
+[00:03:42.528] Browser ERROR   uncaughtError: ChunkLoadError: Failed to load chunk /_next/static/chunks/node_modules_8b54485c._.js from module [project]/node_modules/next/dist/compiled/react-server-dom-turbopack/cjs/react-server-dom-turbopack-client.browser.development.js [app-client] (ecmascript)
+[00:03:45.115] Browser WARN    Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview
+[00:03:57.832] Server  LOG     === DASHBOARD DEBUG ===
+[00:03:57.832] Server  LOG     User email: "michaeljajo@gmail.com"
+[00:03:57.832] Server  LOG     User internal ID: "278b361c-ac94-4844-88eb-204af430c8ea"
+[00:03:57.835] Server  LOG     Manager squads: [{...},{...}]
+[00:03:57.835] Server  LOG     Squad error: null
+[00:03:57.836] Server  LOG     Admin leagues: [{...},{...},{...}]
+[00:03:57.837] Server  LOG     Admin error: null
+[00:03:58.580] Browser WARN    Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview
+[00:03:58.702] Browser WARN    Image with src "/pilkarzyki-logo.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:04:03.136] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[00:04:09.405] Server  LOG     GET /api/manager/leagues - endpoint hit! [FIXED]
+[00:04:09.481] Server  LOG     GET /api/manager/leagues - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4"
+[00:04:09.482] Server  LOG     GET /api/manager/leagues - Fetching specific league: "8b6d933e-e011-4fd5-8bc0-8344e2841192"
+[00:04:09.483] Server  LOG     GET /api/manager/leagues specific - Starting with userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "8b6d933e-e011-4fd5-8bc0-8344e2841192"
+[00:04:09.543] Server  LOG     GET /api/manager/leagues - endpoint hit! [FIXED]
+[00:04:09.555] Server  LOG     GET /api/manager/leagues - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4"
+[00:04:09.555] Server  LOG     GET /api/manager/leagues - Fetching specific league: "8b6d933e-e011-4fd5-8bc0-8344e2841192"
+[00:04:09.555] Server  LOG     GET /api/manager/leagues specific - Starting with userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "8b6d933e-e011-4fd5-8bc0-8344e2841192"
+[00:04:09.602] Server  LOG     GET /api/manager/leagues specific - User found: {}
+[00:04:09.731] Server  LOG     GET /api/manager/leagues specific - User found: {}
+[00:04:09.800] Server  LOG     GET /api/manager/leagues specific - League query result: {}
+[00:04:09.833] Server  LOG     GET /api/manager/leagues specific - League query result: {}
+[00:04:10.443] Server  LOG     Manager Squad API - Found existing user: "278b361c-ac94-4844-88eb-204af430c8ea"
+[00:04:10.446] Server  LOG     Manager Squad API - Found existing user: "278b361c-ac94-4844-88eb-204af430c8ea"
+[00:04:10.498] Server  LOG     Squad API - Looking for players with manager_id: "278b361c-ac94-4844-88eb-204af430c8ea"
+[00:04:10.504] Server  LOG     Squad API - Looking for players with manager_id: "278b361c-ac94-4844-88eb-204af430c8ea"
+[00:04:10.567] Server  LOG     Squad API - Found players: 8
+[00:04:10.578] Server  LOG     Squad API - Found players: 8
+[02:44:55.198] Server  LOG     ✓ Compiled in 3.5s
+[02:47:07.928] Server  LOG     ✓ Finished filesystem cache database compaction in 13.2s
+[55:06:43.046] Server  LOG     === DASHBOARD DEBUG ===
+[55:06:43.047] Server  LOG     User email: "michaeljajo@gmail.com"
+[55:06:43.047] Server  LOG     User internal ID: "278b361c-ac94-4844-88eb-204af430c8ea"
+[55:06:43.052] Server  LOG     Manager squads: [{...},{...}]
+[55:06:43.052] Server  LOG     Squad error: null
+[55:06:43.053] Server  LOG     Admin leagues: [{...},{...},{...}]
+[55:06:43.053] Server  LOG     Admin error: null
+[55:06:45.212] Browser WARN    Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview
+[55:06:45.662] Browser WARN    Image with src "/pilkarzyki-logo.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[55:06:50.423] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[55:06:56.626] Server  LOG     ○ Compiling /dashboard/admin/leagues/[id] ...
+[55:07:07.614] Server  LOG     🔍 Raw Clerk users response: {}
+[55:07:07.615] Server  LOG     🧹 Deduplication: 18 → 18 users
+[55:07:07.615] Server  LOG     ✅ Final transformed users count: 18
+[55:07:08.188] Server  LOG     GET /api/leagues/[id] - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[55:07:08.197] Server  LOG     GET /api/leagues/[id] - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[55:07:08.331] Server  LOG     League query result: {}
+[55:07:08.352] Server  LOG     League query result: {}
+[55:07:08.396] Server  LOG     GET schedule endpoint called for leagueId: "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[55:07:08.402] Server  LOG     GET schedule endpoint called for leagueId: "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[55:07:08.573] Server  LOG     🔍 Raw Clerk users response: {}
+[55:07:08.573] Server  LOG     🧹 Deduplication: 18 → 18 users
+[55:07:08.574] Server  LOG     ✅ Final transformed users count: 18
+[55:07:08.614] Server  LOG     GET gameweeks query result: {}
+[55:07:08.615] Server  LOG     Manager IDs extracted from matches: ["94906a41-e200-4952-9666-3dc597057036","278b361c-ac94-4844-88eb-204af430c8ea","1a7ffc6b-0e10-41c5-914e-5f6f1ac5d698","d03a1cb3-8597-4600-bd20-5dbbd52c51f9"]
+[55:07:08.620] Server  LOG     GET gameweeks query result: {}
+[55:07:08.621] Server  LOG     Manager IDs extracted from matches: ["94906a41-e200-4952-9666-3dc597057036","278b361c-ac94-4844-88eb-204af430c8ea","1a7ffc6b-0e10-41c5-914e-5f6f1ac5d698","d03a1cb3-8597-4600-bd20-5dbbd52c51f9"]
+[55:07:08.674] Server  LOG     GET users query result: {}
+[55:07:08.686] Server  LOG     GET users query result: {}
+[55:07:08.716] Server  LOG     GET /api/leagues/[id]/managers - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[55:07:08.719] Server  LOG     GET /api/leagues/[id]/managers - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[55:07:08.741] Server  LOG     Final schedule with user data: {}
+[55:07:08.742] Server  LOG     Schedule compilation timestamp: "2026-01-04T09:04:47.958Z"
+[55:07:08.770] Server  LOG     Final schedule with user data: {}
+[55:07:08.771] Server  LOG     Schedule compilation timestamp: "2026-01-04T09:04:47.987Z"
+[55:07:08.946] Server  LOG     Managers query result: {}
+[55:07:08.975] Server  LOG     Managers query result: {}
+[55:07:23.920] Server  LOG     GET /api/leagues/[id]/gameweeks - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[55:07:23.927] Server  LOG     GET /api/leagues/[id]/gameweeks - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[55:07:24.151] Server  LOG     Gameweeks query result: {}
+[55:07:24.184] Server  LOG     Gameweeks query result: {}
+[55:07:41.520] Server  LOG     ✓ Finished filesystem cache database compaction in 17.0s
+[55:07:42.433] Server  LOG     ✓ Finished writing to filesystem cache in 15.9s
+[55:08:03.103] Server  LOG     ✓ Finished filesystem cache database compaction in 13.3s
+[55:08:25.915] Server  LOG     Recalculating cup group standings for cup: "7b5d03c6-62ff-49e2-a3fa-b762aaa64578"
+[55:08:26.251] Server  LOG     Successfully updated cup group standings for cup 7b5d03c6-62ff-49e2-a3fa-b762aaa64578
+[55:08:26.252] Server  LOG     Cup group standings updated successfully
+[55:08:26.303] Server  LOG     Recalculating league standings for league: "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[55:08:26.690] Server  LOG     Successfully updated standings for league 791f04ae-290b-4aed-8cc7-6070beaefa3a
+[55:08:26.690] Server  LOG     League standings updated successfully
+[55:08:35.828] Server  LOG     GET /api/leagues/[id]/gameweeks - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[55:08:35.832] Server  LOG     GET /api/leagues/[id]/gameweeks - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[55:08:36.056] Server  LOG     Gameweeks query result: {}
+[55:08:36.074] Server  LOG     Gameweeks query result: {}
+[55:09:01.096] Server  LOG     PATCH /api/leagues/[id]/gameweeks/[gameweekId] - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a" "gameweekId:" "95d6856a-25d0-4b7b-be62-0b3400a0f08b"
+[55:09:01.264] Server  LOG     Update gameweek data: {}
+[55:09:01.388] Server  LOG     Successfully updated gameweek: {}
+[55:09:04.920] Server  LOG     PATCH /api/leagues/[id]/gameweeks/[gameweekId] - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a" "gameweekId:" "95d6856a-25d0-4b7b-be62-0b3400a0f08b"
+[55:09:05.031] Server  LOG     Update gameweek data: {}
+[55:09:05.155] Server  LOG     Successfully updated gameweek: {}
+[55:09:16.971] Server  LOG     PATCH /api/leagues/[id]/gameweeks/[gameweekId] - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a" "gameweekId:" "d6b96fb4-d37e-443b-b01e-0e9ac09b581e"
+[55:09:17.160] Server  LOG     Update gameweek data: {}
+[55:09:17.285] Server  LOG     Successfully updated gameweek: {}
+[55:09:20.457] Server  LOG     GET /api/leagues/[id]/gameweeks - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[55:09:20.642] Server  LOG     Gameweeks query result: {}
+[55:09:24.718] Server  LOG     GET /api/leagues/[id] - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[55:09:25.069] Server  LOG     GET /api/leagues/[id]/managers - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[55:09:25.119] Server  LOG     GET schedule endpoint called for leagueId: "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[55:09:25.247] Server  LOG     GET /api/leagues/[id] - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[55:09:25.255] Server  LOG     GET /api/leagues/[id]/managers - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[55:09:25.434] Server  LOG     League query result: {}
+[55:09:25.556] Server  LOG     GET schedule endpoint called for leagueId: "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[55:09:25.862] Server  LOG     League query result: {}
+[55:09:25.874] Server  LOG     Managers query result: {}
+[55:09:26.069] Server  LOG     Managers query result: {}
+[55:09:26.086] Server  LOG     GET gameweeks query result: {}
+[55:09:26.091] Server  LOG     Manager IDs extracted from matches: ["94906a41-e200-4952-9666-3dc597057036","278b361c-ac94-4844-88eb-204af430c8ea","1a7ffc6b-0e10-41c5-914e-5f6f1ac5d698","d03a1cb3-8597-4600-bd20-5dbbd52c51f9"]
+[55:09:26.140] Server  LOG     GET gameweeks query result: {}
+[55:09:26.140] Server  LOG     Manager IDs extracted from matches: ["94906a41-e200-4952-9666-3dc597057036","278b361c-ac94-4844-88eb-204af430c8ea","1a7ffc6b-0e10-41c5-914e-5f6f1ac5d698","d03a1cb3-8597-4600-bd20-5dbbd52c51f9"]
+[55:09:26.427] Server  LOG     GET users query result: {}
+[55:09:26.702] Server  LOG     GET users query result: {}
+[55:09:26.710] Server  LOG     Final schedule with user data: {}
+[55:09:26.711] Server  LOG     Schedule compilation timestamp: "2026-01-04T09:07:05.930Z"
+[55:09:26.788] Server  LOG     Final schedule with user data: {}
+[55:09:26.788] Server  LOG     Schedule compilation timestamp: "2026-01-04T09:07:06.008Z"
+[55:09:26.876] Server  LOG     🔍 Raw Clerk users response: {}
+[55:09:26.879] Server  LOG     🧹 Deduplication: 18 → 18 users
+[55:09:26.880] Server  LOG     ✅ Final transformed users count: 18
+[55:09:26.928] Server  LOG     🔍 Raw Clerk users response: {}
+[55:09:26.930] Server  LOG     🧹 Deduplication: 18 → 18 users
+[55:09:26.931] Server  LOG     ✅ Final transformed users count: 18
+[55:12:17.617] Server  LOG     GET /api/leagues/[id] - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[55:12:17.756] Server  LOG     GET schedule endpoint called for leagueId: "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[55:12:17.777] Server  LOG     GET /api/leagues/[id]/managers - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[55:12:17.926] Server  LOG     GET /api/leagues/[id] - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[55:12:18.045] Server  LOG     GET /api/leagues/[id]/managers - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[55:12:18.209] Server  LOG     League query result: {}
+[55:12:18.241] Server  LOG     League query result: {}
+[55:12:18.459] Server  LOG     Managers query result: {}
+[55:12:18.465] Server  LOG     Managers query result: {}
+[55:12:18.470] Server  LOG     GET gameweeks query result: {}
+[55:12:18.470] Server  LOG     Manager IDs extracted from matches: ["94906a41-e200-4952-9666-3dc597057036","278b361c-ac94-4844-88eb-204af430c8ea","1a7ffc6b-0e10-41c5-914e-5f6f1ac5d698","d03a1cb3-8597-4600-bd20-5dbbd52c51f9"]
+[55:12:18.491] Server  LOG     GET schedule endpoint called for leagueId: "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[55:12:18.497] Server  LOG     🔍 Raw Clerk users response: {}
+[55:12:18.500] Server  LOG     🧹 Deduplication: 18 → 18 users
+[55:12:18.500] Server  LOG     ✅ Final transformed users count: 18
+[55:12:18.541] Server  LOG     GET users query result: {}
+[55:12:18.732] Server  LOG     Final schedule with user data: {}
+[55:12:18.732] Server  LOG     Schedule compilation timestamp: "2026-01-04T09:09:57.957Z"
+[55:12:19.060] Server  LOG     GET gameweeks query result: {}
+[55:12:19.061] Server  LOG     Manager IDs extracted from matches: ["94906a41-e200-4952-9666-3dc597057036","278b361c-ac94-4844-88eb-204af430c8ea","1a7ffc6b-0e10-41c5-914e-5f6f1ac5d698","d03a1cb3-8597-4600-bd20-5dbbd52c51f9"]
+[55:12:19.068] Server  LOG     🔍 Raw Clerk users response: {}
+[55:12:19.069] Server  LOG     🧹 Deduplication: 18 → 18 users
+[55:12:19.069] Server  LOG     ✅ Final transformed users count: 18
+[55:12:19.121] Server  LOG     GET users query result: {}
+[55:12:19.178] Server  LOG     Final schedule with user data: {}
+[55:12:19.178] Server  LOG     Schedule compilation timestamp: "2026-01-04T09:09:58.403Z"
+[55:14:05.745] Server  LOG     === DASHBOARD DEBUG ===
+[55:14:05.745] Server  LOG     User email: "michaeljajo@gmail.com"
+[55:14:05.746] Server  LOG     User internal ID: "278b361c-ac94-4844-88eb-204af430c8ea"
+[55:14:05.746] Server  LOG     Manager squads: [{...},{...}]
+[55:14:05.746] Server  LOG     Squad error: null
+[55:14:05.746] Server  LOG     Admin leagues: [{...},{...},{...}]
+[55:14:05.746] Server  LOG     Admin error: null
+[55:14:14.060] Server  LOG     GET /api/manager/leagues - endpoint hit! [FIXED]
+[55:14:14.067] Server  LOG     GET /api/manager/leagues - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4"
+[55:14:14.067] Server  LOG     GET /api/manager/leagues - Fetching specific league: "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[55:14:14.068] Server  LOG     GET /api/manager/leagues specific - Starting with userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[55:14:14.174] Server  LOG     GET /api/manager/leagues specific - User found: {}
+[55:14:14.228] Server  LOG     GET /api/manager/leagues specific - League query result: {}
+[55:14:15.585] Server  LOG     Top Scorers Debug - League ID: "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[55:14:15.585] Server  LOG     Top Scorers Debug - Results count: 54
+[55:14:15.585] Server  LOG     Top Scorers Debug - First few results: [{...},{...},{...}]
+[55:14:46.726] Server  LOG     Top Scorers Debug - League ID: "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[55:14:46.726] Server  LOG     Top Scorers Debug - Results count: 54
+[55:14:46.727] Server  LOG     Top Scorers Debug - First few results: [{...},{...},{...}]
+[55:16:37.188] Server  LOG     GET /api/leagues/[id] - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[55:16:37.248] Server  LOG     GET /api/leagues/[id]/managers - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[55:16:37.283] Server  LOG     GET schedule endpoint called for leagueId: "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[55:16:37.451] Server  LOG     GET /api/leagues/[id] - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[55:16:37.674] Server  LOG     GET /api/leagues/[id]/managers - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[55:16:37.686] Server  LOG     League query result: {}
+[55:16:37.722] Server  LOG     GET schedule endpoint called for leagueId: "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[55:16:37.756] Server  LOG     League query result: {}
+[55:16:38.076] Server  LOG     Managers query result: {}
+[55:16:38.086] Server  LOG     Managers query result: {}
+[55:16:38.099] Server  LOG     🔍 Raw Clerk users response: {}
+[55:16:38.099] Server  LOG     🧹 Deduplication: 18 → 18 users
+[55:16:38.099] Server  LOG     ✅ Final transformed users count: 18
+[55:16:38.111] Server  LOG     GET gameweeks query result: {}
+[55:16:38.111] Server  LOG     Manager IDs extracted from matches: ["94906a41-e200-4952-9666-3dc597057036","278b361c-ac94-4844-88eb-204af430c8ea","1a7ffc6b-0e10-41c5-914e-5f6f1ac5d698","d03a1cb3-8597-4600-bd20-5dbbd52c51f9"]
+[55:16:38.185] Server  LOG     GET gameweeks query result: {}
+[55:16:38.188] Server  LOG     Manager IDs extracted from matches: ["94906a41-e200-4952-9666-3dc597057036","278b361c-ac94-4844-88eb-204af430c8ea","1a7ffc6b-0e10-41c5-914e-5f6f1ac5d698","d03a1cb3-8597-4600-bd20-5dbbd52c51f9"]
+[55:16:38.194] Server  LOG     GET users query result: {}
+[55:16:38.257] Server  LOG     Final schedule with user data: {}
+[55:16:38.257] Server  LOG     Schedule compilation timestamp: "2026-01-04T09:14:17.488Z"
+[55:16:38.262] Server  LOG     GET users query result: {}
+[55:16:38.365] Server  LOG     Final schedule with user data: {}
+[55:16:38.366] Server  LOG     Schedule compilation timestamp: "2026-01-04T09:14:17.596Z"
+[55:16:38.381] Server  LOG     🔍 Raw Clerk users response: {}
+[55:16:38.381] Server  LOG     🧹 Deduplication: 18 → 18 users
+[55:16:38.382] Server  LOG     ✅ Final transformed users count: 18
+[57:29:27.820] Server  LOG     ✓ Finished filesystem cache database compaction in 10.5s
+[57:30:11.035] Server  LOG     === DASHBOARD DEBUG ===
+[57:30:11.036] Server  LOG     User email: "michaeljajo@gmail.com"
+[57:30:11.036] Server  LOG     User internal ID: "278b361c-ac94-4844-88eb-204af430c8ea"
+[57:30:11.036] Server  LOG     Manager squads: [{...},{...}]
+[57:30:11.036] Server  LOG     Squad error: null
+[57:30:11.036] Server  LOG     Admin leagues: [{...},{...},{...}]
+[57:30:11.036] Server  LOG     Admin error: null
+[57:30:18.291] Server  LOG     GET /api/manager/leagues - endpoint hit! [FIXED]
+[57:30:18.299] Server  LOG     GET /api/manager/leagues - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4"
+[57:30:18.299] Server  LOG     GET /api/manager/leagues - Fetching specific league: "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[57:30:18.299] Server  LOG     GET /api/manager/leagues specific - Starting with userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[57:30:18.803] Server  LOG     GET /api/manager/leagues specific - User found: {}
+[57:30:18.867] Server  LOG     GET /api/manager/leagues - endpoint hit! [FIXED]
+[57:30:18.880] Server  LOG     GET /api/manager/leagues - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4"
+[57:30:18.880] Server  LOG     GET /api/manager/leagues - Fetching specific league: "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[57:30:18.881] Server  LOG     GET /api/manager/leagues specific - Starting with userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[57:30:18.950] Server  LOG     GET /api/manager/leagues specific - User found: {}
+[57:30:18.964] Server  LOG     Manager Squad API - Found existing user: "278b361c-ac94-4844-88eb-204af430c8ea"
+[57:30:19.014] Server  LOG     Manager Squad API - Found existing user: "278b361c-ac94-4844-88eb-204af430c8ea"
+[57:30:19.022] Server  LOG     GET /api/manager/leagues specific - League query result: {}
+[57:30:19.036] Server  LOG     Squad API - Looking for players with manager_id: "278b361c-ac94-4844-88eb-204af430c8ea"
+[57:30:19.061] Server  LOG     GET /api/manager/leagues specific - League query result: {}
+[57:30:19.076] Server  LOG     Squad API - Looking for players with manager_id: "278b361c-ac94-4844-88eb-204af430c8ea"
+[57:30:19.104] Server  LOG     Squad API - Found players: 9
+[57:30:19.159] Server  LOG     Squad API - Found players: 9
+[57:31:16.907] Server  LOG     ○ Compiling /dashboard/leagues/[id]/results ...
+[57:31:20.263] Server  LOG     GET /api/manager/leagues - endpoint hit! [FIXED]
+[57:31:20.280] Server  LOG     GET /api/manager/leagues - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4"
+[57:31:20.281] Server  LOG     GET /api/manager/leagues - Fetching specific league: "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[57:31:20.281] Server  LOG     GET /api/manager/leagues specific - Starting with userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[57:31:20.485] Server  LOG     GET /api/manager/leagues specific - User found: {}
+[57:31:20.573] Server  LOG     GET /api/manager/leagues specific - League query result: {}
+[57:33:51.885] Server  LOG     GET /api/leagues/[id] - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[57:33:52.096] Server  LOG     GET /api/leagues/[id]/managers - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[57:33:52.104] Server  LOG     GET schedule endpoint called for leagueId: "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[57:33:52.239] Server  LOG     GET /api/leagues/[id] - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[57:33:52.284] Server  LOG     GET /api/leagues/[id]/managers - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[57:33:52.293] Server  LOG     League query result: {}
+[57:33:52.516] Server  LOG     GET schedule endpoint called for leagueId: "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[57:33:52.836] Server  LOG     League query result: {}
+[57:33:53.186] Server  LOG     Managers query result: {}
+[57:33:53.198] Server  LOG     Managers query result: {}
+[57:33:53.329] Server  LOG     🔍 Raw Clerk users response: {}
+[57:33:53.330] Server  LOG     🧹 Deduplication: 18 → 18 users
+[57:33:53.330] Server  LOG     ✅ Final transformed users count: 18
+[57:33:53.378] Server  LOG     GET gameweeks query result: {}
+[57:33:53.379] Server  LOG     Manager IDs extracted from matches: ["94906a41-e200-4952-9666-3dc597057036","278b361c-ac94-4844-88eb-204af430c8ea","1a7ffc6b-0e10-41c5-914e-5f6f1ac5d698","d03a1cb3-8597-4600-bd20-5dbbd52c51f9"]
+[57:33:53.611] Server  LOG     GET gameweeks query result: {}
+[57:33:53.611] Server  LOG     Manager IDs extracted from matches: ["94906a41-e200-4952-9666-3dc597057036","278b361c-ac94-4844-88eb-204af430c8ea","1a7ffc6b-0e10-41c5-914e-5f6f1ac5d698","d03a1cb3-8597-4600-bd20-5dbbd52c51f9"]
+[57:33:53.614] Server  LOG     GET users query result: {}
+[57:33:53.625] Server  LOG     🔍 Raw Clerk users response: {}
+[57:33:53.625] Server  LOG     🧹 Deduplication: 18 → 18 users
+[57:33:53.626] Server  LOG     ✅ Final transformed users count: 18
+[57:33:53.666] Server  LOG     GET users query result: {}
+[57:33:53.711] Server  LOG     Final schedule with user data: {}
+[57:33:53.711] Server  LOG     Schedule compilation timestamp: "2026-01-04T11:31:33.289Z"
+[57:33:53.780] Server  LOG     Final schedule with user data: {}
+[57:33:53.782] Server  LOG     Schedule compilation timestamp: "2026-01-04T11:31:33.359Z"
+[57:35:19.203] Server  LOG     ✓ Finished filesystem cache database compaction in 11.1s
+[57:36:04.056] Server  LOG     ✓ Compiled in 1346ms
+[57:49:18.886] Server  LOG     ✓ Finished filesystem cache database compaction in 13.5s
+[57:51:35.918] Server  LOG     === DASHBOARD DEBUG ===
+[57:51:35.918] Server  LOG     User email: "michaeljajo@gmail.com"
+[57:51:35.919] Server  LOG     User internal ID: "278b361c-ac94-4844-88eb-204af430c8ea"
+[57:51:35.919] Server  LOG     Manager squads: [{...},{...}]
+[57:51:35.919] Server  LOG     Squad error: null
+[57:51:35.919] Server  LOG     Admin leagues: [{...},{...},{...}]
+[57:51:35.919] Server  LOG     Admin error: null
+[57:51:37.664] Browser WARN    Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview
+[57:51:37.664] Browser WARN    Image with src "/pilkarzyki-logo.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[57:51:38.833] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[57:51:43.846] Server  LOG     ○ Compiling /dashboard/leagues/[id]/standings ...
+[57:51:46.841] Server  LOG     GET /api/manager/leagues - endpoint hit! [FIXED]
+[57:51:46.865] Server  LOG     GET /api/manager/leagues - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4"
+[57:51:46.867] Server  LOG     GET /api/manager/leagues - Fetching specific league: "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[57:51:46.867] Server  LOG     GET /api/manager/leagues specific - Starting with userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[57:51:47.021] Server  LOG     GET /api/manager/leagues specific - User found: {}
+[57:51:47.109] Server  LOG     GET /api/manager/leagues specific - League query result: {}
+[58:07:42.705] Server  LOG     GET /api/leagues/[id]/gameweeks - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[58:07:42.737] Server  LOG     GET /api/leagues/[id]/gameweeks - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[58:07:43.577] Server  LOG     Gameweeks query result: {}
+[58:07:43.585] Server  LOG     Gameweeks query result: {}
+[78:28:32.859] Server  LOG     ✓ Finished filesystem cache database compaction in 34.5s
+[78:28:33.191] Server  LOG     ✓ Finished writing to filesystem cache in 22.6s
+[78:29:23.854] Server  LOG     ✓ Finished filesystem cache database compaction in 17.7s
+[78:29:24.391] Server  LOG     ✓ Finished writing to filesystem cache in 13.6s
+[79:54:42.830] Server  LOG     ✓ Finished filesystem cache database compaction in 13.8s
+[80:06:47.376] Server  LOG     ✓ Finished filesystem cache database compaction in 16.4s
+[80:58:47.965] Browser ERROR   {"message":"Loading chunk 6722 failed.\n(error: https://civil-mammal-51.clerk.accounts.dev/npm/@clerk/clerk-js@5.117.0/dist/signin_clerk.browser_434d46_5.117.0.js)","name":"ChunkLoadError","request":"https://civil-mammal-51.clerk.accounts.dev/npm/@clerk/clerk-js@5.117.0/dist/signin_clerk.browser_434d46_5.117.0.js","type":"error"}
+[80:59:50.061] Server  LOG     === DASHBOARD DEBUG ===
+[80:59:50.061] Server  LOG     User email: "michaeljajo@gmail.com"
+[80:59:50.061] Server  LOG     User internal ID: "278b361c-ac94-4844-88eb-204af430c8ea"
+[80:59:50.062] Server  LOG     Manager squads: [{...},{...}]
+[80:59:50.062] Server  LOG     Squad error: null
+[80:59:50.062] Server  LOG     Admin leagues: [{...},{...},{...}]
+[80:59:50.062] Server  LOG     Admin error: null
+[80:59:52.216] Browser WARN    Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview
+[80:59:53.141] Browser WARN    Image with src "/pilkarzyki-logo.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[80:59:56.062] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[81:00:52.178] Server  LOG     GET /api/leagues/[id] - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[81:00:52.181] Server  LOG     GET schedule endpoint called for leagueId: "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[81:00:52.183] Server  LOG     GET /api/leagues/[id] - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[81:00:52.300] Server  LOG     GET /api/leagues/[id]/managers - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[81:00:52.307] Server  LOG     GET /api/leagues/[id]/managers - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[81:00:52.606] Server  LOG     League query result: {}
+[81:00:52.648] Server  LOG     GET schedule endpoint called for leagueId: "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[81:00:52.697] Server  LOG     League query result: {}
+[81:00:53.525] Server  LOG     GET gameweeks query result: {}
+[81:00:53.526] Server  LOG     Manager IDs extracted from matches: ["94906a41-e200-4952-9666-3dc597057036","278b361c-ac94-4844-88eb-204af430c8ea","1a7ffc6b-0e10-41c5-914e-5f6f1ac5d698","d03a1cb3-8597-4600-bd20-5dbbd52c51f9"]
+[81:00:53.543] Server  LOG     Managers query result: {}
+[81:00:53.686] Server  LOG     Managers query result: {}
+[81:00:53.699] Server  LOG     GET gameweeks query result: {}
+[81:00:53.701] Server  LOG     Manager IDs extracted from matches: ["94906a41-e200-4952-9666-3dc597057036","278b361c-ac94-4844-88eb-204af430c8ea","1a7ffc6b-0e10-41c5-914e-5f6f1ac5d698","d03a1cb3-8597-4600-bd20-5dbbd52c51f9"]
+[81:00:53.727] Server  LOG     GET users query result: {}
+[81:00:53.911] Server  LOG     🔍 Raw Clerk users response: {}
+[81:00:53.912] Server  LOG     🧹 Deduplication: 18 → 18 users
+[81:00:53.913] Server  LOG     ✅ Final transformed users count: 18
+[81:00:53.950] Server  LOG     GET users query result: {}
+[81:00:53.953] Server  LOG     Final schedule with user data: {}
+[81:00:53.953] Server  LOG     Schedule compilation timestamp: "2026-01-05T10:59:04.098Z"
+[81:00:53.998] Server  LOG     🔍 Raw Clerk users response: {}
+[81:00:53.998] Server  LOG     🧹 Deduplication: 18 → 18 users
+[81:00:53.998] Server  LOG     ✅ Final transformed users count: 18
+[81:00:54.129] Server  LOG     Final schedule with user data: {}
+[81:00:54.130] Server  LOG     Schedule compilation timestamp: "2026-01-05T10:59:04.275Z"
+[81:01:57.958] Server  LOG     === DASHBOARD DEBUG ===
+[81:01:57.958] Server  LOG     User email: "michaeljajo@gmail.com"
+[81:01:57.958] Server  LOG     User internal ID: "278b361c-ac94-4844-88eb-204af430c8ea"
+[81:01:57.959] Server  LOG     Manager squads: [{...},{...}]
+[81:01:57.959] Server  LOG     Squad error: null
+[81:01:57.959] Server  LOG     Admin leagues: [{...},{...},{...}]
+[81:01:57.959] Server  LOG     Admin error: null
+[81:02:02.162] Server  LOG     GET /api/manager/leagues - endpoint hit! [FIXED]
+[81:02:02.174] Server  LOG     GET /api/manager/leagues - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4"
+[81:02:02.174] Server  LOG     GET /api/manager/leagues - Fetching specific league: "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[81:02:02.174] Server  LOG     GET /api/manager/leagues specific - Starting with userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[81:02:02.320] Server  LOG     GET /api/manager/leagues - endpoint hit! [FIXED]
+[81:02:02.333] Server  LOG     GET /api/manager/leagues - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4"
+[81:02:02.334] Server  LOG     GET /api/manager/leagues - Fetching specific league: "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[81:02:02.334] Server  LOG     GET /api/manager/leagues specific - Starting with userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[81:02:02.458] Server  LOG     GET /api/manager/leagues specific - User found: {}
+[81:02:02.627] Server  LOG     GET /api/manager/leagues specific - User found: {}
+[81:02:02.633] Server  LOG     Manager Squad API - Found existing user: "278b361c-ac94-4844-88eb-204af430c8ea"
+[81:02:02.671] Server  LOG     GET /api/manager/leagues specific - League query result: {}
+[81:02:02.698] Server  LOG     Manager Squad API - Found existing user: "278b361c-ac94-4844-88eb-204af430c8ea"
+[81:02:02.714] Server  LOG     GET /api/manager/leagues specific - League query result: {}
+[81:02:02.742] Server  LOG     Squad API - Looking for players with manager_id: "278b361c-ac94-4844-88eb-204af430c8ea"
+[81:02:02.811] Server  LOG     Squad API - Looking for players with manager_id: "278b361c-ac94-4844-88eb-204af430c8ea"
+[81:02:02.826] Server  LOG     Squad API - Found players: 8
+[81:02:02.903] Server  LOG     Squad API - Found players: 8
+[81:02:14.242] Server  LOG     GET /api/leagues/[id] - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[81:02:14.443] Server  LOG     GET schedule endpoint called for leagueId: "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[81:02:14.575] Server  LOG     GET /api/leagues/[id]/managers - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[81:02:14.635] Server  LOG     GET /api/leagues/[id] - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[81:02:14.636] Server  LOG     GET /api/leagues/[id]/managers - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[81:02:14.643] Server  LOG     League query result: {}
+[81:02:14.876] Server  LOG     GET schedule endpoint called for leagueId: "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[81:02:15.090] Server  LOG     🔍 Raw Clerk users response: {}
+[81:02:15.091] Server  LOG     🧹 Deduplication: 18 → 18 users
+[81:02:15.091] Server  LOG     ✅ Final transformed users count: 18
+[81:02:15.341] Server  LOG     League query result: {}
+[81:02:15.363] Server  LOG     GET gameweeks query result: {}
+[81:02:15.366] Server  LOG     Manager IDs extracted from matches: ["94906a41-e200-4952-9666-3dc597057036","278b361c-ac94-4844-88eb-204af430c8ea","1a7ffc6b-0e10-41c5-914e-5f6f1ac5d698","d03a1cb3-8597-4600-bd20-5dbbd52c51f9"]
+[81:02:15.372] Server  LOG     GET gameweeks query result: {}
+[81:02:15.372] Server  LOG     Manager IDs extracted from matches: ["94906a41-e200-4952-9666-3dc597057036","278b361c-ac94-4844-88eb-204af430c8ea","1a7ffc6b-0e10-41c5-914e-5f6f1ac5d698","d03a1cb3-8597-4600-bd20-5dbbd52c51f9"]
+[81:02:15.378] Server  LOG     Managers query result: {}
+[81:02:15.488] Server  LOG     Managers query result: {}
+[81:02:15.507] Server  LOG     GET users query result: {}
+[81:02:15.518] Server  LOG     GET users query result: {}
+[81:02:15.730] Server  LOG     Final schedule with user data: {}
+[81:02:15.736] Server  LOG     Schedule compilation timestamp: "2026-01-05T11:00:25.882Z"
+[81:02:15.808] Server  LOG     Final schedule with user data: {}
+[81:02:15.808] Server  LOG     Schedule compilation timestamp: "2026-01-05T11:00:25.955Z"
+[81:02:16.316] Server  LOG     🔍 Raw Clerk users response: {}
+[81:02:16.317] Server  LOG     🧹 Deduplication: 18 → 18 users
+[81:02:16.491] Server  LOG     ✅ Final transformed users count: 18
+[81:02:21.672] Server  LOG     === DASHBOARD DEBUG ===
+[81:02:21.673] Server  LOG     User email: "michaeljajo@gmail.com"
+[81:02:21.673] Server  LOG     User internal ID: "278b361c-ac94-4844-88eb-204af430c8ea"
+[81:02:21.674] Server  LOG     Manager squads: [{...},{...}]
+[81:02:21.674] Server  LOG     Squad error: null
+[81:02:21.674] Server  LOG     Admin leagues: [{...},{...},{...}]
+[81:02:21.674] Server  LOG     Admin error: null
+[81:02:26.564] Server  LOG     GET /api/manager/leagues - endpoint hit! [FIXED]
+[81:02:26.740] Server  LOG     GET /api/manager/leagues - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4"
+[81:02:26.740] Server  LOG     GET /api/manager/leagues - Fetching specific league: "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[81:02:26.741] Server  LOG     GET /api/manager/leagues specific - Starting with userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[81:02:26.886] Server  LOG     GET /api/manager/leagues specific - User found: {}
+[81:02:27.010] Server  LOG     GET /api/manager/leagues specific - League query result: {}
+[81:02:28.155] Server  LOG     Top Scorers Debug - League ID: "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[81:02:28.155] Server  LOG     Top Scorers Debug - Results count: 54
+[81:02:28.156] Server  LOG     Top Scorers Debug - First few results: [{...},{...},{...}]
+[81:02:36.058] Server  LOG     GET /api/manager/leagues - endpoint hit! [FIXED]
+[81:02:36.390] Server  LOG     GET /api/manager/leagues - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4"
+[81:02:36.390] Server  LOG     GET /api/manager/leagues - Fetching specific league: "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[81:02:36.391] Server  LOG     GET /api/manager/leagues specific - Starting with userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[81:02:37.227] Server  LOG     GET /api/manager/leagues specific - User found: {}
+[81:02:37.606] Server  LOG     GET /api/manager/leagues specific - League query result: {}
+[81:02:43.722] Server  LOG     GET /api/manager/leagues - endpoint hit! [FIXED]
+[81:02:43.826] Server  LOG     GET /api/manager/leagues - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4"
+[81:02:43.827] Server  LOG     GET /api/manager/leagues - Fetching specific league: "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[81:02:43.827] Server  LOG     GET /api/manager/leagues specific - Starting with userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[81:02:44.027] Server  LOG     GET /api/manager/leagues specific - User found: {}
+[81:02:44.131] Server  LOG     GET /api/manager/leagues specific - League query result: {}
+[81:02:56.416] Server  LOG     GET /api/leagues/[id] - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[81:02:56.695] Server  LOG     GET /api/leagues/[id]/managers - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[81:02:56.699] Server  LOG     GET schedule endpoint called for leagueId: "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[81:02:56.733] Server  LOG     GET /api/leagues/[id] - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[81:02:56.756] Server  LOG     GET /api/leagues/[id]/managers - userId: "user_32pS3FW4pT72RQayyd2vofTJ3L4" "leagueId:" "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[81:02:57.070] Server  LOG     League query result: {}
+[81:02:57.216] Server  LOG     🔍 Raw Clerk users response: {}
+[81:02:57.219] Server  LOG     🧹 Deduplication: 18 → 18 users
+[81:02:57.219] Server  LOG     ✅ Final transformed users count: 18
+[81:02:57.318] Server  LOG     GET schedule endpoint called for leagueId: "791f04ae-290b-4aed-8cc7-6070beaefa3a"
+[81:02:57.361] Server  LOG     GET gameweeks query result: {}
+[81:02:57.361] Server  LOG     Manager IDs extracted from matches: ["94906a41-e200-4952-9666-3dc597057036","278b361c-ac94-4844-88eb-204af430c8ea","1a7ffc6b-0e10-41c5-914e-5f6f1ac5d698","d03a1cb3-8597-4600-bd20-5dbbd52c51f9"]
+[81:02:57.366] Server  LOG     Managers query result: {}
+[81:02:57.498] Server  LOG     League query result: {}
+[81:02:57.509] Server  LOG     GET users query result: {}
+[81:02:57.514] Server  LOG     Managers query result: {}
+[81:02:57.834] Server  LOG     Final schedule with user data: {}
+[81:02:57.834] Server  LOG     Schedule compilation timestamp: "2026-01-05T11:01:07.981Z"
+[81:02:57.837] Server  LOG     GET gameweeks query result: {}
+[81:02:57.839] Server  LOG     Manager IDs extracted from matches: ["94906a41-e200-4952-9666-3dc597057036","278b361c-ac94-4844-88eb-204af430c8ea","1a7ffc6b-0e10-41c5-914e-5f6f1ac5d698","d03a1cb3-8597-4600-bd20-5dbbd52c51f9"]
+[81:02:57.859] Server  LOG     🔍 Raw Clerk users response: {}
+[81:02:57.859] Server  LOG     🧹 Deduplication: 18 → 18 users
+[81:02:57.861] Server  LOG     ✅ Final transformed users count: 18
+[81:02:58.003] Server  LOG     GET users query result: {}
+[81:02:58.119] Server  LOG     Final schedule with user data: {}
+[81:02:58.119] Server  LOG     Schedule compilation timestamp: "2026-01-05T11:01:08.267Z"
+[81:02:59.864] Server  LOG     ✓ Finished filesystem cache database compaction in 25.7s
+[81:02:59.940] Server  LOG     ✓ Finished writing to filesystem cache in 20.5s
+[81:03:07.240] Server  LOG     ○ Compiling /api/admin/leagues/[id]/lineups ...
+[81:03:17.983] Server  LOG     Squad API - Looking for players with manager_id: "278b361c-ac94-4844-88eb-204af430c8ea"
+[81:03:17.996] Server  LOG     Squad API - Looking for players with manager_id: "278b361c-ac94-4844-88eb-204af430c8ea"
+[81:03:18.080] Server  LOG     Squad API - Found players: 8
+[81:03:18.101] Server  LOG     Squad API - Found players: 8
+[81:03:23.424] Server  LOG     Squad API - Looking for players with manager_id: "94906a41-e200-4952-9666-3dc597057036"
+[81:03:23.444] Server  LOG     Squad API - Looking for players with manager_id: "94906a41-e200-4952-9666-3dc597057036"
+[81:03:23.526] Server  LOG     Squad API - Found players: 9
+[81:03:23.538] Server  LOG     Squad API - Found players: 9
+[81:07:39.567] Server  LOG     ✓ Compiled in 776ms
+[81:08:12.263] Server  LOG     ✓ Compiled in 1927ms
+[81:08:35.728] Server  LOG     ✓ Compiled in 531ms
+[81:11:49.496] Server  LOG     ✓ Compiled in 573ms
+[81:12:06.028] Server  LOG     ✓ Compiled in 610ms
+[81:12:18.512] Server  LOG     ✓ Compiled in 3.8s
+[81:12:48.592] Server  LOG     ✓ Finished filesystem cache database compaction in 27.1s
+[83:37:28.517] Server  LOG     ✓ Finished filesystem cache database compaction in 29.5s
+[83:39:50.012] Server  LOG     ✓ Finished filesystem cache database compaction in 12.0s
+[83:41:34.871] Server  LOG     ✓ Finished filesystem cache database compaction in 10.4s
+[108:37:57.103] Server  LOG     ✓ Finished filesystem cache database compaction in 27.6s
+[108:48:32.663] Server  LOG     ✓ Finished filesystem cache database compaction in 23.5s
+[108:48:32.675] Server  LOG     ✓ Finished writing to filesystem cache in 16.9s
+[124:29:44.589] Server  LOG     ✓ Finished filesystem cache database compaction in 27.8s
+[127:42:25.809] Server  LOG     ✓ Compiled in 6.7s
+[127:42:47.757] Server  LOG     ✓ Finished writing to filesystem cache in 20.1s
+[154:07:05.666] Server  ERROR   ⨯ ./src/app/layout.tsx
+Module not found: Can't resolve 'next/font/google/target.css'
+File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+Error while looking up import map: File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[154:07:05.841] Server  ERROR   ⨯ ./src/app/layout.tsx
+Module not found: Can't resolve 'next/font/google/target.css'
+File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+Error while looking up import map: File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[154:07:05.868] Server  ERROR   ⨯ ./src/app/layout.tsx
+Module not found: Can't resolve 'next/font/google/target.css'
+File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+Error while looking up import map: File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[154:07:05.870] Server  ERROR   ⨯ ./src/app/layout.tsx
+Module not found: Can't resolve 'next/font/google/target.css'
+File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+Error while looking up import map: File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[154:07:05.881] Server  ERROR   ⨯ ./src/app/layout.tsx
+Module not found: Can't resolve 'next/font/google/target.css'
+File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+Error while looking up import map: File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[154:07:05.885] Server  ERROR   ⨯ ./src/app/layout.tsx
+Module not found: Can't resolve 'next/font/google/target.css'
+File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+Error while looking up import map: File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[154:07:05.887] Server  ERROR   ⨯ ./src/app/layout.tsx
+Module not found: Can't resolve 'next/font/google/target.css'
+File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+Error while looking up import map: File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[154:07:05.889] Server  ERROR   ⨯ ./src/app/layout.tsx
+Module not found: Can't resolve 'next/font/google/target.css'
+File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+Error while looking up import map: File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[154:07:05.917] Server  ERROR   ⨯ ./src/app/layout.tsx
+Module not found: Can't resolve 'next/font/google/target.css'
+File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+Error while looking up import map: File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[154:07:06.061] Server  ERROR   ⨯ ./src/app/layout.tsx
+Module not found: Can't resolve 'next/font/google/target.css'
+File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+Error while looking up import map: File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[154:07:06.072] Server  ERROR   ⨯ ./src/app/layout.tsx
+Module not found: Can't resolve 'next/font/google/target.css'
+File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+Error while looking up import map: File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[154:07:06.073] Server  ERROR   ⨯ ./src/app/layout.tsx
+Module not found: Can't resolve 'next/font/google/target.css'
+File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+Error while looking up import map: File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[154:07:06.076] Server  ERROR   ⨯ ./src/app/layout.tsx
+Module not found: Can't resolve 'next/font/google/target.css'
+File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+Error while looking up import map: File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[154:07:06.077] Server  ERROR   ⨯ ./src/app/layout.tsx
+Module not found: Can't resolve 'next/font/google/target.css'
+File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+Error while looking up import map: File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[154:07:06.079] Server  ERROR   ⨯ ./src/app/layout.tsx
+Module not found: Can't resolve 'next/font/google/target.css'
+File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+Error while looking up import map: File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[154:07:06.079] Server  ERROR   ⨯ ./src/app/layout.tsx
+Module not found: Can't resolve 'next/font/google/target.css'
+File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+Error while looking up import map: File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[154:07:06.090] Server  ERROR   ⨯ ./src/app/layout.tsx
+Module not found: Can't resolve 'next/font/google/target.css'
+File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+Error while looking up import map: File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[154:07:06.091] Server  ERROR   ⨯ ./src/app/layout.tsx
+Module not found: Can't resolve 'next/font/google/target.css'
+File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+Error while looking up import map: File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[154:07:06.096] Server  ERROR   ⨯ ./src/app/layout.tsx
+Module not found: Can't resolve 'next/font/google/target.css'
+File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+Error while looking up import map: File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[154:07:06.123] Server  ERROR   ⨯ ./src/app/layout.tsx
+Module not found: Can't resolve 'next/font/google/target.css'
+File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+Error while looking up import map: File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[154:07:06.128] Server  ERROR   ⨯ ./src/app/layout.tsx
+Module not found: Can't resolve 'next/font/google/target.css'
+File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+Error while looking up import map: File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[154:07:06.128] Server  ERROR   ⨯ ./src/app/layout.tsx
+Module not found: Can't resolve 'next/font/google/target.css'
+File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+Error while looking up import map: File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[154:07:06.131] Server  ERROR   ⨯ ./src/app/layout.tsx
+Module not found: Can't resolve 'next/font/google/target.css'
+File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+Error while looking up import map: File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[154:07:06.144] Server  ERROR   ⨯ ./src/app/layout.tsx
+Module not found: Can't resolve 'next/font/google/target.css'
+File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+Error while looking up import map: File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[154:07:06.157] Server  ERROR   ⨯ ./src/app/layout.tsx
+Module not found: Can't resolve 'next/font/google/target.css'
+File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+Error while looking up import map: File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[154:07:06.160] Server  ERROR   ⨯ ./src/app/layout.tsx
+Module not found: Can't resolve 'next/font/google/target.css'
+File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+Error while looking up import map: File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[154:07:06.164] Server  ERROR   ⨯ ./src/app/layout.tsx
+Module not found: Can't resolve 'next/font/google/target.css'
+File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+Error while looking up import map: File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[154:07:06.164] Server  ERROR   ⨯ ./src/app/layout.tsx
+Module not found: Can't resolve 'next/font/google/target.css'
+File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+Error while looking up import map: File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[154:07:06.168] Server  ERROR   ⨯ ./src/app/layout.tsx
+Module not found: Can't resolve 'next/font/google/target.css'
+File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+Error while looking up import map: File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[154:07:06.169] Server  ERROR   ⨯ ./src/app/layout.tsx
+Module not found: Can't resolve 'next/font/google/target.css'
+File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+Error while looking up import map: File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[154:07:06.234] Server  ERROR   ⨯ ./src/app/layout.tsx
+Module not found: Can't resolve 'next/font/google/target.css'
+File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+Error while looking up import map: File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[154:07:06.235] Server  ERROR   ⨯ ./src/app/layout.tsx
+Module not found: Can't resolve 'next/font/google/target.css'
+File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+Error while looking up import map: File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[154:07:06.238] Server  ERROR   ⨯ ./src/app/layout.tsx
+Module not found: Can't resolve 'next/font/google/target.css'
+File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+Error while looking up import map: File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[154:07:06.238] Server  ERROR   ⨯ ./src/app/layout.tsx
+Module not found: Can't resolve 'next/font/google/target.css'
+File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+Error while looking up import map: File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[154:07:06.240] Server  ERROR   ⨯ ./src/app/layout.tsx
+Module not found: Can't resolve 'next/font/google/target.css'
+File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+Error while looking up import map: File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[154:07:06.241] Server  ERROR   ⨯ ./src/app/layout.tsx
+Module not found: Can't resolve 'next/font/google/target.css'
+File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+Error while looking up import map: File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+Debug info:
+- Execution of NextFontGoogleReplacer::import_map_result failed
+- Execution of *get_font_css_properties failed
+- Execution of get_font_fallback failed
+- Execution of load_font_metrics failed
+- File not found: "[project]/node_modules/next/dist/server/capsize-font-metrics.json"
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[154:07:28.961] Server  LOG     ✓ Finished writing to filesystem cache in 21.6s
+[154:07:47.356] Server  LOG     ✓ Finished filesystem cache database compaction in 18.7s
+[223:41:48.452] Server  LOG     ○ Compiling / ...
