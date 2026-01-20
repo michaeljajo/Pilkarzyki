@@ -151,6 +151,30 @@ export default function CupResultsPage({ params }: CupResultsPageProps) {
     }
   }, [cupId])
 
+  // Auto-select current active gameweek when gameweeks are loaded
+  useEffect(() => {
+    if (cupData?.gameweeks && cupData.gameweeks.length > 0 && !selectedGameweek) {
+      // Sort gameweeks by league week number
+      const sortedGameweeks = [...cupData.gameweeks].sort((a: CupGameweek, b: CupGameweek) =>
+        (a.gameweek?.week || 0) - (b.gameweek?.week || 0)
+      )
+
+      let activeGameweek: CupGameweek | undefined
+
+      // Find the first incomplete gameweek
+      activeGameweek = sortedGameweeks.find((cgw: CupGameweek) => !cgw.gameweek?.is_completed)
+
+      // If all gameweeks are completed, show the last one
+      if (!activeGameweek) {
+        activeGameweek = sortedGameweeks[sortedGameweeks.length - 1]
+      }
+
+      if (activeGameweek) {
+        setSelectedGameweek(activeGameweek.id)
+      }
+    }
+  }, [cupData?.gameweeks, selectedGameweek])
+
   useEffect(() => {
     if (!user) {
       router.push('/sign-in')
@@ -166,35 +190,6 @@ export default function CupResultsPage({ params }: CupResultsPageProps) {
       if (response.ok) {
         const data = await response.json()
         setCupData(data)
-
-        // Auto-select current active gameweek when gameweeks are loaded
-        if (data.gameweeks && data.gameweeks.length > 0 && !selectedGameweek) {
-          // Find the last completed gameweek
-          const completedGameweeks = data.gameweeks.filter((cgw: CupGameweek) => cgw.gameweek?.is_completed)
-          const sortedGameweeks = [...data.gameweeks].sort((a: CupGameweek, b: CupGameweek) =>
-            (a.gameweek?.week || 0) - (b.gameweek?.week || 0)
-          )
-
-          let activeGameweek: CupGameweek | undefined
-
-          if (completedGameweeks.length > 0) {
-            // Find the highest completed gameweek number
-            const maxCompletedWeek = Math.max(...completedGameweeks.map((cgw: CupGameweek) => cgw.gameweek?.week || 0))
-            // Get the next gameweek after the last completed one
-            activeGameweek = sortedGameweeks.find((cgw: CupGameweek) =>
-              cgw.gameweek?.week === maxCompletedWeek + 1
-            )
-          }
-
-          // If no active gameweek found (e.g., no completed gameweeks yet), default to first gameweek
-          if (!activeGameweek) {
-            activeGameweek = sortedGameweeks[0]
-          }
-
-          if (activeGameweek) {
-            setSelectedGameweek(activeGameweek.id)
-          }
-        }
       } else {
         const errorData = await response.json().catch(() => ({}))
         setError(errorData.error || 'Nie udało się pobrać wyników pucharu')

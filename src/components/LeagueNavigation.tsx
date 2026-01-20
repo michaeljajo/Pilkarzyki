@@ -396,6 +396,22 @@ export function LeagueNavigation({
                     </div>
                   </Link>
                 )}
+
+                {/* Lineups - Show only for admins */}
+                {isAdmin && (
+                  <Link
+                    href={`/dashboard/admin/leagues/${leagueId}/lineups`}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block rounded-xl border-2 border-gray-200 hover:shadow-lg transition-shadow duration-200 p-4"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 shrink-0 rounded-lg bg-[#6366F1]/10 flex items-center justify-center">
+                        <Target size={24} className="text-[#6366F1]" />
+                      </div>
+                      <h3 className="text-base font-bold text-gray-900">Składy</h3>
+                    </div>
+                  </Link>
+                )}
               </nav>
 
               {/* Back Button */}

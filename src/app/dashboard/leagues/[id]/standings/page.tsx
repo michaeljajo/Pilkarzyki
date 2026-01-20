@@ -51,7 +51,7 @@ export default function LeagueStandingsPage({ params }: LeagueStandingsPageProps
         currentPage="standings"
       />
 
-      <main className="max-w-[1400px] mx-auto" style={{ paddingLeft: '48px', paddingRight: '48px', paddingTop: '64px', paddingBottom: '96px' }}>
+      <main className="max-w-[1400px] mx-auto px-2 sm:px-6 md:px-12 pt-16 pb-24">
         {/* League Table - without admin controls */}
         {leagueId && (
           <LeagueTable leagueId={leagueId} showAdminControls={false} />

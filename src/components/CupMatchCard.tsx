@@ -114,18 +114,18 @@ export function CupMatchCard({ match }: CupMatchCardProps) {
 
       {/* Match Score Header */}
       <div className="flex items-center justify-between mb-3">
-        <div className="flex-1" style={{ paddingRight: '24px' }}>
-          <p className={`text-lg font-semibold ${homeNameColor}`}>
+        <div className="flex-1 pr-2 sm:pr-4 md:pr-6">
+          <p className={`text-sm sm:text-base md:text-lg font-semibold ${homeNameColor}`}>
             {getManagerDisplayName(match.home_manager, match.home_team_source)}
           </p>
         </div>
-        <div className="flex items-center gap-4 px-8">
-          <span className="text-3xl font-bold text-[#061852]">{homeGoals}</span>
-          <span className="text-2xl font-medium text-gray-400">-</span>
-          <span className="text-3xl font-bold text-[#061852]">{awayGoals}</span>
+        <div className="flex items-center gap-2 sm:gap-3 md:gap-4 px-2 sm:px-4 md:px-8">
+          <span className="text-2xl sm:text-3xl font-bold text-[#061852]">{homeGoals}</span>
+          <span className="text-xl sm:text-2xl font-medium text-gray-400">-</span>
+          <span className="text-2xl sm:text-3xl font-bold text-[#061852]">{awayGoals}</span>
         </div>
-        <div className="flex-1 text-right" style={{ paddingLeft: '24px' }}>
-          <p className={`text-lg font-semibold ${awayNameColor}`}>
+        <div className="flex-1 text-right pl-2 sm:pl-4 md:pl-6">
+          <p className={`text-sm sm:text-base md:text-lg font-semibold ${awayNameColor}`}>
             {getManagerDisplayName(match.away_manager, match.away_team_source)}
           </p>
         </div>
@@ -143,7 +143,7 @@ export function CupMatchCard({ match }: CupMatchCardProps) {
       {/* Player Details */}
       <div className="flex items-start justify-between pt-3 border-t-2 border-[#DECF99]">
         {/* Home Team Players */}
-        <div className="flex-1 space-y-1" style={{ paddingRight: '32px' }}>
+        <div className="flex-1 space-y-1 pr-2 sm:pr-4 md:pr-8">
           {homePlayers.length > 0 ? (
             homePlayers.map((player) => {
               const goals = player.goals_scored || 0
@@ -152,7 +152,7 @@ export function CupMatchCard({ match }: CupMatchCardProps) {
               const isFromDefault = match.home_lineup?.is_from_default || false
               return (
                 <div key={player.id} className="flex items-baseline gap-2 h-[20px]">
-                  <p className={`text-sm leading-5 truncate ${
+                  <p className={`text-xs sm:text-sm leading-5 truncate ${
                     isOwnGoal ? 'font-bold text-red-600' :
                     hasPlayed && goals > 0 ? 'font-bold text-[#061852]' :
                     hasPlayed && goals === 0 ? 'italic text-gray-600' :
@@ -173,13 +173,13 @@ export function CupMatchCard({ match }: CupMatchCardProps) {
             })
           ) : (
             <div className="flex items-baseline gap-2 h-[20px]">
-              <p className="text-sm text-gray-400 italic leading-5">Nie ustawiono składu</p>
+              <p className="text-xs sm:text-sm text-gray-400 italic leading-5">Nie ustawiono składu</p>
             </div>
           )}
         </div>
 
         {/* Away Team Players */}
-        <div className="flex-1 text-right space-y-1" style={{ paddingLeft: '32px' }}>
+        <div className="flex-1 text-right space-y-1 pl-2 sm:pl-4 md:pl-8">
           {awayPlayers.length > 0 ? (
             awayPlayers.map((player) => {
               const goals = player.goals_scored || 0
@@ -195,7 +195,7 @@ export function CupMatchCard({ match }: CupMatchCardProps) {
                       ))}
                     </div>
                   )}
-                  <p className={`text-sm leading-5 truncate ${
+                  <p className={`text-xs sm:text-sm leading-5 truncate ${
                     isOwnGoal ? 'font-bold text-red-600' :
                     hasPlayed && goals > 0 ? 'font-bold text-[#061852]' :
                     hasPlayed && goals === 0 ? 'italic text-gray-600' :
@@ -209,7 +209,7 @@ export function CupMatchCard({ match }: CupMatchCardProps) {
             })
           ) : (
             <div className="flex items-baseline justify-end gap-2 h-[20px]">
-              <p className="text-sm text-gray-400 italic leading-5">Nie ustawiono składu</p>
+              <p className="text-xs sm:text-sm text-gray-400 italic leading-5">Nie ustawiono składu</p>
             </div>
           )}
         </div>

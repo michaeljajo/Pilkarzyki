@@ -200,14 +200,14 @@ export default function LeagueTable({ leagueId, showAdminControls = false }: Lea
           </div>
         </div>
       ) : (
-        <div className="bg-[#29544D] py-3 sm:py-4 px-4 sm:px-6">
+        <div className="bg-[#29544D] py-3 sm:py-4 px-2 sm:px-6">
           <h3 className="text-base sm:text-lg font-bold text-white">Tabela</h3>
         </div>
       )}
 
       {/* Table Content */}
       {standings.length === 0 ? (
-        <div className="text-center py-8 sm:py-12 px-4 sm:px-6">
+        <div className="text-center py-8 sm:py-12 px-2 sm:px-6">
           <div className="text-3xl sm:text-5xl mb-3 sm:mb-4">⚽</div>
           <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1 sm:mb-2">Brak rozegranych meczów</h3>
           <p className="text-sm sm:text-base text-gray-600">
@@ -219,16 +219,16 @@ export default function LeagueTable({ leagueId, showAdminControls = false }: Lea
           <table className="w-full">
             <thead>
               <tr className="border-b-2 border-[#DECF99]">
-                <th className="text-left py-2 sm:py-3 pr-2 sm:pr-6 pl-3 sm:pl-6 text-xs font-semibold text-gray-500 uppercase tracking-wider w-12 sm:w-16">#</th>
-                <th className="text-left py-2 sm:py-3 px-2 sm:px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Menedżer</th>
-                <th className="text-center py-2 sm:py-3 px-1 sm:px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-12 sm:w-20">M</th>
-                <th className="text-center py-2 sm:py-3 px-1 sm:px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-12 sm:w-20">Z</th>
-                <th className="text-center py-2 sm:py-3 px-1 sm:px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-12 sm:w-20">R</th>
-                <th className="text-center py-2 sm:py-3 px-1 sm:px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-12 sm:w-20">P</th>
-                <th className="text-center py-2 sm:py-3 px-1 sm:px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-14 sm:w-24">B+</th>
-                <th className="text-center py-2 sm:py-3 px-1 sm:px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-14 sm:w-24">B-</th>
-                <th className="text-center py-2 sm:py-3 px-1 sm:px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-14 sm:w-24">B=</th>
-                <th className="text-center py-2 sm:py-3 px-1 sm:px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-16 sm:w-24">PKT</th>
+                <th className="text-center py-2 sm:py-3 px-1 sm:px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider w-10 sm:w-16">#</th>
+                <th className="text-left py-2 sm:py-3 px-1 sm:px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider min-w-[120px] sm:min-w-[180px]">Menedżer</th>
+                <th className="text-center py-2 sm:py-3 px-0.5 sm:px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-9 sm:w-20">M</th>
+                <th className="text-center py-2 sm:py-3 px-0.5 sm:px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-9 sm:w-20">Z</th>
+                <th className="text-center py-2 sm:py-3 px-0.5 sm:px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-9 sm:w-20">R</th>
+                <th className="text-center py-2 sm:py-3 px-0.5 sm:px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-9 sm:w-20">P</th>
+                <th className="text-center py-2 sm:py-3 px-0.5 sm:px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-10 sm:w-24">B+</th>
+                <th className="text-center py-2 sm:py-3 px-0.5 sm:px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-10 sm:w-24">B-</th>
+                <th className="text-center py-2 sm:py-3 px-0.5 sm:px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-10 sm:w-24">B=</th>
+                <th className="text-center py-2 sm:py-3 px-0.5 sm:px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-12 sm:w-24">PKT</th>
               </tr>
             </thead>
             <tbody>
@@ -237,22 +237,22 @@ export default function LeagueTable({ leagueId, showAdminControls = false }: Lea
                   key={standing.managerId}
                   className={`border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150 ${getRowBgColor(standing.position)}`}
                 >
-                  <td className="py-3 sm:py-4 pr-2 sm:pr-6 pl-3 sm:pl-6 text-left">
+                  <td className="py-3 sm:py-4 px-1 sm:px-6 text-center">
                     <span className="text-xs sm:text-sm font-bold text-gray-900">{standing.position}</span>
                   </td>
-                  <td className="py-3 sm:py-4 px-2 sm:px-6">
+                  <td className="py-3 sm:py-4 px-1 sm:px-6 min-w-[120px] sm:min-w-[180px]">
                     <span className="text-xs sm:text-base font-semibold text-gray-900">{getDisplayName(standing)}</span>
                   </td>
-                  <td className="py-3 sm:py-4 px-1 sm:px-4 text-center text-xs sm:text-sm text-gray-700">{standing.played}</td>
-                  <td className="py-3 sm:py-4 px-1 sm:px-4 text-center text-xs sm:text-sm text-gray-700">{standing.won}</td>
-                  <td className="py-3 sm:py-4 px-1 sm:px-4 text-center text-xs sm:text-sm text-gray-700">{standing.drawn}</td>
-                  <td className="py-3 sm:py-4 px-1 sm:px-4 text-center text-xs sm:text-sm text-gray-700">{standing.lost}</td>
-                  <td className="py-3 sm:py-4 px-1 sm:px-4 text-center text-xs sm:text-sm text-gray-700">{standing.goalsFor}</td>
-                  <td className="py-3 sm:py-4 px-1 sm:px-4 text-center text-xs sm:text-sm text-gray-700">{standing.goalsAgainst}</td>
-                  <td className="py-3 sm:py-4 px-1 sm:px-4 text-center text-xs sm:text-sm font-medium text-gray-900">
+                  <td className="py-3 sm:py-4 px-0.5 sm:px-4 text-center text-xs sm:text-sm text-gray-700">{standing.played}</td>
+                  <td className="py-3 sm:py-4 px-0.5 sm:px-4 text-center text-xs sm:text-sm text-gray-700">{standing.won}</td>
+                  <td className="py-3 sm:py-4 px-0.5 sm:px-4 text-center text-xs sm:text-sm text-gray-700">{standing.drawn}</td>
+                  <td className="py-3 sm:py-4 px-0.5 sm:px-4 text-center text-xs sm:text-sm text-gray-700">{standing.lost}</td>
+                  <td className="py-3 sm:py-4 px-0.5 sm:px-4 text-center text-xs sm:text-sm text-gray-700">{standing.goalsFor}</td>
+                  <td className="py-3 sm:py-4 px-0.5 sm:px-4 text-center text-xs sm:text-sm text-gray-700">{standing.goalsAgainst}</td>
+                  <td className="py-3 sm:py-4 px-0.5 sm:px-4 text-center text-xs sm:text-sm font-medium text-gray-900">
                     {standing.goalDifference > 0 ? '+' : ''}{standing.goalDifference}
                   </td>
-                  <td className="py-3 sm:py-4 px-1 sm:px-4 text-center">
+                  <td className="py-3 sm:py-4 px-0.5 sm:px-4 text-center">
                     <span className="font-bold text-[#061852] text-sm sm:text-base">{standing.points}</span>
                   </td>
                 </tr>
