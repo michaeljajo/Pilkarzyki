@@ -188,6 +188,7 @@ export interface PlayerImport {
   Club: string
   League?: string  // Optional - Real-life football league (e.g., "Premier League", "La Liga")
   Manager?: string  // Optional - manager assignment
+  'Team Name'?: string  // Optional - team name for the squad
 }
 
 export interface LineupValidation {

@@ -36,6 +36,7 @@ export default function DraftUploadPage() {
   const [effectiveDate, setEffectiveDate] = useState<string>('')
   const [loading, setLoading] = useState(false)
   const [downloading, setDownloading] = useState(false)
+  const [exporting, setExporting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<DraftResult | null>(null)
 
@@ -68,6 +69,39 @@ export default function DraftUploadPage() {
       setError(err instanceof Error ? err.message : 'Failed to download template')
     } finally {
       setDownloading(false)
+    }
+  }
+
+  const handleExportCurrentSquads = async () => {
+    try {
+      setExporting(true)
+      setError(null)
+      const response = await fetch(`/api/admin/players/draft/export?leagueId=${params.id}`)
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to export current squads')
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+
+      // Get filename from response headers if available
+      const contentDisposition = response.headers.get('content-disposition')
+      const filenameMatch = contentDisposition?.match(/filename="?(.+)"?/)
+      const filename = filenameMatch ? filenameMatch[1] : 'current-squads.xlsx'
+
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to export current squads')
+    } finally {
+      setExporting(false)
     }
   }
 
@@ -143,19 +177,45 @@ export default function DraftUploadPage() {
       {/* Template Download */}
       <Card>
         <CardHeader>
-          <CardTitle>1. Download Template</CardTitle>
+          <CardTitle>1. Download Squads or Template</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-gray-600 mb-4">
-            Download the Excel template to prepare your draft data. The template includes all required columns.
-          </p>
-          <Button
-            onClick={handleDownloadTemplate}
-            disabled={downloading}
-            variant="outline"
-          >
-            {downloading ? 'Downloading...' : 'Download Template'}
-          </Button>
+          <div className="space-y-4">
+            <div>
+              <h4 className="text-sm font-semibold text-gray-900 mb-2">Export Current Squads (Recommended)</h4>
+              <p className="text-sm text-gray-600 mb-3">
+                Download an Excel file with all current squad assignments. This allows you to:
+              </p>
+              <ul className="text-sm text-gray-600 mb-4 space-y-1 list-disc list-inside ml-2">
+                <li>See all current player-manager assignments</li>
+                <li>Modify manager assignments for the draft</li>
+                <li>Remove players from the file to unassign them</li>
+                <li>Keep players that shouldn&apos;t change</li>
+              </ul>
+              <Button
+                onClick={handleExportCurrentSquads}
+                disabled={exporting}
+                className="w-full sm:w-auto"
+              >
+                {exporting ? 'Exporting...' : 'Export Current Squads'}
+              </Button>
+            </div>
+
+            <div className="border-t pt-4">
+              <h4 className="text-sm font-semibold text-gray-900 mb-2">Download Empty Template</h4>
+              <p className="text-sm text-gray-600 mb-3">
+                Download an empty template with example data. Use this if you&apos;re starting fresh or need the column format.
+              </p>
+              <Button
+                onClick={handleDownloadTemplate}
+                disabled={downloading}
+                variant="outline"
+                className="w-full sm:w-auto"
+              >
+                {downloading ? 'Downloading...' : 'Download Empty Template'}
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
 

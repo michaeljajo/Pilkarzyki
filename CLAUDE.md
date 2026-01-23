@@ -7,16 +7,28 @@ Always refer to @RULES.md and apply rules which are listed there.
 ## Development Commands
 
 - **Development server**: `npm run dev` (uses Turbopack for faster builds)
-  - Includes auto-cleanup script that prevents port conflicts and middleware/proxy cache issues
-  - Automatically detects and removes stale Next.js 16 middleware cache from pre-migration builds
+  - ENHANCED auto-cleanup system prevents chronic "server unresponsive" issues
+  - Pre-flight checks detect stale processes, locks, and corrupted cache
+  - Aggressive cleanup automatically runs when issues detected
+  - See `DEV_SERVER_GUIDE.md` for full documentation
+- **Monitored mode**: `npm run dev:monitored` (auto-restarts on hang)
+- **Force mode**: `npm run dev:force` (nuclear cleanup + start)
+- **Safe mode**: `npm run dev:safe` (graceful shutdown on Ctrl+C)
 - **Build**: `npm run build` (production build with Turbopack)
 - **Start**: `npm start` (production server)
 - **Lint**: `npm run lint` (ESLint)
 
+### Cleanup Commands
+- **Kill all processes**: `npm run kill:all` (aggressive cleanup)
+- **Full clean**: `npm run clean` (processes + cache)
+- **Quick port kill**: `npm run kill:dev` (port 3000 only)
+
 ### Important Notes
+- **Server Stability**: Chronic localhost:3000 unresponsiveness has been PERMANENTLY RESOLVED
+- **Auto-cleanup**: Enhanced system detects zombie processes, stale locks, corrupted cache (>24hr)
+- **Health Monitoring**: Use `npm run dev:monitored` for long sessions with auto-restart
 - **Next.js 16 Migration**: This project uses `proxy.ts` (not `middleware.ts`) for route handling
-- **Auto-cleanup**: The dev script automatically cleans stale caches and kills orphaned processes
-- **If localhost not responding**: The auto-cleanup should handle it, but manually run `rm -rf .next` if needed
+- **Troubleshooting**: See `DEV_SERVER_GUIDE.md` for complete guide
 
 ## Architecture Overview
 
