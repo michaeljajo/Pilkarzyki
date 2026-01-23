@@ -205,7 +205,7 @@ function AdminLayoutContent({ children }: { children: ReactNode }) {
 
                   {/* Admin */}
                   <Link
-                    href={`/dashboard/admin/leagues/${leagueId}`}
+                    href={`/dashboard/admin/leagues/${leagueId}/results`}
                     className={`min-h-[44px] py-3 text-sm font-medium rounded-xl transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 whitespace-nowrap inline-flex items-center justify-center ${
                       pathname.startsWith(`/dashboard/admin/leagues/${leagueId}`)
                         ? 'bg-[#061852] text-white shadow-sm hover:bg-[#0a2475] hover:shadow-md focus:ring-[#061852]'

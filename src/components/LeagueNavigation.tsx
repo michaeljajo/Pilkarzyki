@@ -246,7 +246,7 @@ export function LeagueNavigation({
               {/* Admin */}
               {isAdmin && (
                 <Link
-                  href={`/dashboard/admin/leagues/${leagueId}`}
+                  href={`/dashboard/admin/leagues/${leagueId}/results`}
                   className="min-h-[44px] py-3 text-sm font-medium rounded-xl transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 whitespace-nowrap inline-flex items-center justify-center bg-transparent text-[#29544D] hover:bg-gray-100 focus:ring-gray-300"
                   style={{ paddingLeft: '2em', paddingRight: '2em' }}
                 >
@@ -317,7 +317,7 @@ export function LeagueNavigation({
                 {/* Admin: Manage League Link - Show at top for mobile */}
                 {isAdmin && (
                   <Link
-                    href={`/dashboard/admin/leagues/${leagueId}`}
+                    href={`/dashboard/admin/leagues/${leagueId}/results`}
                     onClick={() => setMobileMenuOpen(false)}
                     className="block rounded-xl border-2 border-gray-200 hover:shadow-lg transition-shadow duration-200 p-4"
                   >
