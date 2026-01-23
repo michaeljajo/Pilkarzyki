@@ -31,6 +31,7 @@ export default function LeaguePlayersPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null)
   const [isSaving, setIsSaving] = useState(false)
+  const [editError, setEditError] = useState<string | null>(null)
   const [editForm, setEditForm] = useState({
     name: '',
     surname: '',
@@ -72,6 +73,7 @@ export default function LeaguePlayersPage() {
       footballLeague: player.football_league || '',
       position: player.position
     })
+    setEditError(null)
     setIsEditModalOpen(true)
   }
 
@@ -80,6 +82,8 @@ export default function LeaguePlayersPage() {
 
     try {
       setIsSaving(true)
+      setEditError(null)
+
       const response = await fetch(`/api/players/${editingPlayer.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -92,11 +96,13 @@ export default function LeaguePlayersPage() {
         throw new Error(data.error || 'Failed to update player')
       }
 
+      // Success - close modal and refresh
       await fetchPlayers()
       setIsEditModalOpen(false)
       setEditingPlayer(null)
+      setEditError(null)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      setEditError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
       setIsSaving(false)
     }
@@ -105,6 +111,7 @@ export default function LeaguePlayersPage() {
   function handleCloseModal() {
     setIsEditModalOpen(false)
     setEditingPlayer(null)
+    setEditError(null)
   }
 
   if (loading) {
@@ -180,6 +187,10 @@ export default function LeaguePlayersPage() {
                         <span className="text-gray-900 font-medium">{player.club}</span>
                       </div>
                       <div className="flex justify-between">
+                        <span className="text-gray-500">Liga:</span>
+                        <span className="text-gray-900 font-medium">{player.football_league || '-'}</span>
+                      </div>
+                      <div className="flex justify-between">
                         <span className="text-gray-500">Pozycja:</span>
                         <span className="text-gray-900 font-medium">{player.position}</span>
                       </div>
@@ -210,6 +221,9 @@ export default function LeaguePlayersPage() {
                             Klub
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Liga
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Pozycja
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -228,6 +242,9 @@ export default function LeaguePlayersPage() {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                               {player.club}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {player.football_league || '-'}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                               {player.position}
@@ -276,6 +293,12 @@ export default function LeaguePlayersPage() {
         }
       >
         <div className="space-y-4">
+          {editError && (
+            <div className="bg-red-50 border border-red-200 rounded-md p-3">
+              <p className="text-sm text-red-700">{editError}</p>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">

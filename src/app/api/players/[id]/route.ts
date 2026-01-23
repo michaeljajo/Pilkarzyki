@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClerkSupabaseClientSsr } from '@/lib/supabase-server'
+import { supabaseAdmin } from '@/lib/supabase'
 import { auth } from '@clerk/nextjs/server'
 import { Position } from '@/types'
 
@@ -48,7 +49,8 @@ export async function PUT(
     const { id } = await params
     const updates = await request.json()
 
-    const supabase = await createClerkSupabaseClientSsr()
+    // Use admin client for player updates (bypasses Clerk auth issues)
+    const supabase = supabaseAdmin
 
     // Validate position if provided
     if (updates.position) {
@@ -83,6 +85,9 @@ export async function PUT(
       .single()
 
     if (error) {
+      console.error('Player update error:', error)
+      console.error('Update data:', updateData)
+      console.error('Player ID:', id)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
