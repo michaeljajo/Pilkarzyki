@@ -121,7 +121,7 @@ export default async function LeagueDashboardPage({ params }: LeagueDashboardPag
             <div className="flex flex-col gap-3 md:hidden">
               {/* Admin link at top for mobile */}
               {isAdmin && (
-                <Link href={`/dashboard/admin/leagues/${leagueId}`} className="mx-2">
+                <Link href={`/dashboard/admin/leagues/${leagueId}/results`} className="mx-2">
                   <div className="bg-white rounded-xl border border-gray-200 hover:shadow-lg group cursor-pointer transition-shadow duration-200 p-4 flex items-center gap-4">
                     <div className="w-12 h-12 shrink-0 rounded-lg bg-[#F59E0B]/10 flex items-center justify-center group-hover:scale-110 transition-transform">
                       <Settings size={24} className="text-[#F59E0B]" />
@@ -332,7 +332,7 @@ export default async function LeagueDashboardPage({ params }: LeagueDashboardPag
               )}
 
               {isAdmin && (
-                <Link href={`/dashboard/admin/leagues/${leagueId}`}>
+                <Link href={`/dashboard/admin/leagues/${leagueId}/results`}>
                   <div className="bg-white rounded-2xl border border-gray-200 hover-lift hover:shadow-xl group cursor-pointer min-w-[200px] text-center transition-shadow duration-200" style={{ padding: '40px 32px' }}>
                     <div className="w-16 h-16 mx-auto rounded-xl bg-[#F59E0B]/10 flex items-center justify-center group-hover:scale-110 transition-transform" style={{ marginBottom: '24px' }}>
                       <Settings size={32} className="text-[#F59E0B]" />
