@@ -113,26 +113,61 @@ export async function createPlayerTransfer(
   leagueId: string,
   createdBy?: string,
   notes?: string
-): Promise<PlayerTransferRow | null> {
+): Promise<{ success: true; data: PlayerTransferRow } | { success: false; error: string; details?: any }> {
   try {
-    // Verify the player belongs to the specified league
-    const { data: player } = await supabaseAdmin
+    // Get player and verify it exists
+    const { data: player, error: playerError } = await supabaseAdmin
       .from('players')
-      .select('id, league, leagues!inner(id)')
+      .select('id, league')
       .eq('id', playerId)
       .single()
 
-    if (!player) {
-      console.error('Player not found:', playerId)
-      return null
+    if (playerError || !player) {
+      console.error('Player not found:', { playerId, playerError })
+      return {
+        success: false,
+        error: `Player not found: ${playerId}`,
+        details: playerError
+      }
     }
 
-    // Type assertion for joined data
-    const playerLeague = player.leagues as any
-    if (playerLeague?.id !== leagueId) {
-      console.error('Player does not belong to the specified league')
-      return null
+    // Get league by ID to verify player belongs to it
+    const { data: league, error: leagueError } = await supabaseAdmin
+      .from('leagues')
+      .select('id, name')
+      .eq('id', leagueId)
+      .single()
+
+    if (leagueError || !league) {
+      console.error('League not found:', { leagueId, leagueError })
+      return {
+        success: false,
+        error: `League not found: ${leagueId}`,
+        details: leagueError
+      }
     }
+
+    // Verify player's league name matches the league's name
+    if (player.league !== league.name) {
+      console.error('Player does not belong to the specified league', {
+        playerLeague: player.league,
+        leagueName: league.name
+      })
+      return {
+        success: false,
+        error: `Player league mismatch: player is in "${player.league}" but transfer is for "${league.name}"`,
+        details: { playerLeague: player.league, leagueName: league.name }
+      }
+    }
+
+    console.log('Transfer validation passed:', {
+      playerId,
+      playerLeague: player.league,
+      leagueId,
+      leagueName: league.name,
+      managerId,
+      transferType
+    })
 
     const { data, error } = await supabaseAdmin
       .from('player_transfers')
@@ -150,14 +185,40 @@ export async function createPlayerTransfer(
       .single()
 
     if (error) {
-      console.error('Error creating player transfer:', error)
-      return null
+      console.error('Error creating player transfer:', {
+        error,
+        playerId,
+        managerId,
+        leagueId,
+        playerLeague: player.league,
+        leagueName: league.name,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      })
+      return {
+        success: false,
+        error: `Database error: ${error.message}`,
+        details: {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          playerId,
+          managerId,
+          leagueId
+        }
+      }
     }
 
-    return data
+    return { success: true, data }
   } catch (error) {
     console.error('Exception in createPlayerTransfer:', error)
-    return null
+    return {
+      success: false,
+      error: `Exception: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      details: error
+    }
   }
 }
 

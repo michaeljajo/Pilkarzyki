@@ -306,8 +306,9 @@ export async function POST(request: NextRequest) {
             `Draft transfer: ${oldManagerName} → ${newManagerName}`
           )
 
-          if (!transfer) {
-            result.errors.push(`Row ${rowNum}: Failed to create transfer record for ${row.Name}`)
+          if (!transfer.success) {
+            result.errors.push(`Row ${rowNum}: Failed to create transfer record for ${row.Name} - ${transfer.error}`)
+            console.error(`Transfer error details for ${row.Name}:`, transfer.details)
             continue
           }
 
@@ -423,8 +424,9 @@ export async function POST(request: NextRequest) {
             `New player added via draft`
           )
 
-          if (!transfer) {
-            result.errors.push(`Row ${rowNum}: Failed to create transfer record for new player ${row.Name}`)
+          if (!transfer.success) {
+            result.errors.push(`Row ${rowNum}: Failed to create transfer record for new player ${row.Name} - ${transfer.error}`)
+            console.error(`Transfer error details for new player ${row.Name}:`, transfer.details)
           }
 
           // Add to squad if manager assigned
@@ -544,8 +546,9 @@ export async function POST(request: NextRequest) {
           `Draft removal: Player no longer in squad`
         )
 
-        if (!transfer) {
-          result.errors.push(`Failed to unassign ${player.name} ${player.surname} from ${oldManagerName}`)
+        if (!transfer.success) {
+          result.errors.push(`Failed to unassign ${player.name} ${player.surname} from ${oldManagerName} - ${transfer.error}`)
+          console.error(`Unassignment error details for ${player.name} ${player.surname}:`, transfer.details)
           continue
         }
 
