@@ -4,14 +4,19 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import { Modal } from '@/components/ui/Modal'
 import Link from 'next/link'
+import { Edit2 } from 'lucide-react'
+
+type Position = 'Goalkeeper' | 'Defender' | 'Midfielder' | 'Forward'
 
 interface Player {
   id: string
   name: string
   surname: string
-  position: string
+  position: Position
   club: string
+  football_league?: string
   manager?: {
     first_name: string
     last_name: string
@@ -23,6 +28,16 @@ export default function LeaguePlayersPage() {
   const [players, setPlayers] = useState<Player[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [editingPlayer, setEditingPlayer] = useState<Player | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
+  const [editForm, setEditForm] = useState({
+    name: '',
+    surname: '',
+    club: '',
+    footballLeague: '',
+    position: 'Forward' as Position
+  })
 
   useEffect(() => {
     if (params.id) {
@@ -46,6 +61,50 @@ export default function LeaguePlayersPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  function handleEditClick(player: Player) {
+    setEditingPlayer(player)
+    setEditForm({
+      name: player.name,
+      surname: player.surname,
+      club: player.club || '',
+      footballLeague: player.football_league || '',
+      position: player.position
+    })
+    setIsEditModalOpen(true)
+  }
+
+  async function handleSaveEdit() {
+    if (!editingPlayer) return
+
+    try {
+      setIsSaving(true)
+      const response = await fetch(`/api/players/${editingPlayer.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editForm)
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update player')
+      }
+
+      await fetchPlayers()
+      setIsEditModalOpen(false)
+      setEditingPlayer(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  function handleCloseModal() {
+    setIsEditModalOpen(false)
+    setEditingPlayer(null)
   }
 
   if (loading) {
@@ -103,8 +162,17 @@ export default function LeaguePlayersPage() {
               <div className="block sm:hidden space-y-3">
                 {players.map((player) => (
                   <div key={player.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <div className="font-semibold text-base text-gray-900 mb-2">
-                      {player.name} {player.surname}
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="font-semibold text-base text-gray-900">
+                        {player.name} {player.surname}
+                      </div>
+                      <button
+                        onClick={() => handleEditClick(player)}
+                        className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-md transition-colors"
+                      >
+                        <Edit2 size={14} />
+                        Edytuj
+                      </button>
                     </div>
                     <div className="space-y-1.5 text-sm">
                       <div className="flex justify-between">
@@ -147,6 +215,9 @@ export default function LeaguePlayersPage() {
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Menedżer
                           </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Akcje
+                          </th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
@@ -166,6 +237,15 @@ export default function LeaguePlayersPage() {
                                 ? `${player.manager.first_name} ${player.manager.last_name}`
                                 : 'Nieprzypisany'}
                             </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              <button
+                                onClick={() => handleEditClick(player)}
+                                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-md transition-colors"
+                              >
+                                <Edit2 size={16} />
+                                Edytuj
+                              </button>
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -177,6 +257,93 @@ export default function LeaguePlayersPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Edit Player Modal */}
+      <Modal
+        isOpen={isEditModalOpen}
+        onClose={handleCloseModal}
+        title="Edytuj Zawodnika"
+        description="Zaktualizuj informacje o zawodniku"
+        footer={
+          <div className="flex justify-end gap-3">
+            <Button variant="secondary" onClick={handleCloseModal} disabled={isSaving}>
+              Anuluj
+            </Button>
+            <Button onClick={handleSaveEdit} disabled={isSaving}>
+              {isSaving ? 'Zapisywanie...' : 'Zapisz Zmiany'}
+            </Button>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Imię
+              </label>
+              <input
+                type="text"
+                value={editForm.name}
+                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Nazwisko
+              </label>
+              <input
+                type="text"
+                value={editForm.surname}
+                onChange={(e) => setEditForm({ ...editForm, surname: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Klub
+            </label>
+            <input
+              type="text"
+              value={editForm.club}
+              onChange={(e) => setEditForm({ ...editForm, club: e.target.value })}
+              placeholder="np. Stade Rennais"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Liga
+            </label>
+            <input
+              type="text"
+              value={editForm.footballLeague}
+              onChange={(e) => setEditForm({ ...editForm, footballLeague: e.target.value })}
+              placeholder="np. Ligue 1"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Pozycja
+            </label>
+            <select
+              value={editForm.position}
+              onChange={(e) => setEditForm({ ...editForm, position: e.target.value as Position })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="Goalkeeper">Bramkarz</option>
+              <option value="Defender">Obrońca</option>
+              <option value="Midfielder">Pomocnik</option>
+              <option value="Forward">Napastnik</option>
+            </select>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

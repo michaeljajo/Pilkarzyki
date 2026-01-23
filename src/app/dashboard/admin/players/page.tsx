@@ -3,15 +3,18 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import { Modal } from '@/components/ui/Modal'
 import Link from 'next/link'
 import { Player, PlayerWithManager, Position } from '@/types'
+import { Edit2 } from 'lucide-react'
 
 interface PlayersTableProps {
   players: PlayerWithManager[]
   loading: boolean
+  onEdit: (player: PlayerWithManager) => void
 }
 
-function PlayersTable({ players, loading }: PlayersTableProps) {
+function PlayersTable({ players, loading, onEdit }: PlayersTableProps) {
   const [selectedLeague, setSelectedLeague] = useState<string>('')
   const [selectedPosition, setSelectedPosition] = useState<Position | ''>('')
   const [selectedManager, setSelectedManager] = useState<string>('')
@@ -164,6 +167,9 @@ function PlayersTable({ players, loading }: PlayersTableProps) {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Goals
               </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -198,6 +204,15 @@ function PlayersTable({ players, loading }: PlayersTableProps) {
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {player.total_goals || 0}
                 </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                  <button
+                    onClick={() => onEdit(player)}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-md transition-colors"
+                  >
+                    <Edit2 size={16} />
+                    Edit
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -222,6 +237,16 @@ export default function PlayersPage() {
   const [players, setPlayers] = useState<PlayerWithManager[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [editingPlayer, setEditingPlayer] = useState<PlayerWithManager | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
+  const [editForm, setEditForm] = useState({
+    name: '',
+    surname: '',
+    club: '',
+    footballLeague: '',
+    position: 'Forward' as Position
+  })
 
   useEffect(() => {
     fetchPlayers()
@@ -243,6 +268,51 @@ export default function PlayersPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  function handleEditClick(player: PlayerWithManager) {
+    setEditingPlayer(player)
+    setEditForm({
+      name: player.name,
+      surname: player.surname,
+      club: player.club || '',
+      footballLeague: player.football_league || '',
+      position: player.position
+    })
+    setIsEditModalOpen(true)
+  }
+
+  async function handleSaveEdit() {
+    if (!editingPlayer) return
+
+    try {
+      setIsSaving(true)
+      const response = await fetch(`/api/players/${editingPlayer.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editForm)
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update player')
+      }
+
+      // Refresh players list
+      await fetchPlayers()
+      setIsEditModalOpen(false)
+      setEditingPlayer(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  function handleCloseModal() {
+    setIsEditModalOpen(false)
+    setEditingPlayer(null)
   }
 
   const assignedCount = players.filter(p => p.manager_id).length
@@ -311,9 +381,96 @@ export default function PlayersPage() {
             <CardTitle>All Players</CardTitle>
           </CardHeader>
           <CardContent>
-            <PlayersTable players={players} loading={loading} />
+            <PlayersTable players={players} loading={loading} onEdit={handleEditClick} />
           </CardContent>
         </Card>
+
+        {/* Edit Player Modal */}
+        <Modal
+          isOpen={isEditModalOpen}
+          onClose={handleCloseModal}
+          title="Edit Player"
+          description="Update player information"
+          footer={
+            <div className="flex justify-end gap-3">
+              <Button variant="secondary" onClick={handleCloseModal} disabled={isSaving}>
+                Cancel
+              </Button>
+              <Button onClick={handleSaveEdit} disabled={isSaving}>
+                {isSaving ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </div>
+          }
+        >
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  First Name
+                </label>
+                <input
+                  type="text"
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Last Name
+                </label>
+                <input
+                  type="text"
+                  value={editForm.surname}
+                  onChange={(e) => setEditForm({ ...editForm, surname: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Club
+              </label>
+              <input
+                type="text"
+                value={editForm.club}
+                onChange={(e) => setEditForm({ ...editForm, club: e.target.value })}
+                placeholder="e.g., Stade Rennais"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Football League
+              </label>
+              <input
+                type="text"
+                value={editForm.footballLeague}
+                onChange={(e) => setEditForm({ ...editForm, footballLeague: e.target.value })}
+                placeholder="e.g., Ligue 1"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Position
+              </label>
+              <select
+                value={editForm.position}
+                onChange={(e) => setEditForm({ ...editForm, position: e.target.value as Position })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="Goalkeeper">Goalkeeper</option>
+                <option value="Defender">Defender</option>
+                <option value="Midfielder">Midfielder</option>
+                <option value="Forward">Forward</option>
+              </select>
+            </div>
+          </div>
+        </Modal>
       </div>
   )
 }

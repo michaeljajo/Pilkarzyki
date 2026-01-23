@@ -58,17 +58,23 @@ export async function PUT(
       }
     }
 
+    // Build update object with only provided fields
+    const updateData: any = {
+      updated_at: new Date().toISOString()
+    }
+
+    if (updates.name !== undefined) updateData.name = updates.name
+    if (updates.surname !== undefined) updateData.surname = updates.surname
+    if (updates.league !== undefined) updateData.league = updates.league
+    if (updates.position !== undefined) updateData.position = updates.position
+    if (updates.club !== undefined) updateData.club = updates.club
+    if (updates.footballLeague !== undefined) updateData.football_league = updates.footballLeague
+    if (updates.managerId !== undefined) updateData.manager_id = updates.managerId
+    if (updates.totalGoals !== undefined) updateData.total_goals = updates.totalGoals
+
     const { data, error } = await supabase
       .from('players')
-      .update({
-        name: updates.name,
-        surname: updates.surname,
-        league: updates.league,
-        position: updates.position,
-        manager_id: updates.managerId,
-        total_goals: updates.totalGoals,
-        updated_at: new Date().toISOString()
-      })
+      .update(updateData)
       .eq('id', id)
       .select(`
         *,
