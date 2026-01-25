@@ -5,7 +5,7 @@ import { unstable_cache } from 'next/cache'
 import { supabaseAdmin } from '@/lib/supabase'
 import { Button } from '@/components/ui/Button'
 import { Trophy, Plus } from 'lucide-react'
-import { LeagueCard } from '@/components/LeagueCard'
+import { LeaguesGrid } from '@/components/LeaguesGrid'  // NEW IMPORT
 import { DashboardNav } from '@/components/DashboardNav'
 
 // Cached function to get or create user record
@@ -42,7 +42,7 @@ const getUserRecord = unstable_cache(
   },
   ['user-record'],
   {
-    revalidate: 60, // Cache for 60 seconds
+    revalidate: 60,
     tags: ['user-record']
   }
 )
@@ -84,7 +84,7 @@ const getUserLeagues = unstable_cache(
   },
   ['user-leagues'],
   {
-    revalidate: 30, // Cache for 30 seconds - more frequent updates for league changes
+    revalidate: 30,
     tags: ['user-leagues']
   }
 )
@@ -100,18 +100,14 @@ export default async function DashboardPage() {
   const firstName = user.firstName || ''
   const lastName = user.lastName || ''
 
-  // Get user record with caching (60s cache)
   const userRecord = await getUserRecord(user.id, email, firstName, lastName)
 
   if (!userRecord) {
     redirect('/sign-in')
   }
 
-  // Get user's leagues with caching (30s cache) and optimized parallel queries
   const { managerSquads, adminLeagues } = await getUserLeagues(userRecord.id)
 
-  // Combine and deduplicate leagues
-  // Type assertion for Supabase joined data
   const typedManagerSquads = managerSquads as Array<{
     league_id: string;
     leagues: {
@@ -125,7 +121,6 @@ export default async function DashboardPage() {
   }> | null;
 
   const managerLeagueIds = new Set(typedManagerSquads?.map(s => s.leagues.id) || [])
-  const adminLeagueIds = new Set(adminLeagues?.map(l => l.id) || [])
 
   const allLeagues = [
     ...(typedManagerSquads?.map(item => ({
@@ -134,7 +129,6 @@ export default async function DashboardPage() {
       season: item.leagues.season,
       is_active: item.leagues.is_active,
       created_at: item.leagues.created_at,
-      // User is admin if they're the league creator OR a global admin
       isAdmin: item.leagues.admin_id === userRecord.id || userRecord.is_admin === true,
       isManager: true
     })) || []),
@@ -149,11 +143,9 @@ export default async function DashboardPage() {
     })) || [])
   ]
 
-  // Sort by creation date (newest first)
   allLeagues.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
 
-  // User has admin access if they created any league OR are a global admin
-  const hasAdminAccess = adminLeagueIds.size > 0 || userRecord.is_admin === true
+  const hasAdminAccess = (adminLeagues?.length ?? 0) > 0 || userRecord.is_admin === true
 
   return (
     <div className="min-h-screen bg-white">
@@ -161,12 +153,36 @@ export default async function DashboardPage() {
       <DashboardNav hasAdminAccess={hasAdminAccess} />
 
       {/* Main Content */}
-      <main className="max-w-[1400px] mx-auto" style={{ paddingLeft: '48px', paddingRight: '48px', paddingTop: '64px', paddingBottom: '96px' }}>
+      <main 
+        style={{ 
+          maxWidth: '1600px',  // Increased from 1400px
+          marginLeft: 'auto', 
+          marginRight: 'auto',
+          paddingLeft: '32px',  // Reduced from 48px
+          paddingRight: '32px', 
+          paddingTop: '64px', 
+          paddingBottom: '96px' 
+        }}
+      >
         <div className="animate-fade-in-up">
           {/* Header with Create Button */}
-          <div className="flex justify-between items-center mb-12">
+          <div 
+            style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center', 
+              marginBottom: '48px' 
+            }}
+          >
             <div>
-              <h1 className="text-4xl font-bold text-gray-900 leading-tight">
+              <h1 
+                style={{ 
+                  fontSize: '36px', 
+                  fontWeight: 700, 
+                  color: '#111827', 
+                  lineHeight: 1.2 
+                }}
+              >
                 Moje Ligi
               </h1>
             </div>
@@ -181,14 +197,22 @@ export default async function DashboardPage() {
             </Link>
           </div>
 
-          {/* Leagues Grid */}
+          {/* Leagues Grid - NOW USING THE NEW COMPONENT */}
           {allLeagues.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-gray-200 p-16 text-center">
-              <Trophy size={48} className="mx-auto text-gray-400 mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            <div 
+              style={{ 
+                backgroundColor: 'white', 
+                borderRadius: '16px', 
+                border: '1px solid #e5e7eb', 
+                padding: '64px', 
+                textAlign: 'center' 
+              }}
+            >
+              <Trophy size={48} style={{ margin: '0 auto 16px', color: '#9ca3af' }} />
+              <h3 style={{ fontSize: '20px', fontWeight: 600, color: '#111827', marginBottom: '8px' }}>
                 Brak Aktywnych Lig
               </h3>
-              <p className="text-gray-600 mb-6">
+              <p style={{ color: '#6b7280', marginBottom: '24px' }}>
                 Stwórz swoją pierwszą ligę, aby rozpocząć
               </p>
               <Link href="/dashboard/create-league">
@@ -201,15 +225,7 @@ export default async function DashboardPage() {
               </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3" style={{ gap: '48px', padding: '8px' }}>
-              {allLeagues.map((league, index) => (
-                <LeagueCard
-                  key={league.id}
-                  league={league}
-                  index={index}
-                />
-              ))}
-            </div>
+            <LeaguesGrid leagues={allLeagues} />
           )}
         </div>
       </main>
