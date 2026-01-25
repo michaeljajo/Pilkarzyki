@@ -17,6 +17,9 @@
 /.next/
 /out/
 
+# dev server runtime state
+/.dev-server/
+
 # production
 /build
 

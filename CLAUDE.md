@@ -6,29 +6,68 @@ Always refer to @RULES.md and apply rules which are listed there.
 
 ## Development Commands
 
+### ✨ V2 System - Bulletproof Dev Server Management
+
 - **Development server**: `npm run dev` (uses Turbopack for faster builds)
-  - ENHANCED auto-cleanup system prevents chronic "server unresponsive" issues
-  - Pre-flight checks detect stale processes, locks, and corrupted cache
-  - Aggressive cleanup automatically runs when issues detected
-  - See `DEV_SERVER_GUIDE.md` for full documentation
-- **Monitored mode**: `npm run dev:monitored` (auto-restarts on hang)
-- **Force mode**: `npm run dev:force` (nuclear cleanup + start)
+  - **V2 Features**: Process Manager, orphan detection, atomic locking
+  - Zero manual intervention required
+  - Automatic comprehensive cleanup when needed
+  - See `DEV_SERVER_GUIDE.md` for full V2 documentation
+
+- **Monitored mode**: `npm run dev:monitored` (auto-healing with V2 health monitor)
+  - Memory leak detection (auto-restart on 30% growth)
+  - CPU spike detection (auto-restart on sustained high CPU)
+  - Multi-endpoint health checks
+  - Perfect for long sessions (3+ hours)
+
+- **Status dashboard**: `npm run dev:status` (real-time process visibility)
+  - Server health and metrics
+  - All registered/orphaned processes
+  - Ports in use
+  - Performance graphs
+
+- **Watch mode**: `npm run dev:watch` (live updating dashboard)
+
+### Cleanup Commands V2
+
+- **Comprehensive cleanup**: `npm run dev:cleanup` (uses ProcessManager)
+  - Kills orphaned processes
+  - Frees all ports
+  - Shows detailed summary
+
+- **Emergency cleanup**: `npm run dev:emergency` (nuclear option)
+  - Works when everything else fails
+  - Survives ProcessManager corruption
+  - Guaranteed to work
+
+- **Force restart**: `npm run dev:force` (emergency cleanup + start)
+- **Legacy cleanup**: `npm run kill:all` (aggressive cleanup script)
+- **Full clean**: `npm run clean` (emergency + cache removal)
+- **Quick port kill**: `npm run kill:dev` (port 3000 only)
+
+### Monitoring Commands
+
+- **View logs**: `npm run dev:logs` (tail health monitor logs)
 - **Safe mode**: `npm run dev:safe` (graceful shutdown on Ctrl+C)
+
+### Build & Deploy
+
 - **Build**: `npm run build` (production build with Turbopack)
 - **Start**: `npm start` (production server)
 - **Lint**: `npm run lint` (ESLint)
 
-### Cleanup Commands
-- **Kill all processes**: `npm run kill:all` (aggressive cleanup)
-- **Full clean**: `npm run clean` (processes + cache)
-- **Quick port kill**: `npm run kill:dev` (port 3000 only)
-
 ### Important Notes
-- **Server Stability**: Chronic localhost:3000 unresponsiveness has been PERMANENTLY RESOLVED
-- **Auto-cleanup**: Enhanced system detects zombie processes, stale locks, corrupted cache (>24hr)
-- **Health Monitoring**: Use `npm run dev:monitored` for long sessions with auto-restart
+
+- **Server Stability V2**: Localhost:3000 issues PERMANENTLY RESOLVED with 5-layer defense
+- **Process Manager**: Centralized PID registry tracks all processes with parent-child relationships
+- **Orphan Detection**: Finds and kills processes whose parents died (PPID verification)
+- **Atomic Locking**: Prevents concurrent cleanup race conditions
+- **Memory Leak Detection**: Auto-restart on 30% memory growth over 10 samples
+- **CPU Spike Detection**: Auto-restart on >80% CPU for 3 consecutive checks
+- **System Watchdog**: Optional macOS launchd integration for boot cleanup
+- **Zero Intervention**: System self-heals from all failure modes
 - **Next.js 16 Migration**: This project uses `proxy.ts` (not `middleware.ts`) for route handling
-- **Troubleshooting**: See `DEV_SERVER_GUIDE.md` for complete guide
+- **Troubleshooting**: See `DEV_SERVER_GUIDE.md` for complete V2 guide
 
 ## Architecture Overview
 

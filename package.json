@@ -5,14 +5,19 @@
   "scripts": {
     "dev": "node scripts/auto-cleanup.js && next dev --turbo",
     "dev:safe": "bash scripts/dev-with-cleanup.sh",
-    "dev:monitored": "npm run dev & sleep 5 && node scripts/dev-health-monitor.js",
-    "dev:force": "bash scripts/kill-next-aggressive.sh && next dev --turbo",
+    "dev:monitored": "npm run dev & sleep 5 && node scripts/health-monitor-v2.js",
+    "dev:force": "bash scripts/emergency-cleanup.sh && next dev --turbo",
+    "dev:status": "node scripts/dev-dashboard.js",
+    "dev:watch": "node scripts/dev-dashboard.js watch",
+    "dev:cleanup": "node scripts/process-manager.js cleanup",
+    "dev:emergency": "bash scripts/emergency-cleanup.sh",
+    "dev:logs": "tail -f .dev-server/logs/health-monitor.log 2>/dev/null || echo 'No logs available yet'",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
     "kill:all": "bash scripts/kill-next-aggressive.sh",
     "kill:dev": "lsof -ti:3000 | xargs kill -9 2>/dev/null || true",
-    "clean": "bash scripts/kill-next-aggressive.sh && rm -rf .next node_modules/.cache"
+    "clean": "bash scripts/emergency-cleanup.sh && rm -rf node_modules/.cache"
   },
   "dependencies": {
     "@clerk/localizations": "^3.26.2",
@@ -58,6 +63,6 @@
     "typescript": "^5"
   },
   "optionalDependencies": {
-    "@next/swc-darwin-x64": "^16.1.3"
+    "@next/swc-darwin-x64": "^16.1.4"
   }
 }
