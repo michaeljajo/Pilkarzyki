@@ -3,6 +3,7 @@ import { currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { supabaseAdmin } from '@/lib/supabase'
+import { verifyLeagueAdmin } from '@/lib/auth-helpers'
 import { ArrowLeft, MessageCircle } from 'lucide-react'
 import Image from 'next/image'
 import { TablicaClient } from '@/components/TablicaClient'
@@ -37,7 +38,7 @@ export default async function TablicaPage({ params }: TablicaPageProps) {
   // Get league details
   const { data: league } = await supabaseAdmin
     .from('leagues')
-    .select('id, name, season, admin_id')
+    .select('id, name, season')
     .eq('id', leagueId)
     .single()
 
@@ -45,7 +46,8 @@ export default async function TablicaPage({ params }: TablicaPageProps) {
     redirect('/dashboard')
   }
 
-  const isAdmin = league.admin_id === userRecord.id
+  // Check if user is admin of this league using the league_admins table
+  const { isAdmin } = await verifyLeagueAdmin(user.id, leagueId)
 
   // Check if user is a manager in this league (has a squad)
   const { data: squad } = await supabaseAdmin

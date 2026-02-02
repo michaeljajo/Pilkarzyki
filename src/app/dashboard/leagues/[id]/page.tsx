@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { unstable_cache } from 'next/cache'
 import { supabaseAdmin } from '@/lib/supabase'
 import { LeagueNavigationCards } from '@/components/LeagueNavigationCards'
+import { verifyLeagueAdmin } from '@/lib/auth-helpers'
 import Image from 'next/image'
 
 interface LeagueDashboardPageProps {
@@ -20,7 +21,7 @@ const getLeagueData = unstable_cache(
     const [leagueResult, squadResult, cupResult] = await Promise.all([
       supabaseAdmin
         .from('leagues')
-        .select('id, name, season, is_active, admin_id')
+        .select('id, name, season, is_active')
         .eq('id', leagueId)
         .single(),
       supabaseAdmin
@@ -76,8 +77,8 @@ export default async function LeagueDashboardPage({ params }: LeagueDashboardPag
     redirect('/dashboard')
   }
 
-  // Check if user is admin of this league
-  const isAdmin = league.admin_id === userRecord.id
+  // Check if user is admin of this league using the league_admins table
+  const { isAdmin } = await verifyLeagueAdmin(user.id, leagueId)
   const isManager = !!squad
 
   // User must be either admin or manager to access

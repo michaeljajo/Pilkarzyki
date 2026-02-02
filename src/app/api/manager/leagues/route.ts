@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { auth, clerkClient } from '@clerk/nextjs/server'
 import { resolveUserNames } from '@/utils/name-resolver'
+import { verifyLeagueAdmin } from '@/lib/auth-helpers'
 
 export async function GET(request: NextRequest) {
   try {
@@ -100,11 +101,14 @@ export async function GET(request: NextRequest) {
         .eq('squads.manager_id', userRecord.id)
         .eq('is_active', true),
 
-      // Leagues where user is admin
+      // Leagues where user is admin (via league_admins table)
       supabaseAdmin
         .from('leagues')
-        .select('*')
-        .eq('admin_id', userRecord.id)
+        .select(`
+          *,
+          league_admins!inner(user_id)
+        `)
+        .eq('league_admins.user_id', userRecord.id)
         .eq('is_active', true)
     ])
 
@@ -150,7 +154,6 @@ async function getSpecificLeague(userId: string, leagueId: string) {
         season,
         current_gameweek,
         is_active,
-        admin_id,
         created_at,
         updated_at
       `)
@@ -170,6 +173,9 @@ async function getSpecificLeague(userId: string, leagueId: string) {
       .eq('league', league.name) // Players are assigned by league name
       .limit(1)
 
+    // Check if user is admin of this league using the league_admins table
+    const { isAdmin } = await verifyLeagueAdmin(userId, leagueId)
+
     return NextResponse.json({
       league: {
         id: league.id,
@@ -180,8 +186,7 @@ async function getSpecificLeague(userId: string, leagueId: string) {
         created_at: league.created_at,
         updated_at: league.updated_at,
         user_is_participant: userPlayers && userPlayers.length > 0,
-        // User is admin if they're the league creator OR a global admin
-        user_is_admin: league.admin_id === user.id || user.is_admin === true
+        user_is_admin: isAdmin
       }
     })
   } catch (error) {
