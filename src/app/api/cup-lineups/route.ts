@@ -187,6 +187,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Cannot modify lineup after lock date' }, { status: 400 })
     }
 
+    // Check if manager has a cup match in this cup gameweek
+    // (prevents eliminated managers from submitting cup lineups)
+    const { data: managerCupMatch } = await supabaseAdmin
+      .from('cup_matches')
+      .select('id')
+      .eq('cup_gameweek_id', cupGameweekId)
+      .or(`home_manager_id.eq.${userRecord.id},away_manager_id.eq.${userRecord.id}`)
+      .limit(1)
+      .maybeSingle()
+
+    if (!managerCupMatch) {
+      return NextResponse.json(
+        { error: 'Nie uczestniczysz w tej kolejce pucharowej' },
+        { status: 403 }
+      )
+    }
+
     // Get league name from cup or gameweek
     const leagueName = (cupGameweek.cups as any)?.leagues?.name || (cupGameweek.gameweeks as any)?.leagues?.name
 

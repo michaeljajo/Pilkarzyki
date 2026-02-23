@@ -187,6 +187,7 @@ export async function GET(
     let currentCupGameweek = null
     let currentCupLineup = null
     let cup = null
+    let isEliminatedFromCup = false
 
     if (currentGameweek) {
       // Check if league has a cup
@@ -209,26 +210,40 @@ export async function GET(
           .single()
 
         if (cupGameweek) {
-          currentCupGameweek = cupGameweek
+          // Check if manager actually has a cup match in this cup gameweek
+          // (eliminated managers won't have matches in knockout rounds)
+          const { data: managerCupMatch } = await supabaseAdmin
+            .from('cup_matches')
+            .select('id')
+            .eq('cup_gameweek_id', cupGameweek.id)
+            .or(`home_manager_id.eq.${targetUserId},away_manager_id.eq.${targetUserId}`)
+            .limit(1)
+            .maybeSingle()
 
-          // Get existing cup lineup if any
-          if (targetUserId) {
-            const { data: cupLineup } = await supabaseAdmin
-              .from('cup_lineups')
-              .select('*')
-              .eq('manager_id', targetUserId)
-              .eq('cup_gameweek_id', cupGameweek.id)
-              .single()
+          if (managerCupMatch) {
+            currentCupGameweek = cupGameweek
 
-            currentCupLineup = cupLineup
+            // Get existing cup lineup if any
+            if (targetUserId) {
+              const { data: cupLineup } = await supabaseAdmin
+                .from('cup_lineups')
+                .select('*')
+                .eq('manager_id', targetUserId)
+                .eq('cup_gameweek_id', cupGameweek.id)
+                .single()
+
+              currentCupLineup = cupLineup
+            }
+          } else {
+            isEliminatedFromCup = true
           }
         }
       }
     }
 
-    // Get default cup lineup if cup exists
+    // Get default cup lineup if cup exists and manager is still in cup
     let defaultCupLineup = null
-    if (cup && targetUserId) {
+    if (cup && targetUserId && !isEliminatedFromCup) {
       const { data: defCupLineup } = await supabaseAdmin
         .from('default_cup_lineups')
         .select('*')
@@ -245,11 +260,12 @@ export async function GET(
       currentGameweek,
       currentLineup,
       defaultLineup,
-      cup,
+      cup: isEliminatedFromCup ? null : cup,
       currentCupGameweek,
       currentCupLineup,
       defaultCupLineup,
-      isDualGameweek: !!(currentGameweek && currentCupGameweek)
+      isDualGameweek: !!(currentGameweek && currentCupGameweek),
+      isEliminatedFromCup
     })
   } catch (error) {
     console.error('Error in squad API:', error)

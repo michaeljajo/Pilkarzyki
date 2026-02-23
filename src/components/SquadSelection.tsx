@@ -21,6 +21,7 @@ interface SquadData {
   currentCupLineup?: CupLineup
   defaultCupLineup?: DefaultCupLineup | null
   isDualGameweek: boolean
+  isEliminatedFromCup?: boolean
 }
 
 interface SquadSelectionProps {
@@ -536,6 +537,18 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
               </div>
             )}
 
+            {/* Cup elimination notice */}
+            {squadData?.isEliminatedFromCup && (
+              <div className="mx-4 p-3 rounded-lg border bg-yellow-50 border-yellow-300">
+                <div className="flex items-center gap-2">
+                  <Trophy size={16} className="text-yellow-600" />
+                  <span className="text-sm text-yellow-800 font-medium">
+                    Zostałeś wyeliminowany z pucharu. Skład pucharowy nie jest wymagany.
+                  </span>
+                </div>
+              </div>
+            )}
+
             {/* Save Button */}
             <div className="px-4 space-y-2">
               <Button
@@ -927,6 +940,18 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
                         <div className="text-lg font-bold text-gray-900">{squadData.currentGameweek.week}</div>
                       </div>
                     )}
+                  </div>
+                </div>
+              )}
+
+              {/* Cup elimination notice */}
+              {squadData?.isEliminatedFromCup && (
+                <div className="p-3 rounded-lg border bg-yellow-50 border-yellow-300">
+                  <div className="flex items-center gap-2">
+                    <Trophy size={16} className="text-yellow-600" />
+                    <span className="text-sm text-yellow-800 font-medium">
+                      Zostałeś wyeliminowany z pucharu. Skład pucharowy nie jest wymagany.
+                    </span>
                   </div>
                 </div>
               )}
