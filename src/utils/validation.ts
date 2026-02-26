@@ -118,7 +118,7 @@ export function validateEtLineup(
 }
 
 /**
- * Validate penalty lineup: max 5 takers, no duplicates.
+ * Validate penalty lineup: max 8 takers, no duplicates.
  */
 export function validatePenaltyLineup(
   players: (Player | null)[]
@@ -129,8 +129,8 @@ export function validatePenaltyLineup(
   const errors: string[] = []
   const selected = players.filter((p): p is Player => p !== null)
 
-  if (selected.length > 5) {
-    errors.push('Maksymalnie 5 wykonawców rzutów karnych')
+  if (selected.length > 8) {
+    errors.push('Maksymalnie 8 wykonawców rzutów karnych')
   }
 
   const ids = selected.map(p => p.id)

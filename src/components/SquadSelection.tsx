@@ -93,7 +93,7 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
   const [cupValidationErrors, setCupValidationErrors] = useState<string[]>([])
   const [crossLineupErrors, setCrossLineupErrors] = useState<string[]>([])
   const [selectedEtPlayers, setSelectedEtPlayers] = useState<(Player | null)[]>([null, null, null])
-  const [selectedPenaltyPlayers, setSelectedPenaltyPlayers] = useState<(Player | null)[]>([null, null, null, null, null])
+  const [selectedPenaltyPlayers, setSelectedPenaltyPlayers] = useState<(Player | null)[]>([null, null, null, null, null, null, null, null])
   const [etValidationErrors, setEtValidationErrors] = useState<string[]>([])
   const [etCrossErrors, setEtCrossErrors] = useState<string[]>([])
   const [penaltyValidationErrors, setPenaltyValidationErrors] = useState<string[]>([])
@@ -614,7 +614,7 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
     etValidationErrors.length === 0 && etCrossErrors.length === 0
   )
   const isPenaltyLineupValid = !squadData.isKnockoutDecider || !squadData.isDualGameweek || (
-    activePenaltyPlayersList.length === 5 &&
+    activePenaltyPlayersList.length === 8 &&
     penaltyValidationErrors.length === 0
   )
 
@@ -1092,10 +1092,10 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
                 </CardHeader>
                 <CardContent className="px-4 py-2">
                   <p className="text-xs text-gray-500 mb-3">
-                    Wybierz do 5 wykonawców rzutów karnych w kolejności.
+                    Wybierz 8 wykonawców rzutów karnych w kolejności.
                   </p>
                   <div className="space-y-3">
-                    {[0, 1, 2, 3, 4].map((idx) => (
+                    {[0, 1, 2, 3, 4, 5, 6, 7].map((idx) => (
                       <div key={idx} className="flex items-center gap-2">
                         <span className="text-sm font-bold text-gray-500 w-6 text-center">{idx + 1}.</span>
                         <Select
@@ -1126,10 +1126,10 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
                   {(penaltyValidationErrors.length > 0 || !isPenaltyLineupValid) && (
                     <div className="mt-3 bg-red-50/90 backdrop-blur-sm border border-red-200 rounded p-2">
                       <ul className="text-[10px] text-red-700 space-y-0.5">
-                        {activePenaltyPlayersList.length < 5 && (
+                        {activePenaltyPlayersList.length < 8 && (
                           <li className="flex items-start gap-1">
                             <AlertCircle size={12} className="mt-0.5 flex-shrink-0" />
-                            <span>Musisz wybrać 5 wykonawców rzutów karnych ({activePenaltyPlayersList.length}/5)</span>
+                            <span>Musisz wybrać 8 wykonawców rzutów karnych ({activePenaltyPlayersList.length}/8)</span>
                           </li>
                         )}
                         {penaltyValidationErrors.map((error, index) => (
@@ -1509,10 +1509,10 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
                 </CardHeader>
                 <CardContent style={{ padding: '16px 24px' }}>
                   <p className="text-sm text-gray-500 mb-4">
-                    Wybierz do 5 wykonawców rzutów karnych w kolejności.
+                    Wybierz 8 wykonawców rzutów karnych w kolejności.
                   </p>
                   <div className="space-y-3">
-                    {[0, 1, 2, 3, 4].map((idx) => (
+                    {[0, 1, 2, 3, 4, 5, 6, 7].map((idx) => (
                       <div key={idx} className="flex items-center gap-3">
                         <span className="text-lg font-bold text-gray-400 w-8 text-center">{idx + 1}.</span>
                         <Select
@@ -1543,10 +1543,10 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
                   {(penaltyValidationErrors.length > 0 || !isPenaltyLineupValid) && (
                     <div className="mt-3 bg-red-50/90 backdrop-blur-sm border border-red-200 rounded p-2">
                       <ul className="text-[10px] text-red-700 space-y-0.5">
-                        {activePenaltyPlayersList.length < 5 && (
+                        {activePenaltyPlayersList.length < 8 && (
                           <li className="flex items-start gap-1">
                             <AlertCircle size={12} className="mt-0.5 flex-shrink-0" />
-                            <span>Musisz wybrać 5 wykonawców rzutów karnych ({activePenaltyPlayersList.length}/5)</span>
+                            <span>Musisz wybrać 8 wykonawców rzutów karnych ({activePenaltyPlayersList.length}/8)</span>
                           </li>
                         )}
                         {penaltyValidationErrors.map((error, index) => (

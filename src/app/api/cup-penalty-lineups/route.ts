@@ -9,8 +9,8 @@ import { resolveUserNames } from '@/utils/name-resolver'
  * Body: { cupGameweekId: string, playerIds: string[] }
  *
  * Validation:
- * - Max 5 players, no duplicates
- * - Goals default to {0,0,0,0,0} (only admin sets actual results)
+ * - Max 8 players, no duplicates
+ * - Goals default to {0,0,0,0,0,0,0,0} (only admin sets actual results)
  */
 export async function POST(request: NextRequest) {
   try {
@@ -25,9 +25,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'cupGameweekId and playerIds array are required' }, { status: 400 })
     }
 
-    // Validate: max 5, no duplicates
-    if (playerIds.length > 5) {
-      return NextResponse.json({ error: 'Maksymalnie 5 wykonawców rzutów karnych' }, { status: 400 })
+    // Validate: max 8, no duplicates
+    if (playerIds.length > 8) {
+      return NextResponse.json({ error: 'Maksymalnie 8 wykonawców rzutów karnych' }, { status: 400 })
     }
 
     const uniqueIds = new Set(playerIds)
