@@ -40,6 +40,10 @@ interface CupMatch {
   away_score?: number
   home_aggregate_score?: number
   away_aggregate_score?: number
+  home_et_score?: number
+  away_et_score?: number
+  home_penalty_score?: number
+  away_penalty_score?: number
   is_completed: boolean
   home_manager?: Manager | null
   away_manager?: Manager | null
@@ -133,9 +137,27 @@ export function CupMatchCard({ match }: CupMatchCardProps) {
 
       {/* Aggregate Score (for knockout rounds, leg 2) */}
       {showAggregate && (
-        <div className="flex items-center justify-center mb-3 text-sm text-gray-600">
+        <div className="flex items-center justify-center mb-1 text-sm text-gray-600">
           <span>
             Łącznie: {match.home_aggregate_score || 0} - {match.away_aggregate_score || 0}
+          </span>
+        </div>
+      )}
+
+      {/* ET Score */}
+      {(match.home_et_score != null || match.away_et_score != null) && (
+        <div className="flex items-center justify-center mb-1 text-sm text-orange-600 font-medium">
+          <span>
+            Dogrywka: {match.home_et_score || 0} - {match.away_et_score || 0}
+          </span>
+        </div>
+      )}
+
+      {/* Penalty Score */}
+      {(match.home_penalty_score != null || match.away_penalty_score != null) && (
+        <div className="flex items-center justify-center mb-3 text-sm text-red-600 font-medium">
+          <span>
+            Karne: {match.home_penalty_score || 0} - {match.away_penalty_score || 0}
           </span>
         </div>
       )}

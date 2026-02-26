@@ -375,6 +375,10 @@ export interface CupMatch {
   awayScore?: number
   homeAggregateScore?: number
   awayAggregateScore?: number
+  homeEtScore?: number
+  awayEtScore?: number
+  homePenaltyScore?: number
+  awayPenaltyScore?: number
   isCompleted: boolean
   winnerId?: string
   createdAt: Date
@@ -389,6 +393,27 @@ export interface CupLineup {
   isLocked: boolean
   totalGoals: number
   isFromDefault?: boolean
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface CupEtLineup {
+  id: string
+  managerId: string
+  cupGameweekId: string
+  playerIds: string[]
+  isLocked: boolean
+  totalGoals: number
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface CupPenaltyLineup {
+  id: string
+  managerId: string
+  cupGameweekId: string
+  playerIds: string[]  // up to 5 player UUIDs
+  goals: number[]      // up to 5 values, each 0 or 1
   createdAt: Date
   updatedAt: Date
 }
@@ -464,6 +489,10 @@ export interface CupMatchWithManagers {
   away_score?: number
   home_aggregate_score?: number
   away_aggregate_score?: number
+  home_et_score?: number
+  away_et_score?: number
+  home_penalty_score?: number
+  away_penalty_score?: number
   is_completed: boolean
   winner_id?: string
   created_at: string

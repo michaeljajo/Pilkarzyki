@@ -92,6 +92,10 @@ export async function GET(
           away_score,
           home_aggregate_score,
           away_aggregate_score,
+          home_et_score,
+          away_et_score,
+          home_penalty_score,
+          away_penalty_score,
           is_completed,
           winner_id
         )

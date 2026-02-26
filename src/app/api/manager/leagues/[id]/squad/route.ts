@@ -188,6 +188,9 @@ export async function GET(
     let currentCupLineup = null
     let cup = null
     let isEliminatedFromCup = false
+    let isKnockoutDecider = false
+    let currentCupEtLineup = null
+    let currentCupPenaltyLineup = null
 
     if (currentGameweek) {
       // Check if league has a cup
@@ -234,6 +237,31 @@ export async function GET(
 
               currentCupLineup = cupLineup
             }
+
+            // Check if this is a knockout decider (leg 2 or final)
+            isKnockoutDecider = cupGameweek.stage !== 'group_stage' &&
+              (cupGameweek.leg === 2 || cupGameweek.stage === 'final')
+
+            // Fetch ET and penalty lineups for knockout deciders
+            if (isKnockoutDecider && targetUserId) {
+              const [etResult, penaltyResult] = await Promise.all([
+                supabaseAdmin
+                  .from('cup_et_lineups')
+                  .select('*')
+                  .eq('manager_id', targetUserId)
+                  .eq('cup_gameweek_id', cupGameweek.id)
+                  .maybeSingle(),
+                supabaseAdmin
+                  .from('cup_penalty_lineups')
+                  .select('*')
+                  .eq('manager_id', targetUserId)
+                  .eq('cup_gameweek_id', cupGameweek.id)
+                  .maybeSingle()
+              ])
+
+              currentCupEtLineup = etResult.data
+              currentCupPenaltyLineup = penaltyResult.data
+            }
           } else {
             isEliminatedFromCup = true
           }
@@ -265,7 +293,10 @@ export async function GET(
       currentCupLineup,
       defaultCupLineup,
       isDualGameweek: !!(currentGameweek && currentCupGameweek),
-      isEliminatedFromCup
+      isEliminatedFromCup,
+      isKnockoutDecider,
+      currentCupEtLineup,
+      currentCupPenaltyLineup
     })
   } catch (error) {
     console.error('Error in squad API:', error)

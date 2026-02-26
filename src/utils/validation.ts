@@ -86,3 +86,61 @@ export function validateDualLineups(
     crossLineupErrors
   }
 }
+
+/**
+ * Validate extra time lineup and check for overlap with cup lineup.
+ * ET lineup follows the same rules as cup lineup (1-3 players, unique leagues, max 2 forwards).
+ */
+export function validateEtLineup(
+  cupLineup: Player[],
+  etLineup: Player[]
+): {
+  isValid: boolean
+  etErrors: string[]
+  crossErrors: string[]
+} {
+  const etValidation = validateLineup(etLineup)
+  const crossErrors: string[] = []
+
+  // Check for overlap between cup and ET lineups
+  const cupPlayerIds = new Set(cupLineup.map(p => p.id))
+  const overlapping = etLineup.filter(p => cupPlayerIds.has(p.id))
+  if (overlapping.length > 0) {
+    const names = overlapping.map(p => `${p.name} ${p.surname}`).join(', ')
+    crossErrors.push(`Zawodnik(cy) wybrani w składzie pucharowym i dogrywce: ${names}`)
+  }
+
+  return {
+    isValid: etValidation.isValid && crossErrors.length === 0,
+    etErrors: etValidation.errors,
+    crossErrors
+  }
+}
+
+/**
+ * Validate penalty lineup: max 5 takers, no duplicates.
+ */
+export function validatePenaltyLineup(
+  players: (Player | null)[]
+): {
+  isValid: boolean
+  errors: string[]
+} {
+  const errors: string[] = []
+  const selected = players.filter((p): p is Player => p !== null)
+
+  if (selected.length > 5) {
+    errors.push('Maksymalnie 5 wykonawców rzutów karnych')
+  }
+
+  const ids = selected.map(p => p.id)
+  const uniqueIds = new Set(ids)
+  if (uniqueIds.size !== ids.length) {
+    errors.push('Zawodnicy nie mogą się powtarzać')
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  }
+}

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { GameweekMatchData, MatchWithLineups, PlayerWithResult } from '@/types'
-import { Icon, Trophy } from 'lucide-react'
+import { Icon, Trophy, Timer, CircleDot } from 'lucide-react'
 import { soccerBall } from '@lucide/lab'
 import { calculateMatchScore } from '@/utils/own-goal-calculator'
 
@@ -42,6 +42,24 @@ interface CupGameweek {
   matches: MatchWithLineups[]
 }
 
+interface EtLineupData {
+  id: string
+  manager_id: string
+  cup_gameweek_id: string
+  player_ids: string[]
+  total_goals: number
+  players: PlayerWithResult[]
+}
+
+interface PenaltyLineupData {
+  id: string
+  manager_id: string
+  cup_gameweek_id: string
+  player_ids: string[]
+  goals: number[]
+  players: { id: string; name: string; surname: string }[]
+}
+
 export default function LeagueResultsPage() {
   const params = useParams()
   const leagueId = params.id as string
@@ -56,6 +74,10 @@ export default function LeagueResultsPage() {
   const [updatingStatus, setUpdatingStatus] = useState(false)
   const [playerGoals, setPlayerGoals] = useState<{[key: string]: number}>({})
   const [playerHasPlayed, setPlayerHasPlayed] = useState<{[key: string]: boolean}>({})
+  // ET/penalty state keyed by `${cupGameweekId}_${managerId}`
+  const [etLineups, setEtLineups] = useState<{[key: string]: EtLineupData}>({})
+  const [penaltyLineups, setPenaltyLineups] = useState<{[key: string]: PenaltyLineupData}>({})
+  const [penaltyGoals, setPenaltyGoals] = useState<{[key: string]: number[]}>({})
 
   useEffect(() => {
     fetchGameweeks()
@@ -64,8 +86,9 @@ export default function LeagueResultsPage() {
 
   useEffect(() => {
     if (selectedGameweek) {
-      fetchMatchData()
-      fetchCupMatches()
+      // fetchMatchData must complete first (it replaces playerGoals state),
+      // then fetchCupMatches merges cup + ET player goals on top
+      fetchMatchData().then(() => fetchCupMatches())
     } else {
       setMatchData(null)
       setCupGameweeks([])
@@ -159,9 +182,66 @@ export default function LeagueResultsPage() {
             })
           })
         })
+
+        // Fetch ET and penalty lineups for knockout deciders
+        for (const cgw of matchingCupGameweeks) {
+          const isKnockoutDecider = cgw.stage !== 'group_stage' &&
+            (cgw.leg === 2 || cgw.stage === 'final')
+
+          if (isKnockoutDecider) {
+            await fetchEtPenaltyLineups(cgw.id, cgw.matches)
+          }
+        }
       }
     } catch (error) {
       console.error('Failed to fetch cup matches:', error)
+    }
+  }
+
+  const fetchEtPenaltyLineups = async (cupGameweekId: string, matches: MatchWithLineups[]) => {
+    try {
+      // Collect all manager IDs from matches
+      const managerIds = new Set<string>()
+      matches.forEach(m => {
+        if (m.home_manager_id) managerIds.add(m.home_manager_id)
+        if (m.away_manager_id) managerIds.add(m.away_manager_id)
+      })
+
+      // Fetch ET and penalty lineups via admin API
+      const response = await fetch(
+        `/api/admin/cup-et-penalty?cupGameweekId=${cupGameweekId}&managerIds=${Array.from(managerIds).join(',')}`
+      )
+
+      if (response.ok) {
+        const data = await response.json()
+
+        // Store ET lineups
+        const newEtLineups: {[key: string]: EtLineupData} = {}
+        const newPenaltyLineups: {[key: string]: PenaltyLineupData} = {}
+        const newPenaltyGoals: {[key: string]: number[]} = {}
+
+        data.etLineups?.forEach((et: EtLineupData) => {
+          const key = `${et.cup_gameweek_id}_${et.manager_id}`
+          newEtLineups[key] = et
+          // Add ET players to goal tracking
+          et.players?.forEach((player: PlayerWithResult) => {
+            setPlayerGoals(prev => ({ ...prev, [player.id]: player.goals_scored || 0 }))
+            setPlayerHasPlayed(prev => ({ ...prev, [player.id]: player.has_played || false }))
+          })
+        })
+
+        data.penaltyLineups?.forEach((pen: PenaltyLineupData) => {
+          const key = `${pen.cup_gameweek_id}_${pen.manager_id}`
+          newPenaltyLineups[key] = pen
+          newPenaltyGoals[key] = pen.goals || [0, 0, 0, 0, 0]
+        })
+
+        setEtLineups(prev => ({ ...prev, ...newEtLineups }))
+        setPenaltyLineups(prev => ({ ...prev, ...newPenaltyLineups }))
+        setPenaltyGoals(prev => ({ ...prev, ...newPenaltyGoals }))
+      }
+    } catch (error) {
+      console.error('Failed to fetch ET/penalty lineups:', error)
     }
   }
 
@@ -230,6 +310,33 @@ export default function LeagueResultsPage() {
     e.target.select()
   }
 
+  const handlePenaltyToggle = (key: string, index: number) => {
+    setPenaltyGoals(prev => {
+      const current = [...(prev[key] || [0, 0, 0, 0, 0])]
+      current[index] = current[index] === 1 ? 0 : 1
+      return { ...prev, [key]: current }
+    })
+  }
+
+  const savePenaltyResults = async (cupGameweekId: string, managerId: string) => {
+    const key = `${cupGameweekId}_${managerId}`
+    const goals = penaltyGoals[key] || [0, 0, 0, 0, 0]
+
+    try {
+      const response = await fetch('/api/cup-penalty-lineups', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cupGameweekId, managerId, goals }),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        alert(`Błąd zapisu karnych: ${error.error}`)
+      }
+    } catch (error) {
+      console.error('Failed to save penalty results:', error)
+    }
+  }
 
   const updateGameweekStatus = async (isCompleted: boolean) => {
     if (!selectedGameweek || !matchData) return
@@ -327,10 +434,29 @@ export default function LeagueResultsPage() {
 
       if (!match) return
 
+      // Collect regular lineup player IDs
       const matchPlayerIds = [
         ...(match.home_lineup?.players?.map(p => p.id) || []),
         ...(match.away_lineup?.players?.map(p => p.id) || [])
       ]
+
+      // For cup matches, also include ET lineup player IDs
+      for (const cupGameweek of cupGameweeks) {
+        const cupMatch = cupGameweek.matches.find(m => m.id === matchId)
+        if (cupMatch) {
+          const homeEtKey = `${cupGameweek.id}_${cupMatch.home_manager_id}`
+          const awayEtKey = `${cupGameweek.id}_${cupMatch.away_manager_id}`
+          const homeEtLineup = etLineups[homeEtKey]
+          const awayEtLineup = etLineups[awayEtKey]
+          if (homeEtLineup?.players) {
+            matchPlayerIds.push(...homeEtLineup.players.map(p => p.id))
+          }
+          if (awayEtLineup?.players) {
+            matchPlayerIds.push(...awayEtLineup.players.map(p => p.id))
+          }
+          break
+        }
+      }
 
       const results = matchPlayerIds.map(playerId => ({
         player_id: playerId,
@@ -843,6 +969,193 @@ export default function LeagueResultsPage() {
                                 )}
                               </div>
                             </div>
+
+                            {/* ET Section (knockout deciders only) */}
+                            {(() => {
+                              const isKnockoutDecider = cupGameweek.stage !== 'group_stage' &&
+                                (cupGameweek.leg === 2 || cupGameweek.stage === 'final')
+                              if (!isKnockoutDecider) return null
+
+                              const homeEtKey = `${cupGameweek.id}_${match.home_manager_id}`
+                              const awayEtKey = `${cupGameweek.id}_${match.away_manager_id}`
+                              const homeEt = etLineups[homeEtKey]
+                              const awayEt = etLineups[awayEtKey]
+
+                              if (!homeEt && !awayEt) return null
+
+                              return (
+                                <div className="mt-3 pt-3 border-t-2 border-orange-300">
+                                  <div className="flex items-center gap-1.5 mb-2">
+                                    <Timer size={14} className="text-orange-600" />
+                                    <span className="text-xs font-semibold text-orange-700">Dogrywka</span>
+                                  </div>
+                                  <div className="flex items-start justify-between">
+                                    {/* Home ET Players */}
+                                    <div className="flex-1 space-y-0.5 pr-4 sm:pr-12">
+                                      {homeEt?.players?.map((player) => {
+                                        const goals = playerGoals[player.id] || 0
+                                        const hasPlayed = playerHasPlayed[player.id] || false
+                                        return (
+                                          <div key={player.id} className="flex items-start gap-1 sm:gap-2 min-h-[24px]">
+                                            <input
+                                              type="checkbox"
+                                              checked={hasPlayed}
+                                              onChange={(e) => setPlayerHasPlayed(prev => ({ ...prev, [player.id]: e.target.checked }))}
+                                              disabled={saving}
+                                              className="w-3 h-3 sm:w-4 sm:h-4 cursor-pointer mt-0.5"
+                                            />
+                                            <input
+                                              type="number"
+                                              min="-1"
+                                              max="9"
+                                              value={goals}
+                                              onChange={(e) => handlePlayerGoalsChange(player.id, e.target.value)}
+                                              onFocus={handlePlayerGoalsFocus}
+                                              disabled={saving}
+                                              className={`w-8 sm:w-12 px-0.5 py-0 text-[10px] sm:text-xs text-center border rounded ${
+                                                goals === -1 ? 'border-red-300 bg-red-50 text-red-700' : 'border-orange-300 focus:ring-orange-500'
+                                              }`}
+                                            />
+                                            <p className="text-[11px] sm:text-sm text-gray-600">
+                                              {player.name} {player.surname}
+                                              {goals > 0 && Array.from({ length: goals }).map((_, i) => (
+                                                <Icon key={i} iconNode={soccerBall} size={10} className="text-orange-600 inline-block ml-0.5" strokeWidth={2} />
+                                              ))}
+                                            </p>
+                                          </div>
+                                        )
+                                      }) || <p className="text-[11px] text-gray-400 italic">Brak składu ET</p>}
+                                    </div>
+                                    {/* Away ET Players */}
+                                    <div className="flex-1 text-right space-y-0.5 pl-4 sm:pl-12">
+                                      {awayEt?.players?.map((player) => {
+                                        const goals = playerGoals[player.id] || 0
+                                        const hasPlayed = playerHasPlayed[player.id] || false
+                                        return (
+                                          <div key={player.id} className="flex items-start justify-end gap-1 sm:gap-2 min-h-[24px]">
+                                            <p className="text-[11px] sm:text-sm text-right text-gray-600">
+                                              {goals > 0 && Array.from({ length: goals }).map((_, i) => (
+                                                <Icon key={i} iconNode={soccerBall} size={10} className="text-orange-600 inline-block mr-0.5" strokeWidth={2} />
+                                              ))}
+                                              {player.name} {player.surname}
+                                            </p>
+                                            <input
+                                              type="number"
+                                              min="-1"
+                                              max="9"
+                                              value={goals}
+                                              onChange={(e) => handlePlayerGoalsChange(player.id, e.target.value)}
+                                              onFocus={handlePlayerGoalsFocus}
+                                              disabled={saving}
+                                              className={`w-8 sm:w-12 px-0.5 py-0 text-[10px] sm:text-xs text-center border rounded ${
+                                                goals === -1 ? 'border-red-300 bg-red-50 text-red-700' : 'border-orange-300 focus:ring-orange-500'
+                                              }`}
+                                            />
+                                            <input
+                                              type="checkbox"
+                                              checked={hasPlayed}
+                                              onChange={(e) => setPlayerHasPlayed(prev => ({ ...prev, [player.id]: e.target.checked }))}
+                                              disabled={saving}
+                                              className="w-3 h-3 sm:w-4 sm:h-4 cursor-pointer mt-0.5"
+                                            />
+                                          </div>
+                                        )
+                                      }) || <p className="text-[11px] text-gray-400 italic">Brak składu ET</p>}
+                                    </div>
+                                  </div>
+                                </div>
+                              )
+                            })()}
+
+                            {/* Penalty Section (knockout deciders only) */}
+                            {(() => {
+                              const isKnockoutDecider = cupGameweek.stage !== 'group_stage' &&
+                                (cupGameweek.leg === 2 || cupGameweek.stage === 'final')
+                              if (!isKnockoutDecider) return null
+
+                              const homePenKey = `${cupGameweek.id}_${match.home_manager_id}`
+                              const awayPenKey = `${cupGameweek.id}_${match.away_manager_id}`
+                              const homePen = penaltyLineups[homePenKey]
+                              const awayPen = penaltyLineups[awayPenKey]
+
+                              if (!homePen && !awayPen) return null
+
+                              const homeGoals = penaltyGoals[homePenKey] || [0, 0, 0, 0, 0]
+                              const awayGoalsArr = penaltyGoals[awayPenKey] || [0, 0, 0, 0, 0]
+
+                              return (
+                                <div className="mt-3 pt-3 border-t-2 border-red-300">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-1.5">
+                                      <CircleDot size={14} className="text-red-600" />
+                                      <span className="text-xs font-semibold text-red-700">Rzuty karne</span>
+                                    </div>
+                                    <div className="flex gap-2">
+                                      {homePen && (
+                                        <button
+                                          onClick={() => savePenaltyResults(cupGameweek.id, match.home_manager_id)}
+                                          disabled={saving}
+                                          className="px-2 py-0.5 text-[10px] bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+                                        >
+                                          Zapisz karne (dom)
+                                        </button>
+                                      )}
+                                      {awayPen && (
+                                        <button
+                                          onClick={() => savePenaltyResults(cupGameweek.id, match.away_manager_id)}
+                                          disabled={saving}
+                                          className="px-2 py-0.5 text-[10px] bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+                                        >
+                                          Zapisz karne (wyjazd)
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="flex items-start justify-between">
+                                    {/* Home Penalty Takers */}
+                                    <div className="flex-1 space-y-1 pr-4 sm:pr-12">
+                                      {homePen?.players?.map((player, idx) => (
+                                        <div key={player.id} className="flex items-center gap-1.5">
+                                          <span className="text-[10px] text-gray-400 w-4">{idx + 1}.</span>
+                                          <button
+                                            onClick={() => handlePenaltyToggle(homePenKey, idx)}
+                                            disabled={saving}
+                                            className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center transition-colors ${
+                                              homeGoals[idx] === 1
+                                                ? 'bg-green-500 text-white'
+                                                : 'bg-red-100 text-red-600 border border-red-300'
+                                            }`}
+                                          >
+                                            {homeGoals[idx] === 1 ? '✓' : '✗'}
+                                          </button>
+                                          <span className="text-[11px] text-gray-600">{player.name} {player.surname}</span>
+                                        </div>
+                                      )) || <p className="text-[11px] text-gray-400 italic">Brak wykonawców</p>}
+                                    </div>
+                                    {/* Away Penalty Takers */}
+                                    <div className="flex-1 text-right space-y-1 pl-4 sm:pl-12">
+                                      {awayPen?.players?.map((player, idx) => (
+                                        <div key={player.id} className="flex items-center justify-end gap-1.5">
+                                          <span className="text-[11px] text-gray-600">{player.name} {player.surname}</span>
+                                          <button
+                                            onClick={() => handlePenaltyToggle(awayPenKey, idx)}
+                                            disabled={saving}
+                                            className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center transition-colors ${
+                                              awayGoalsArr[idx] === 1
+                                                ? 'bg-green-500 text-white'
+                                                : 'bg-red-100 text-red-600 border border-red-300'
+                                            }`}
+                                          >
+                                            {awayGoalsArr[idx] === 1 ? '✓' : '✗'}
+                                          </button>
+                                          <span className="text-[10px] text-gray-400 w-4">{idx + 1}.</span>
+                                        </div>
+                                      )) || <p className="text-[11px] text-gray-400 italic">Brak wykonawców</p>}
+                                    </div>
+                                  </div>
+                                </div>
+                              )
+                            })()}
                           </div>
                         )
                       })}

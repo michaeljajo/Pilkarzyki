@@ -6,9 +6,9 @@ import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Select'
 import { PlayerJersey } from '@/components/ui/PlayerJersey'
 import { FootballField } from '@/components/ui/FootballField'
-import { Player, League, Gameweek, Lineup, Cup, CupGameweek, CupLineup, DefaultLineup, DefaultCupLineup } from '@/types'
-import { validateLineup, validateDualLineups } from '@/utils/validation'
-import { Clock, Lock, Save, Settings, Trophy, AlertCircle, CalendarX } from 'lucide-react'
+import { Player, League, Gameweek, Lineup, Cup, CupGameweek, CupLineup, CupEtLineup, CupPenaltyLineup, DefaultLineup, DefaultCupLineup } from '@/types'
+import { validateLineup, validateDualLineups, validateEtLineup, validatePenaltyLineup } from '@/utils/validation'
+import { Clock, Lock, Save, Settings, Trophy, AlertCircle, CalendarX, Timer, CircleDot } from 'lucide-react'
 
 interface SquadData {
   league: League
@@ -22,6 +22,9 @@ interface SquadData {
   defaultCupLineup?: DefaultCupLineup | null
   isDualGameweek: boolean
   isEliminatedFromCup?: boolean
+  isKnockoutDecider?: boolean
+  currentCupEtLineup?: CupEtLineup | null
+  currentCupPenaltyLineup?: CupPenaltyLineup | null
 }
 
 interface SquadSelectionProps {
@@ -89,6 +92,11 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   const [cupValidationErrors, setCupValidationErrors] = useState<string[]>([])
   const [crossLineupErrors, setCrossLineupErrors] = useState<string[]>([])
+  const [selectedEtPlayers, setSelectedEtPlayers] = useState<(Player | null)[]>([null, null, null])
+  const [selectedPenaltyPlayers, setSelectedPenaltyPlayers] = useState<(Player | null)[]>([null, null, null, null, null])
+  const [etValidationErrors, setEtValidationErrors] = useState<string[]>([])
+  const [etCrossErrors, setEtCrossErrors] = useState<string[]>([])
+  const [penaltyValidationErrors, setPenaltyValidationErrors] = useState<string[]>([])
   const [isMobile, setIsMobile] = useState(false)
   const [defaultLoadedMessage, setDefaultLoadedMessage] = useState<string | null>(null)
 
@@ -163,6 +171,16 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
             setSelectedCupPlayers(loadPlayersFromIds(data.defaultCupLineup.player_ids))
             setDefaultLoadedMessage('Załadowano domyślny skład (żelazo)')
           }
+
+          // ET lineup handling (knockout deciders only)
+          if (data.currentCupEtLineup?.player_ids) {
+            setSelectedEtPlayers(loadPlayersFromIds(data.currentCupEtLineup.player_ids))
+          }
+
+          // Penalty lineup handling (knockout deciders only)
+          if (data.currentCupPenaltyLineup?.player_ids) {
+            setSelectedPenaltyPlayers(loadPlayersFromIds(data.currentCupPenaltyLineup.player_ids))
+          }
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Nieznany błąd')
@@ -203,6 +221,33 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
       setCrossLineupErrors([])
     }
   }, [selectedPlayers, selectedCupPlayers, squadData?.isDualGameweek])
+
+  // Validate ET and penalty lineups for knockout deciders
+  useEffect(() => {
+    if (!squadData?.isKnockoutDecider || !squadData?.isDualGameweek) {
+      setEtValidationErrors([])
+      setEtCrossErrors([])
+      setPenaltyValidationErrors([])
+      return
+    }
+
+    const activeEtPlayers = selectedEtPlayers.filter(p => p !== null) as Player[]
+    const activeCupPlayers = selectedCupPlayers.filter(p => p !== null) as Player[]
+
+    // Validate ET lineup
+    if (activeEtPlayers.length > 0) {
+      const etResult = validateEtLineup(activeCupPlayers, activeEtPlayers)
+      setEtValidationErrors(etResult.etErrors)
+      setEtCrossErrors(etResult.crossErrors)
+    } else {
+      setEtValidationErrors([])
+      setEtCrossErrors([])
+    }
+
+    // Validate penalty lineup
+    const penaltyResult = validatePenaltyLineup(selectedPenaltyPlayers)
+    setPenaltyValidationErrors(penaltyResult.errors)
+  }, [selectedEtPlayers, selectedPenaltyPlayers, selectedCupPlayers, squadData?.isKnockoutDecider, squadData?.isDualGameweek])
 
   const handleDragStart = (e: React.DragEvent, player: Player | { name: string; surname: string; position: string; league?: string; id?: string }) => {
     setDraggedPlayer(player as Player)
@@ -332,6 +377,46 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
     }
   }
 
+  // ET dropdown handler - enforces no overlap with cup lineup
+  const handleEtDropdownChange = (index: number, playerId: string) => {
+    const player = squadData?.players.find(p => p.id === playerId) || null
+    const newEtPlayers = [...selectedEtPlayers]
+
+    if (player) {
+      // Remove from other ET slots
+      newEtPlayers.forEach((p, i) => {
+        if (p?.id === playerId && i !== index) newEtPlayers[i] = null
+      })
+      // Remove from cup lineup if present (ET cannot overlap with cup)
+      const cupIdx = selectedCupPlayers.findIndex(p => p?.id === playerId)
+      if (cupIdx !== -1) {
+        const newCup = [...selectedCupPlayers]
+        newCup[cupIdx] = null
+        setSelectedCupPlayers(newCup)
+      }
+      // Note: league lineup players are NOT removed - ET only conflicts with cup
+    }
+
+    newEtPlayers[index] = player
+    setSelectedEtPlayers(newEtPlayers)
+  }
+
+  // Penalty dropdown handler - only enforces no duplicates within penalty lineup
+  const handlePenaltyChange = (index: number, playerId: string) => {
+    const player = squadData?.players.find(p => p.id === playerId) || null
+    const newPenalty = [...selectedPenaltyPlayers]
+
+    if (player) {
+      // Remove from other penalty slots if duplicate
+      newPenalty.forEach((p, i) => {
+        if (p?.id === playerId && i !== index) newPenalty[i] = null
+      })
+    }
+
+    newPenalty[index] = player
+    setSelectedPenaltyPlayers(newPenalty)
+  }
+
   const saveLineups = async () => {
     // In default mode, we don't need a currentGameweek
     if (!isDefaultMode && !squadData?.currentGameweek) return
@@ -416,7 +501,45 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
             throw new Error(errorData.error || 'Nie udało się zapisać składu pucharowego')
           }
 
-          alert('Oba składy zostały zapisane pomyślnie!')
+          // Save ET and penalty lineups for knockout deciders
+          if (squadData.isKnockoutDecider) {
+            const etPlayerIds = selectedEtPlayers.filter(p => p !== null).map(p => p!.id)
+            const penaltyPlayerIds = selectedPenaltyPlayers.filter(p => p !== null).map(p => p!.id)
+
+            if (etPlayerIds.length > 0) {
+              const etResponse = await fetch('/api/cup-et-lineups', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  cupGameweekId: squadData.currentCupGameweek.id,
+                  playerIds: etPlayerIds
+                }),
+              })
+
+              if (!etResponse.ok) {
+                const errorData = await etResponse.json()
+                throw new Error(errorData.error || 'Nie udało się zapisać składu dogrywki')
+              }
+            }
+
+            if (penaltyPlayerIds.length > 0) {
+              const penaltyResponse = await fetch('/api/cup-penalty-lineups', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  cupGameweekId: squadData.currentCupGameweek.id,
+                  playerIds: penaltyPlayerIds
+                }),
+              })
+
+              if (!penaltyResponse.ok) {
+                const errorData = await penaltyResponse.json()
+                throw new Error(errorData.error || 'Nie udało się zapisać składu rzutów karnych')
+              }
+            }
+          }
+
+          alert('Wszystkie składy zostały zapisane pomyślnie!')
         } else {
           // Save league lineup only
           const response = await fetch('/api/lineups', {
@@ -482,14 +605,34 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
 
   const isLeagueLineupValid = activePlayers.length >= 1 && activePlayers.length <= 3 && validationErrors.length === 0
   const isCupLineupValid = activeCupPlayers.length >= 1 && activeCupPlayers.length <= 3 && cupValidationErrors.length === 0
+
+  // ET/penalty validation for knockout deciders
+  const activeEtPlayersList = selectedEtPlayers.filter(p => p !== null)
+  const activePenaltyPlayersList = selectedPenaltyPlayers.filter(p => p !== null)
+  const isEtLineupValid = !squadData.isKnockoutDecider || !squadData.isDualGameweek || (
+    activeEtPlayersList.length >= 1 && activeEtPlayersList.length <= 3 &&
+    etValidationErrors.length === 0 && etCrossErrors.length === 0
+  )
+  const isPenaltyLineupValid = !squadData.isKnockoutDecider || !squadData.isDualGameweek || (
+    activePenaltyPlayersList.length === 5 &&
+    penaltyValidationErrors.length === 0
+  )
+
   const isValid = squadData.isDualGameweek
-    ? isLeagueLineupValid && isCupLineupValid && crossLineupErrors.length === 0
+    ? isLeagueLineupValid && isCupLineupValid && crossLineupErrors.length === 0 && isEtLineupValid && isPenaltyLineupValid
     : isLeagueLineupValid
 
-  // Get players that are already selected in either lineup
+  // Players excluded from league and cup dropdowns (league + cup + ET, no penalty)
   const selectedPlayerIds = new Set([
     ...selectedPlayers.filter(p => p !== null).map(p => p!.id),
-    ...(squadData.isDualGameweek ? selectedCupPlayers.filter(p => p !== null).map(p => p!.id) : [])
+    ...(squadData.isDualGameweek ? selectedCupPlayers.filter(p => p !== null).map(p => p!.id) : []),
+    ...(squadData.isKnockoutDecider ? selectedEtPlayers.filter(p => p !== null).map(p => p!.id) : [])
+  ])
+
+  // Players excluded from ET dropdowns: only cup + other ET players (NOT league)
+  const etExcludedPlayerIds = new Set([
+    ...(squadData.isDualGameweek ? selectedCupPlayers.filter(p => p !== null).map(p => p!.id) : []),
+    ...(squadData.isKnockoutDecider ? selectedEtPlayers.filter(p => p !== null).map(p => p!.id) : [])
   ])
 
   // Mobile UI with dropdowns
@@ -877,6 +1020,131 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
               </Card>
             )}
 
+            {/* ET Lineup - Mobile (knockout deciders only) */}
+            {squadData.isKnockoutDecider && squadData.isDualGameweek && !isDefaultMode && (
+              <Card className="border-orange-500 border-2 bg-[#F2F2F2]">
+                <CardHeader className="px-4 py-3 rounded-t-2xl bg-orange-50">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base flex items-center gap-1.5">
+                      <Timer size={16} className="text-orange-600" />
+                      <span>Skład pucharowy - DOGRYWKA</span>
+                    </CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className="px-4 py-2">
+                  <p className="text-xs text-gray-500 mb-3">
+                    Wybierz 1-3 zawodników na wypadek dogrywki. Nie mogą pokrywać się ze składem pucharowym.
+                  </p>
+                  <div className="space-y-3">
+                    {[0, 1, 2].map((idx) => (
+                      <Select
+                        key={idx}
+                        value={selectedEtPlayers[idx]?.id || ''}
+                        onChange={(e) => handleEtDropdownChange(idx, e.target.value)}
+                        disabled={!!isGameweekLocked}
+                        className="text-sm h-10"
+                      >
+                        <option value="">Wybierz zawodnika</option>
+                        {squadData.players.map(player => (
+                          <option
+                            key={player.id}
+                            value={player.id}
+                            disabled={etExcludedPlayerIds.has(player.id) && selectedEtPlayers[idx]?.id !== player.id}
+                          >
+                            {player.name} {player.surname} ({player.club})
+                          </option>
+                        ))}
+                      </Select>
+                    ))}
+                  </div>
+                  {(etValidationErrors.length > 0 || etCrossErrors.length > 0 || !isEtLineupValid) && (
+                    <div className="mt-3 bg-red-50/90 backdrop-blur-sm border border-red-200 rounded p-2">
+                      <ul className="text-[10px] text-red-700 space-y-0.5">
+                        {activeEtPlayersList.length === 0 && (
+                          <li className="flex items-start gap-1">
+                            <AlertCircle size={12} className="mt-0.5 flex-shrink-0" />
+                            <span>Musisz wybrać co najmniej 1 zawodnika do dogrywki</span>
+                          </li>
+                        )}
+                        {[...etValidationErrors, ...etCrossErrors].map((error, index) => (
+                          <li key={index} className="flex items-start gap-1">
+                            <AlertCircle size={12} className="mt-0.5 flex-shrink-0" />
+                            <span>{error}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Penalty Lineup - Mobile (knockout deciders only) */}
+            {squadData.isKnockoutDecider && squadData.isDualGameweek && !isDefaultMode && (
+              <Card className="border-red-500 border-2 bg-[#F2F2F2]">
+                <CardHeader className="px-4 py-3 rounded-t-2xl bg-red-50">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base flex items-center gap-1.5">
+                      <CircleDot size={16} className="text-red-600" />
+                      <span>Rzuty karne</span>
+                    </CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className="px-4 py-2">
+                  <p className="text-xs text-gray-500 mb-3">
+                    Wybierz do 5 wykonawców rzutów karnych w kolejności.
+                  </p>
+                  <div className="space-y-3">
+                    {[0, 1, 2, 3, 4].map((idx) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-gray-500 w-6 text-center">{idx + 1}.</span>
+                        <Select
+                          value={selectedPenaltyPlayers[idx]?.id || ''}
+                          onChange={(e) => handlePenaltyChange(idx, e.target.value)}
+                          disabled={!!isGameweekLocked}
+                          className="text-sm h-10 flex-1"
+                        >
+                          <option value="">Wybierz wykonawcę</option>
+                          {squadData.players.map(player => {
+                            const isInOtherPenaltySlot = selectedPenaltyPlayers.some(
+                              (p, i) => p?.id === player.id && i !== idx
+                            )
+                            return (
+                              <option
+                                key={player.id}
+                                value={player.id}
+                                disabled={isInOtherPenaltySlot}
+                              >
+                                {player.name} {player.surname} ({player.club})
+                              </option>
+                            )
+                          })}
+                        </Select>
+                      </div>
+                    ))}
+                  </div>
+                  {(penaltyValidationErrors.length > 0 || !isPenaltyLineupValid) && (
+                    <div className="mt-3 bg-red-50/90 backdrop-blur-sm border border-red-200 rounded p-2">
+                      <ul className="text-[10px] text-red-700 space-y-0.5">
+                        {activePenaltyPlayersList.length < 5 && (
+                          <li className="flex items-start gap-1">
+                            <AlertCircle size={12} className="mt-0.5 flex-shrink-0" />
+                            <span>Musisz wybrać 5 wykonawców rzutów karnych ({activePenaltyPlayersList.length}/5)</span>
+                          </li>
+                        )}
+                        {penaltyValidationErrors.map((error, index) => (
+                          <li key={index} className="flex items-start gap-1">
+                            <AlertCircle size={12} className="mt-0.5 flex-shrink-0" />
+                            <span>{error}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
             {/* Cross-Lineup Errors */}
             {crossLineupErrors.length > 0 && (
               <div className="bg-red-50/90 backdrop-blur-sm border-2 border-red-500 rounded-xl p-3">
@@ -1157,6 +1425,131 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
                     <div className="mt-1.5 bg-red-50/90 backdrop-blur-sm border border-red-200 rounded p-1.5">
                       <ul className="text-[10px] text-red-700 space-y-0.5">
                         {cupValidationErrors.map((error, index) => (
+                          <li key={index} className="flex items-start gap-1">
+                            <AlertCircle size={12} className="mt-0.5 flex-shrink-0" />
+                            <span>{error}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* ET Lineup - Desktop (knockout deciders only) */}
+            {squadData.isKnockoutDecider && squadData.isDualGameweek && !isDefaultMode && (
+              <Card className="bg-[#F2F2F2] border-orange-500 border-2 overflow-hidden">
+                <CardHeader style={{ padding: '16px 24px' }} className="bg-orange-50 rounded-t-2xl">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Timer size={18} className="text-orange-600" />
+                      <span>Skład pucharowy - DOGRYWKA</span>
+                    </CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent style={{ padding: '16px 24px' }}>
+                  <p className="text-sm text-gray-500 mb-4">
+                    Wybierz 1-3 zawodników na wypadek dogrywki. Nie mogą pokrywać się ze składem pucharowym.
+                  </p>
+                  <div className="grid grid-cols-3 gap-4">
+                    {[0, 1, 2].map((idx) => (
+                      <Select
+                        key={idx}
+                        value={selectedEtPlayers[idx]?.id || ''}
+                        onChange={(e) => handleEtDropdownChange(idx, e.target.value)}
+                        disabled={!!isGameweekLocked}
+                        className="text-sm h-10"
+                      >
+                        <option value="">Zawodnik {idx + 1}</option>
+                        {squadData.players.map(player => (
+                          <option
+                            key={player.id}
+                            value={player.id}
+                            disabled={etExcludedPlayerIds.has(player.id) && selectedEtPlayers[idx]?.id !== player.id}
+                          >
+                            {player.name} {player.surname} ({player.club})
+                          </option>
+                        ))}
+                      </Select>
+                    ))}
+                  </div>
+                  {(etValidationErrors.length > 0 || etCrossErrors.length > 0 || !isEtLineupValid) && (
+                    <div className="mt-3 bg-red-50/90 backdrop-blur-sm border border-red-200 rounded p-2">
+                      <ul className="text-[10px] text-red-700 space-y-0.5">
+                        {activeEtPlayersList.length === 0 && (
+                          <li className="flex items-start gap-1">
+                            <AlertCircle size={12} className="mt-0.5 flex-shrink-0" />
+                            <span>Musisz wybrać co najmniej 1 zawodnika do dogrywki</span>
+                          </li>
+                        )}
+                        {[...etValidationErrors, ...etCrossErrors].map((error, index) => (
+                          <li key={index} className="flex items-start gap-1">
+                            <AlertCircle size={12} className="mt-0.5 flex-shrink-0" />
+                            <span>{error}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Penalty Lineup - Desktop (knockout deciders only) */}
+            {squadData.isKnockoutDecider && squadData.isDualGameweek && !isDefaultMode && (
+              <Card className="bg-[#F2F2F2] border-red-500 border-2 overflow-hidden">
+                <CardHeader style={{ padding: '16px 24px' }} className="bg-red-50 rounded-t-2xl">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <CircleDot size={18} className="text-red-600" />
+                      <span>Rzuty karne</span>
+                    </CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent style={{ padding: '16px 24px' }}>
+                  <p className="text-sm text-gray-500 mb-4">
+                    Wybierz do 5 wykonawców rzutów karnych w kolejności.
+                  </p>
+                  <div className="space-y-3">
+                    {[0, 1, 2, 3, 4].map((idx) => (
+                      <div key={idx} className="flex items-center gap-3">
+                        <span className="text-lg font-bold text-gray-400 w-8 text-center">{idx + 1}.</span>
+                        <Select
+                          value={selectedPenaltyPlayers[idx]?.id || ''}
+                          onChange={(e) => handlePenaltyChange(idx, e.target.value)}
+                          disabled={!!isGameweekLocked}
+                          className="text-sm h-10 flex-1"
+                        >
+                          <option value="">Wybierz wykonawcę</option>
+                          {squadData.players.map(player => {
+                            const isInOtherPenaltySlot = selectedPenaltyPlayers.some(
+                              (p, i) => p?.id === player.id && i !== idx
+                            )
+                            return (
+                              <option
+                                key={player.id}
+                                value={player.id}
+                                disabled={isInOtherPenaltySlot}
+                              >
+                                {player.name} {player.surname} ({player.club})
+                              </option>
+                            )
+                          })}
+                        </Select>
+                      </div>
+                    ))}
+                  </div>
+                  {(penaltyValidationErrors.length > 0 || !isPenaltyLineupValid) && (
+                    <div className="mt-3 bg-red-50/90 backdrop-blur-sm border border-red-200 rounded p-2">
+                      <ul className="text-[10px] text-red-700 space-y-0.5">
+                        {activePenaltyPlayersList.length < 5 && (
+                          <li className="flex items-start gap-1">
+                            <AlertCircle size={12} className="mt-0.5 flex-shrink-0" />
+                            <span>Musisz wybrać 5 wykonawców rzutów karnych ({activePenaltyPlayersList.length}/5)</span>
+                          </li>
+                        )}
+                        {penaltyValidationErrors.map((error, index) => (
                           <li key={index} className="flex items-start gap-1">
                             <AlertCircle size={12} className="mt-0.5 flex-shrink-0" />
                             <span>{error}</span>

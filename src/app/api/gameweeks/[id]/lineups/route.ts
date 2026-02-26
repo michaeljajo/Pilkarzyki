@@ -329,7 +329,7 @@ export async function PUT(
             cupLineups?.map(l => [l.manager_id, l]) || []
           )
 
-          // Reuse the resultsMap from above
+          // Fetch results for this gameweek
           const { data: allResults } = await supabaseAdmin
             .from('results')
             .select('player_id, goals')
@@ -337,35 +337,88 @@ export async function PUT(
 
           const resultsMap = new Map(allResults?.map(r => [r.player_id, r.goals]) || [])
 
-          // Calculate cup match scores (with own goal logic)
+          // Check if this is a knockout decider (for ET inclusion in main score)
+          const { data: cupGwDetails } = await supabaseAdmin
+            .from('cup_gameweeks')
+            .select('stage, leg')
+            .eq('id', cupGameweek.id)
+            .single()
+
+          const isKnockoutDecider = cupGwDetails &&
+            cupGwDetails.stage !== 'group_stage' &&
+            (cupGwDetails.leg === 2 || cupGwDetails.stage === 'final')
+
+          // Fetch ET lineups for knockout deciders
+          let etLineupsMapByManager = new Map<string, { manager_id: string; player_ids: string[] }>()
+          let etLineups: { manager_id: string; player_ids: string[] }[] = []
+          if (isKnockoutDecider) {
+            const { data: fetchedEtLineups } = await supabaseAdmin
+              .from('cup_et_lineups')
+              .select('manager_id, player_ids')
+              .eq('cup_gameweek_id', cupGameweek.id)
+
+            if (fetchedEtLineups && fetchedEtLineups.length > 0) {
+              etLineups = fetchedEtLineups
+              etLineupsMapByManager = new Map(
+                fetchedEtLineups.map(l => [l.manager_id, l])
+              )
+            }
+          }
+
+          // Calculate cup match scores — for knockout deciders, include ET player goals in the main score
           const cupMatchUpdates = cupMatches.map(match => {
             const homeLineup = cupLineupsMapByManager.get(match.home_manager_id)
             const awayLineup = cupLineupsMapByManager.get(match.away_manager_id)
 
-            // Use utility function to calculate scores with own goal logic
-            const { homeScore, awayScore } = calculateMatchScore(
+            // Regular score from cup lineups only
+            const { homeScore: regularHome, awayScore: regularAway } = calculateMatchScore(
               homeLineup?.player_ids || [],
               awayLineup?.player_ids || [],
               resultsMap
             )
 
+            // ET score (knockout deciders only)
+            let etHomeScore = 0
+            let etAwayScore = 0
+            if (isKnockoutDecider) {
+              const homeEtLineup = etLineupsMapByManager.get(match.home_manager_id)
+              const awayEtLineup = etLineupsMapByManager.get(match.away_manager_id)
+              if (homeEtLineup || awayEtLineup) {
+                const etResult = calculateMatchScore(
+                  homeEtLineup?.player_ids || [],
+                  awayEtLineup?.player_ids || [],
+                  resultsMap
+                )
+                etHomeScore = etResult.homeScore
+                etAwayScore = etResult.awayScore
+              }
+            }
+
             return {
               id: match.id,
-              home_score: homeScore,
-              away_score: awayScore,
+              home_score: regularHome + etHomeScore,
+              away_score: regularAway + etAwayScore,
+              home_et_score: isKnockoutDecider ? etHomeScore : undefined,
+              away_et_score: isKnockoutDecider ? etAwayScore : undefined,
               is_completed: true
             }
           })
 
           // Batch update all cup matches
           for (const update of cupMatchUpdates) {
+            const updateData: Record<string, unknown> = {
+              home_score: update.home_score,
+              away_score: update.away_score,
+              is_completed: update.is_completed
+            }
+            if (update.home_et_score !== undefined) {
+              updateData.home_et_score = update.home_et_score
+              updateData.away_et_score = update.away_et_score
+            }
+
             const { error } = await supabaseAdmin
               .from('cup_matches')
-              .update({
-                home_score: update.home_score,
-                away_score: update.away_score,
-                is_completed: update.is_completed
-              })
+              .update(updateData)
               .eq('id', update.id)
 
             if (error) {
@@ -387,6 +440,24 @@ export async function PUT(
                   .update({ total_goals: totalGoals })
                   .eq('cup_gameweek_id', cupGameweek.id)
                   .eq('manager_id', lineup.manager_id)
+              }
+            }
+          }
+
+          // Update ET lineup total_goals
+          if (etLineups.length > 0) {
+            for (const etLineup of etLineups) {
+              if (etLineup.player_ids && etLineup.player_ids.length > 0) {
+                const totalGoals = calculateLineupTotalGoals(
+                  etLineup.player_ids,
+                  resultsMap
+                )
+
+                await supabaseAdmin
+                  .from('cup_et_lineups')
+                  .update({ total_goals: totalGoals })
+                  .eq('cup_gameweek_id', cupGameweek.id)
+                  .eq('manager_id', etLineup.manager_id)
               }
             }
           }
