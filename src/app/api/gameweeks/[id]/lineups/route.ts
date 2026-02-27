@@ -315,7 +315,7 @@ export async function PUT(
         // Get cup matches for this cup gameweek
         const { data: cupMatches } = await supabaseAdmin
           .from('cup_matches')
-          .select('id, home_manager_id, away_manager_id')
+          .select('id, home_manager_id, away_manager_id, stage, leg, match_number')
           .eq('cup_gameweek_id', cupGameweek.id)
 
         if (cupMatches && cupMatches.length > 0) {
@@ -423,6 +423,131 @@ export async function PUT(
 
             if (error) {
               console.error('Error updating cup match score:', error)
+            }
+          }
+
+          // Calculate aggregate scores for leg 2 knockout matches
+          const leg2Matches = cupMatches.filter(m => m.leg === 2 && m.stage !== 'group_stage')
+          if (leg2Matches.length > 0) {
+            // Get all cup_gameweek IDs for this cup to scope leg 1 lookup
+            const { data: allCupGws } = await supabaseAdmin
+              .from('cup_gameweeks')
+              .select('id')
+              .eq('cup_id', cupGameweek.cup_id)
+
+            const allCupGwIds = allCupGws?.map(g => g.id) || []
+
+            for (const leg2Match of leg2Matches) {
+              const leg2Update = cupMatchUpdates.find(u => u.id === leg2Match.id)
+              if (!leg2Update) continue
+
+              // Find leg 1 match: same stage, leg=1, within the same cup
+              // Use match_number if available, otherwise fall back to manager matching
+              let leg1Query = supabaseAdmin
+                .from('cup_matches')
+                .select('home_score, away_score, home_manager_id, away_manager_id')
+                .in('cup_gameweek_id', allCupGwIds)
+                .eq('stage', leg2Match.stage)
+                .eq('leg', 1)
+
+              if (leg2Match.match_number != null) {
+                leg1Query = leg1Query.eq('match_number', leg2Match.match_number)
+              }
+
+              const { data: leg1Matches } = await leg1Query
+
+              // If no match_number, find by manager pairing (swapped home/away)
+              let leg1 = leg1Matches?.[0]
+              if (!leg2Match.match_number && leg1Matches && leg1Matches.length > 1) {
+                leg1 = leg1Matches.find(m =>
+                  m.home_manager_id === leg2Match.away_manager_id &&
+                  m.away_manager_id === leg2Match.home_manager_id
+                ) || leg1Matches[0]
+              }
+
+              if (leg1) {
+                // Determine if managers are swapped between legs
+                // Leg 1: A(home) vs B(away), Leg 2: B(home) vs A(away)
+                let leg2HomeAggregate: number
+                let leg2AwayAggregate: number
+
+                if (leg2Match.home_manager_id === leg1.away_manager_id) {
+                  // Normal swap: leg2 home was leg1 away
+                  leg2HomeAggregate = leg2Update.home_score + (leg1.away_score || 0)
+                  leg2AwayAggregate = leg2Update.away_score + (leg1.home_score || 0)
+                } else {
+                  // Same order
+                  leg2HomeAggregate = leg2Update.home_score + (leg1.home_score || 0)
+                  leg2AwayAggregate = leg2Update.away_score + (leg1.away_score || 0)
+                }
+
+                await supabaseAdmin
+                  .from('cup_matches')
+                  .update({
+                    home_aggregate_score: leg2HomeAggregate,
+                    away_aggregate_score: leg2AwayAggregate
+                  })
+                  .eq('id', leg2Match.id)
+              }
+            }
+          }
+
+          // Also recalculate leg 2 aggregates when leg 1 results are re-saved
+          const leg1KnockoutMatches = cupMatches.filter(m => m.leg === 1 && m.stage !== 'group_stage' && m.stage !== 'final')
+          if (leg1KnockoutMatches.length > 0) {
+            const { data: allCupGws } = await supabaseAdmin
+              .from('cup_gameweeks')
+              .select('id')
+              .eq('cup_id', cupGameweek.cup_id)
+
+            const allCupGwIds = allCupGws?.map(g => g.id) || []
+
+            for (const leg1Match of leg1KnockoutMatches) {
+              const leg1Update = cupMatchUpdates.find(u => u.id === leg1Match.id)
+              if (!leg1Update) continue
+
+              // Find the corresponding leg 2 match
+              let leg2Query = supabaseAdmin
+                .from('cup_matches')
+                .select('id, home_score, away_score, home_manager_id, away_manager_id')
+                .in('cup_gameweek_id', allCupGwIds)
+                .eq('stage', leg1Match.stage)
+                .eq('leg', 2)
+
+              if (leg1Match.match_number != null) {
+                leg2Query = leg2Query.eq('match_number', leg1Match.match_number)
+              }
+
+              const { data: leg2Matches } = await leg2Query
+
+              let leg2 = leg2Matches?.[0]
+              if (!leg1Match.match_number && leg2Matches && leg2Matches.length > 1) {
+                leg2 = leg2Matches.find(m =>
+                  m.home_manager_id === leg1Match.away_manager_id &&
+                  m.away_manager_id === leg1Match.home_manager_id
+                ) || leg2Matches[0]
+              }
+
+              if (leg2 && leg2.home_score != null) {
+                let leg2HomeAggregate: number
+                let leg2AwayAggregate: number
+
+                if (leg2.home_manager_id === leg1Match.away_manager_id) {
+                  leg2HomeAggregate = (leg2.home_score || 0) + leg1Update.away_score
+                  leg2AwayAggregate = (leg2.away_score || 0) + leg1Update.home_score
+                } else {
+                  leg2HomeAggregate = (leg2.home_score || 0) + leg1Update.home_score
+                  leg2AwayAggregate = (leg2.away_score || 0) + leg1Update.away_score
+                }
+
+                await supabaseAdmin
+                  .from('cup_matches')
+                  .update({
+                    home_aggregate_score: leg2HomeAggregate,
+                    away_aggregate_score: leg2AwayAggregate
+                  })
+                  .eq('id', leg2.id)
+              }
             }
           }
 
