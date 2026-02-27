@@ -142,14 +142,41 @@ export async function GET(
       }
     })
 
+    // Build leg 1 lookup for aggregate calculation
+    const leg1MatchMap = new Map<string, { home_score: number | null, away_score: number | null }>()
+    cupGameweeks?.forEach(gw => {
+      gw.cup_matches?.forEach((match: CupMatchDb) => {
+        if (match.leg === 1 && match.stage !== 'group_stage' && match.stage !== 'final') {
+          const key = `${match.stage}_${match.away_manager_id}_${match.home_manager_id}`
+          leg1MatchMap.set(key, { home_score: match.home_score, away_score: match.away_score })
+        }
+      })
+    })
+
     // Merge user data into schedule
     const schedule = cupGameweeks?.map(gameweek => ({
       ...gameweek,
-      matches: gameweek.cup_matches?.map((match: CupMatchDb) => ({
-        ...match,
-        home_manager: match.home_manager_id ? userMap[match.home_manager_id] : null,
-        away_manager: match.away_manager_id ? userMap[match.away_manager_id] : null
-      }))
+      matches: gameweek.cup_matches?.map((match: CupMatchDb) => {
+        // Compute aggregate for leg 2 knockout matches
+        let computedHomeAggregate = match.home_aggregate_score
+        let computedAwayAggregate = match.away_aggregate_score
+        if (match.leg === 2 && match.stage !== 'group_stage' && match.stage !== 'final') {
+          const key = `${match.stage}_${match.home_manager_id}_${match.away_manager_id}`
+          const leg1 = leg1MatchMap.get(key)
+          if (leg1) {
+            computedHomeAggregate = (match.home_score || 0) + (leg1.away_score || 0)
+            computedAwayAggregate = (match.away_score || 0) + (leg1.home_score || 0)
+          }
+        }
+
+        return {
+          ...match,
+          home_aggregate_score: computedHomeAggregate,
+          away_aggregate_score: computedAwayAggregate,
+          home_manager: match.home_manager_id ? userMap[match.home_manager_id] : null,
+          away_manager: match.away_manager_id ? userMap[match.away_manager_id] : null
+        }
+      })
     }))
 
     return NextResponse.json({ schedule: schedule || [] })

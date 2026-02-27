@@ -195,6 +195,22 @@ export async function GET(
       })
     }
 
+    // Build a map of all leg 1 knockout matches for aggregate calculation
+    // Key: "stage_awayManagerId_homeManagerId" (swapped because leg 2 swaps home/away)
+    const leg1MatchMap = new Map<string, { home_score: number | null, away_score: number | null }>()
+    cupGameweeks?.forEach((gw) => {
+      gw.cup_matches?.forEach((match) => {
+        if (match.leg === 1 && match.stage !== 'group_stage' && match.stage !== 'final') {
+          // Key by swapped managers so leg 2 can look up easily
+          const key = `${match.stage}_${match.away_manager_id}_${match.home_manager_id}`
+          leg1MatchMap.set(key, {
+            home_score: match.home_score,
+            away_score: match.away_score
+          })
+        }
+      })
+    })
+
     // Build response with all data
     const gameweeksWithMatches = cupGameweeks?.map((gw) => {
       const gameweek = Array.isArray(gw.gameweeks) ? gw.gameweeks[0] : gw.gameweeks
@@ -248,8 +264,23 @@ export async function GET(
           }
         }
 
+        // Compute aggregate for leg 2 knockout matches
+        let computedHomeAggregate = match.home_aggregate_score
+        let computedAwayAggregate = match.away_aggregate_score
+        if (match.leg === 2 && match.stage !== 'group_stage' && match.stage !== 'final') {
+          const key = `${match.stage}_${match.home_manager_id}_${match.away_manager_id}`
+          const leg1 = leg1MatchMap.get(key)
+          if (leg1) {
+            // leg2 home was leg1 away, leg2 away was leg1 home
+            computedHomeAggregate = (match.home_score || 0) + (leg1.away_score || 0)
+            computedAwayAggregate = (match.away_score || 0) + (leg1.home_score || 0)
+          }
+        }
+
         return {
           ...match,
+          home_aggregate_score: computedHomeAggregate,
+          away_aggregate_score: computedAwayAggregate,
           home_manager: match.home_manager_id ? userMap.get(match.home_manager_id) : null,
           away_manager: match.away_manager_id ? userMap.get(match.away_manager_id) : null,
           home_lineup: homeLineupWithPlayers,
