@@ -213,13 +213,76 @@ export async function PUT(request: NextRequest) {
       .maybeSingle()
 
     if (cupMatch) {
+      // Fetch full match data to check if penalties are applicable (aggregate must be tied after ET)
+      const { data: fullMatch } = await supabaseAdmin
+        .from('cup_matches')
+        .select('home_score, away_score, stage, leg, cup_gameweek_id')
+        .eq('id', cupMatch.id)
+        .single()
+
+      let aggregateTiedAfterET = false
+      if (fullMatch) {
+        if (fullMatch.stage === 'final') {
+          // Single leg: check if score (including ET if applicable) is tied
+          aggregateTiedAfterET = (fullMatch.home_score || 0) === (fullMatch.away_score || 0)
+        } else if (fullMatch.leg === 2) {
+          // Two legs: fetch leg 1 and compute aggregate
+          const { data: cupGw } = await supabaseAdmin
+            .from('cup_gameweeks')
+            .select('cup_id')
+            .eq('id', fullMatch.cup_gameweek_id)
+            .single()
+
+          if (cupGw) {
+            const { data: allCupGws } = await supabaseAdmin
+              .from('cup_gameweeks')
+              .select('id')
+              .eq('cup_id', cupGw.cup_id)
+
+            const allCupGwIds = allCupGws?.map(g => g.id) || []
+
+            const { data: leg1Matches } = await supabaseAdmin
+              .from('cup_matches')
+              .select('home_score, away_score, home_manager_id, away_manager_id')
+              .in('cup_gameweek_id', allCupGwIds)
+              .eq('stage', fullMatch.stage)
+              .eq('leg', 1)
+
+            const leg1 = leg1Matches?.find(m =>
+              m.home_manager_id === cupMatch.away_manager_id &&
+              m.away_manager_id === cupMatch.home_manager_id
+            ) || leg1Matches?.[0]
+
+            if (leg1) {
+              let aggHome: number, aggAway: number
+              if (cupMatch.home_manager_id === leg1.away_manager_id) {
+                aggHome = (fullMatch.home_score || 0) + (leg1.away_score || 0)
+                aggAway = (fullMatch.away_score || 0) + (leg1.home_score || 0)
+              } else {
+                aggHome = (fullMatch.home_score || 0) + (leg1.home_score || 0)
+                aggAway = (fullMatch.away_score || 0) + (leg1.away_score || 0)
+              }
+              aggregateTiedAfterET = aggHome === aggAway
+            }
+          }
+        }
+      }
+
       const isHome = cupMatch.home_manager_id === managerId
       const updateField = isHome ? 'home_penalty_score' : 'away_penalty_score'
 
-      await supabaseAdmin
-        .from('cup_matches')
-        .update({ [updateField]: penaltyScore })
-        .eq('id', cupMatch.id)
+      if (aggregateTiedAfterET) {
+        await supabaseAdmin
+          .from('cup_matches')
+          .update({ [updateField]: penaltyScore })
+          .eq('id', cupMatch.id)
+      } else {
+        // Clear penalty score — aggregate not tied, penalties not applicable
+        await supabaseAdmin
+          .from('cup_matches')
+          .update({ [updateField]: null })
+          .eq('id', cupMatch.id)
+      }
     }
 
     return NextResponse.json({ penaltyLineup })

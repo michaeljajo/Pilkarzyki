@@ -365,7 +365,33 @@ export async function PUT(
             }
           }
 
-          // Calculate cup match scores — for knockout deciders, include ET player goals in the main score
+          // Pre-fetch leg 1 data for leg 2 knockout matches (needed to determine if ET applies)
+          let leg1LookupMap = new Map<string, { home_score: number | null, away_score: number | null, home_manager_id: string, away_manager_id: string }>()
+          if (isKnockoutDecider && cupGwDetails?.leg === 2) {
+            const { data: allCupGws } = await supabaseAdmin
+              .from('cup_gameweeks')
+              .select('id')
+              .eq('cup_id', cupGameweek.cup_id)
+
+            const allCupGwIds = allCupGws?.map(g => g.id) || []
+
+            const { data: leg1Matches } = await supabaseAdmin
+              .from('cup_matches')
+              .select('home_score, away_score, home_manager_id, away_manager_id, stage, match_number')
+              .in('cup_gameweek_id', allCupGwIds)
+              .eq('stage', cupGwDetails.stage)
+              .eq('leg', 1)
+
+            if (leg1Matches) {
+              for (const leg1 of leg1Matches) {
+                // Key by swapped managers: leg2 home = leg1 away
+                const key = `${leg1.away_manager_id}_${leg1.home_manager_id}`
+                leg1LookupMap.set(key, leg1)
+              }
+            }
+          }
+
+          // Calculate cup match scores — for knockout deciders, conditionally include ET
           const cupMatchUpdates = cupMatches.map(match => {
             const homeLineup = cupLineupsMapByManager.get(match.home_manager_id)
             const awayLineup = cupLineupsMapByManager.get(match.away_manager_id)
@@ -394,12 +420,31 @@ export async function PUT(
               }
             }
 
+            // Determine if ET is needed (aggregate must be tied after regular time)
+            let needsET = false
+            if (isKnockoutDecider && (etHomeScore > 0 || etAwayScore > 0)) {
+              if (cupGwDetails?.stage === 'final') {
+                // Single leg final: ET needed if regular score is tied
+                needsET = regularHome === regularAway
+              } else if (cupGwDetails?.leg === 2) {
+                // Two legs: ET needed if regular aggregate is tied
+                const leg1Key = `${match.home_manager_id}_${match.away_manager_id}`
+                const leg1 = leg1LookupMap.get(leg1Key)
+                if (leg1) {
+                  // leg2 home was leg1 away, so aggregate:
+                  const regularAggHome = regularHome + (leg1.away_score || 0)
+                  const regularAggAway = regularAway + (leg1.home_score || 0)
+                  needsET = regularAggHome === regularAggAway
+                }
+              }
+            }
+
             return {
               id: match.id,
-              home_score: regularHome + etHomeScore,
-              away_score: regularAway + etAwayScore,
-              home_et_score: isKnockoutDecider ? etHomeScore : undefined,
-              away_et_score: isKnockoutDecider ? etAwayScore : undefined,
+              home_score: needsET ? regularHome + etHomeScore : regularHome,
+              away_score: needsET ? regularAway + etAwayScore : regularAway,
+              home_et_score: needsET ? etHomeScore : null,
+              away_et_score: needsET ? etAwayScore : null,
               is_completed: true
             }
           })
@@ -411,9 +456,37 @@ export async function PUT(
               away_score: update.away_score,
               is_completed: update.is_completed
             }
-            if (update.home_et_score !== undefined) {
+            if (isKnockoutDecider) {
+              // Always write ET scores for knockout deciders (null clears them when not needed)
               updateData.home_et_score = update.home_et_score
               updateData.away_et_score = update.away_et_score
+
+              // Determine if penalties are applicable (aggregate must be tied after ET)
+              let penaltiesApplicable = false
+              if (update.home_et_score != null || update.away_et_score != null) {
+                // ET was needed (regular aggregate was tied)
+                // Check if aggregate is STILL tied after ET
+                if (cupGwDetails?.stage === 'final') {
+                  penaltiesApplicable = update.home_score === update.away_score
+                } else if (cupGwDetails?.leg === 2) {
+                  const matchData = cupMatches.find(m => m.id === update.id)
+                  if (matchData) {
+                    const leg1Key = `${matchData.home_manager_id}_${matchData.away_manager_id}`
+                    const leg1 = leg1LookupMap.get(leg1Key)
+                    if (leg1) {
+                      const aggHome = update.home_score + (leg1.away_score || 0)
+                      const aggAway = update.away_score + (leg1.home_score || 0)
+                      penaltiesApplicable = aggHome === aggAway
+                    }
+                  }
+                }
+              }
+
+              if (!penaltiesApplicable) {
+                // Clear penalty scores — aggregate not tied (either no ET needed, or ET resolved it)
+                updateData.home_penalty_score = null
+                updateData.away_penalty_score = null
+              }
             }
 
             const { error } = await supabaseAdmin
@@ -509,7 +582,7 @@ export async function PUT(
               // Find the corresponding leg 2 match
               let leg2Query = supabaseAdmin
                 .from('cup_matches')
-                .select('id, home_score, away_score, home_manager_id, away_manager_id')
+                .select('id, home_score, away_score, home_et_score, away_et_score, home_manager_id, away_manager_id')
                 .in('cup_gameweek_id', allCupGwIds)
                 .eq('stage', leg1Match.stage)
                 .eq('leg', 2)
@@ -529,23 +602,61 @@ export async function PUT(
               }
 
               if (leg2 && leg2.home_score != null) {
-                let leg2HomeAggregate: number
-                let leg2AwayAggregate: number
+                // Derive leg 2 regular score (without ET)
+                const leg2RegularHome = (leg2.home_score || 0) - (leg2.home_et_score || 0)
+                const leg2RegularAway = (leg2.away_score || 0) - (leg2.away_et_score || 0)
+                const leg2EtHome = leg2.home_et_score || 0
+                const leg2EtAway = leg2.away_et_score || 0
+
+                // Compute regular aggregate with new leg 1 scores
+                let regularAggHome: number
+                let regularAggAway: number
 
                 if (leg2.home_manager_id === leg1Match.away_manager_id) {
-                  leg2HomeAggregate = (leg2.home_score || 0) + leg1Update.away_score
-                  leg2AwayAggregate = (leg2.away_score || 0) + leg1Update.home_score
+                  regularAggHome = leg2RegularHome + leg1Update.away_score
+                  regularAggAway = leg2RegularAway + leg1Update.home_score
                 } else {
-                  leg2HomeAggregate = (leg2.home_score || 0) + leg1Update.home_score
-                  leg2AwayAggregate = (leg2.away_score || 0) + leg1Update.away_score
+                  regularAggHome = leg2RegularHome + leg1Update.home_score
+                  regularAggAway = leg2RegularAway + leg1Update.away_score
+                }
+
+                // Recalculate whether ET is needed for leg 2
+                const needsET = regularAggHome === regularAggAway && (leg2EtHome > 0 || leg2EtAway > 0)
+
+                const newLeg2HomeScore = needsET ? leg2RegularHome + leg2EtHome : leg2RegularHome
+                const newLeg2AwayScore = needsET ? leg2RegularAway + leg2EtAway : leg2RegularAway
+
+                // Compute final aggregate
+                let leg2HomeAggregate: number
+                let leg2AwayAggregate: number
+                if (leg2.home_manager_id === leg1Match.away_manager_id) {
+                  leg2HomeAggregate = newLeg2HomeScore + leg1Update.away_score
+                  leg2AwayAggregate = newLeg2AwayScore + leg1Update.home_score
+                } else {
+                  leg2HomeAggregate = newLeg2HomeScore + leg1Update.home_score
+                  leg2AwayAggregate = newLeg2AwayScore + leg1Update.away_score
+                }
+
+                // Check if penalties are still applicable
+                const penaltiesApplicable = needsET && leg2HomeAggregate === leg2AwayAggregate
+
+                const leg2UpdateData: Record<string, unknown> = {
+                  home_score: newLeg2HomeScore,
+                  away_score: newLeg2AwayScore,
+                  home_et_score: needsET ? leg2EtHome : null,
+                  away_et_score: needsET ? leg2EtAway : null,
+                  home_aggregate_score: leg2HomeAggregate,
+                  away_aggregate_score: leg2AwayAggregate
+                }
+
+                if (!penaltiesApplicable) {
+                  leg2UpdateData.home_penalty_score = null
+                  leg2UpdateData.away_penalty_score = null
                 }
 
                 await supabaseAdmin
                   .from('cup_matches')
-                  .update({
-                    home_aggregate_score: leg2HomeAggregate,
-                    away_aggregate_score: leg2AwayAggregate
-                  })
+                  .update(leg2UpdateData)
                   .eq('id', leg2.id)
               }
             }
