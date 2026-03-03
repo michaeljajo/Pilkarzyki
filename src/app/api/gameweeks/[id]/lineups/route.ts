@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { recalculateLeagueStandings, recalculateCupGroupStandings } from '@/utils/standings-calculator'
 import { calculateMatchScore, calculateLineupTotalGoals } from '@/utils/own-goal-calculator'
+import { resolveNextRoundPlaceholders } from '@/utils/knockout-winner'
 
 export async function GET(
   request: NextRequest,
@@ -658,6 +659,85 @@ export async function PUT(
                   .from('cup_matches')
                   .update(leg2UpdateData)
                   .eq('id', leg2.id)
+              }
+            }
+          }
+
+          // Determine winner_id for knockout decider matches and resolve next-round placeholders
+          if (isKnockoutDecider) {
+            // Fetch the latest state of all decider matches after score/aggregate updates
+            const deciderMatchIds = cupMatches
+              .filter(m => m.stage !== 'group_stage')
+              .map(m => m.id)
+
+            if (deciderMatchIds.length > 0) {
+              const { data: deciderMatches } = await supabaseAdmin
+                .from('cup_matches')
+                .select('id, home_manager_id, away_manager_id, home_score, away_score, home_aggregate_score, away_aggregate_score, home_penalty_score, away_penalty_score, stage, leg, match_number')
+                .in('id', deciderMatchIds)
+
+              if (deciderMatches) {
+                for (const match of deciderMatches) {
+                  const isFinal = match.stage === 'final'
+                  const isLeg2 = match.leg === 2
+
+                  if (!isFinal && !isLeg2) continue
+
+                  let winnerId: string | null = null
+
+                  if (isFinal) {
+                    // Single leg: compare scores directly
+                    const homeScore = match.home_score ?? 0
+                    const awayScore = match.away_score ?? 0
+                    if (homeScore > awayScore) {
+                      winnerId = match.home_manager_id
+                    } else if (awayScore > homeScore) {
+                      winnerId = match.away_manager_id
+                    } else {
+                      // Tied after ET - check penalties
+                      if (match.home_penalty_score != null && match.away_penalty_score != null) {
+                        if (match.home_penalty_score > match.away_penalty_score) {
+                          winnerId = match.home_manager_id
+                        } else if (match.away_penalty_score > match.home_penalty_score) {
+                          winnerId = match.away_manager_id
+                        }
+                        // If penalties also tied, no winner yet
+                      }
+                    }
+                  } else if (isLeg2) {
+                    // Two legs: compare aggregate
+                    const aggHome = match.home_aggregate_score ?? 0
+                    const aggAway = match.away_aggregate_score ?? 0
+                    if (aggHome > aggAway) {
+                      winnerId = match.home_manager_id
+                    } else if (aggAway > aggHome) {
+                      winnerId = match.away_manager_id
+                    } else {
+                      // Tied on aggregate after ET - check penalties
+                      if (match.home_penalty_score != null && match.away_penalty_score != null) {
+                        if (match.home_penalty_score > match.away_penalty_score) {
+                          winnerId = match.home_manager_id
+                        } else if (match.away_penalty_score > match.home_penalty_score) {
+                          winnerId = match.away_manager_id
+                        }
+                      }
+                    }
+                  }
+
+                  if (winnerId) {
+                    await supabaseAdmin
+                      .from('cup_matches')
+                      .update({ winner_id: winnerId })
+                      .eq('id', match.id)
+                  }
+                }
+
+                // Auto-resolve next-round placeholders after setting winners
+                try {
+                  await resolveNextRoundPlaceholders(cupGameweek.cup_id)
+                } catch (resolveError) {
+                  console.error('Error resolving next-round placeholders:', resolveError)
+                }
               }
             }
           }

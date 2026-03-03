@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { auth, clerkClient } from '@clerk/nextjs/server'
 import { resolveUserNames } from '@/utils/name-resolver'
+import { resolveNextRoundPlaceholders } from '@/utils/knockout-winner'
 
 /**
  * POST /api/cup-penalty-lineups
@@ -276,6 +277,46 @@ export async function PUT(request: NextRequest) {
           .from('cup_matches')
           .update({ [updateField]: penaltyScore })
           .eq('id', cupMatch.id)
+
+        // After saving penalty score, check if both sides have penalties and determine winner
+        const { data: updatedMatch } = await supabaseAdmin
+          .from('cup_matches')
+          .select('home_manager_id, away_manager_id, home_penalty_score, away_penalty_score, cup_gameweek_id')
+          .eq('id', cupMatch.id)
+          .single()
+
+        if (updatedMatch &&
+            updatedMatch.home_penalty_score != null &&
+            updatedMatch.away_penalty_score != null) {
+          let winnerId: string | null = null
+          if (updatedMatch.home_penalty_score > updatedMatch.away_penalty_score) {
+            winnerId = updatedMatch.home_manager_id
+          } else if (updatedMatch.away_penalty_score > updatedMatch.home_penalty_score) {
+            winnerId = updatedMatch.away_manager_id
+          }
+
+          if (winnerId) {
+            await supabaseAdmin
+              .from('cup_matches')
+              .update({ winner_id: winnerId })
+              .eq('id', cupMatch.id)
+
+            // Get cup_id and auto-resolve next-round placeholders
+            const { data: cupGwForResolve } = await supabaseAdmin
+              .from('cup_gameweeks')
+              .select('cup_id')
+              .eq('id', updatedMatch.cup_gameweek_id)
+              .single()
+
+            if (cupGwForResolve) {
+              try {
+                await resolveNextRoundPlaceholders(cupGwForResolve.cup_id)
+              } catch (resolveError) {
+                console.error('Error resolving next-round placeholders:', resolveError)
+              }
+            }
+          }
+        }
       } else {
         // Clear penalty score — aggregate not tied, penalties not applicable
         await supabaseAdmin

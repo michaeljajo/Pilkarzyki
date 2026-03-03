@@ -36,7 +36,55 @@ export async function POST(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    // Fetch all knockout matches with unresolved placeholders
+    // Step 1: Retroactively set winner_id on completed knockout decider matches that lack it
+    let winnersSet = 0
+    const { data: completedWithoutWinner } = await supabaseAdmin
+      .from('cup_matches')
+      .select('id, home_manager_id, away_manager_id, home_score, away_score, home_aggregate_score, away_aggregate_score, home_penalty_score, away_penalty_score, stage, leg')
+      .eq('cup_id', cupId)
+      .eq('is_completed', true)
+      .neq('stage', 'group_stage')
+      .is('winner_id', null)
+
+    if (completedWithoutWinner && completedWithoutWinner.length > 0) {
+      for (const match of completedWithoutWinner) {
+        const isFinal = match.stage === 'final'
+        const isLeg2 = match.leg === 2
+        if (!isFinal && !isLeg2) continue
+
+        let winnerId: string | null = null
+
+        if (isFinal) {
+          const h = match.home_score ?? 0
+          const a = match.away_score ?? 0
+          if (h > a) winnerId = match.home_manager_id
+          else if (a > h) winnerId = match.away_manager_id
+          else if (match.home_penalty_score != null && match.away_penalty_score != null) {
+            if (match.home_penalty_score > match.away_penalty_score) winnerId = match.home_manager_id
+            else if (match.away_penalty_score > match.home_penalty_score) winnerId = match.away_manager_id
+          }
+        } else if (isLeg2) {
+          const aggH = match.home_aggregate_score ?? 0
+          const aggA = match.away_aggregate_score ?? 0
+          if (aggH > aggA) winnerId = match.home_manager_id
+          else if (aggA > aggH) winnerId = match.away_manager_id
+          else if (match.home_penalty_score != null && match.away_penalty_score != null) {
+            if (match.home_penalty_score > match.away_penalty_score) winnerId = match.home_manager_id
+            else if (match.away_penalty_score > match.home_penalty_score) winnerId = match.away_manager_id
+          }
+        }
+
+        if (winnerId) {
+          await supabaseAdmin
+            .from('cup_matches')
+            .update({ winner_id: winnerId })
+            .eq('id', match.id)
+          winnersSet++
+        }
+      }
+    }
+
+    // Step 2: Fetch all knockout matches with unresolved placeholders
     const { data: unresolvedMatches } = await supabaseAdmin
       .from('cup_matches')
       .select('*')
@@ -46,9 +94,12 @@ export async function POST(
 
     if (!unresolvedMatches || unresolvedMatches.length === 0) {
       return NextResponse.json({
-        message: 'All placeholders already resolved',
+        message: winnersSet > 0
+          ? `Set ${winnersSet} winner(s). All placeholders already resolved.`
+          : 'All placeholders already resolved',
         resolvedCount: 0,
-        totalChecked: 0
+        totalChecked: 0,
+        winnersSet
       })
     }
 
@@ -105,9 +156,10 @@ export async function POST(
     }
 
     return NextResponse.json({
-      message: `Successfully resolved ${resolvedCount} match(es)`,
+      message: `Set ${winnersSet} winner(s), resolved ${resolvedCount} match(es)`,
       resolvedCount,
       totalChecked: unresolvedMatches.length,
+      winnersSet,
       details: resolutionResults
     })
   } catch (error) {
