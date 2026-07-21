@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { assertLeagueMutable } from '@/lib/auth-helpers'
 
 export async function GET(request: NextRequest) {
   try {
@@ -53,6 +54,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         error: 'Missing required fields: league_id, week, start_date, end_date'
       }, { status: 400 })
+    }
+
+    const mutable = await assertLeagueMutable(league_id)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
     }
 
     // Check if gameweek already exists for this league and week

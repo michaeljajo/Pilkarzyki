@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { auth, clerkClient } from '@clerk/nextjs/server'
 import { resolveUserNames } from '@/utils/name-resolver'
 import { resolveNextRoundPlaceholders } from '@/utils/knockout-winner'
+import { assertLeagueMutableByCupGameweek } from '@/lib/auth-helpers'
 
 /**
  * POST /api/cup-penalty-lineups
@@ -34,6 +35,11 @@ export async function POST(request: NextRequest) {
     const uniqueIds = new Set(playerIds)
     if (uniqueIds.size !== playerIds.length) {
       return NextResponse.json({ error: 'Zawodnicy nie mogą się powtarzać' }, { status: 400 })
+    }
+
+    const mutable = await assertLeagueMutableByCupGameweek(cupGameweekId)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
     }
 
     // Get user record
@@ -182,6 +188,11 @@ export async function PUT(request: NextRequest) {
     // Validate goals: each must be 0 or 1
     if (goals.some((g: number) => g !== 0 && g !== 1)) {
       return NextResponse.json({ error: 'Each goal must be 0 (missed) or 1 (scored)' }, { status: 400 })
+    }
+
+    const mutable = await assertLeagueMutableByCupGameweek(cupGameweekId)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
     }
 
     // Update penalty lineup goals

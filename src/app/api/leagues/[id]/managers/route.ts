@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { auth } from '@clerk/nextjs/server'
 import { resolveUserNames } from '@/utils/name-resolver'
-import { verifyLeagueAdmin } from '@/lib/auth-helpers'
+import { verifyLeagueAdmin, assertLeagueMutable } from '@/lib/auth-helpers'
 
 export async function GET(
   request: NextRequest,
@@ -83,6 +83,11 @@ export async function POST(
     const { isAdmin, error: authError } = await verifyLeagueAdmin(authUserId, id)
     if (!isAdmin) {
       return NextResponse.json({ error: authError || 'Forbidden' }, { status: 403 })
+    }
+
+    const mutable = await assertLeagueMutable(id)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
     }
 
     const { userId } = await request.json()
@@ -205,6 +210,11 @@ export async function DELETE(
     const { isAdmin, error: authError } = await verifyLeagueAdmin(authUserId, id)
     if (!isAdmin) {
       return NextResponse.json({ error: authError || 'Forbidden' }, { status: 403 })
+    }
+
+    const mutable = await assertLeagueMutable(id)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
     }
 
     const { managerId } = await request.json()

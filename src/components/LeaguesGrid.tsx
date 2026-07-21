@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { LeagueCard } from '@/components/LeagueCard'
 
-interface League {
+export interface League {
   id: string
   name: string
   season: string | null

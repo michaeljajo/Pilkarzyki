@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { recalculateLeagueStandings } from '@/utils/standings-calculator'
 import { calculateMatchScore } from '@/utils/own-goal-calculator'
+import { assertLeagueMutableByGameweek } from '@/lib/auth-helpers'
 
 export async function GET(request: NextRequest) {
   try {
@@ -64,6 +65,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         error: 'Missing required fields: gameweek_id, player_id, goals'
       }, { status: 400 })
+    }
+
+    const mutable = await assertLeagueMutableByGameweek(gameweek_id)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
     }
 
     // Get gameweek and league info for later standings recalculation

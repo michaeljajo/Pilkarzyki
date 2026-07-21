@@ -14,16 +14,17 @@ interface PostCardProps {
   isLeagueAdmin: boolean
   onDelete: (postId: string) => Promise<void>
   onEdit: (postId: string, content: string) => Promise<void>
+  readOnly?: boolean
 }
 
-export function PostCard({ post, currentUserId, isLeagueAdmin, onDelete, onEdit }: PostCardProps) {
+export function PostCard({ post, currentUserId, isLeagueAdmin, onDelete, onEdit, readOnly = false }: PostCardProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editContent, setEditContent] = useState(post.content)
   const [isSaving, setIsSaving] = useState(false)
 
   const isAuthor = post.user_id === currentUserId
-  const canDelete = isAuthor || isLeagueAdmin
-  const canEdit = isAuthor
+  const canDelete = !readOnly && (isAuthor || isLeagueAdmin)
+  const canEdit = !readOnly && isAuthor
 
   const userName = post.users
     ? `${post.users.first_name || ''} ${post.users.last_name || ''}`.trim() || post.users.email

@@ -64,13 +64,11 @@ const getUserLeagues = unstable_cache(
             admin_id
           )
         `)
-        .eq('manager_id', userId)
-        .eq('leagues.is_active', true),
+        .eq('manager_id', userId),
       supabaseAdmin
         .from('leagues')
         .select('id, name, season, is_active, created_at, admin_id')
         .eq('admin_id', userId)
-        .eq('is_active', true)
     ])
 
     return {
@@ -143,9 +141,16 @@ export default async function DashboardPage() {
     })) || [])
   ]
 
-  allLeagues.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+  allLeagues.sort((a, b) => {
+    // Active leagues first, then archived ones, then newest first within each group
+    if (a.is_active !== b.is_active) {
+      return a.is_active ? -1 : 1
+    }
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  })
 
-  const hasAdminAccess = (adminLeagues?.length ?? 0) > 0 || userRecord.is_admin === true
+  const hasAdminAccess =
+    (adminLeagues?.some(l => l.is_active) ?? false) || userRecord.is_admin === true
 
   return (
     <div className="min-h-screen bg-white">

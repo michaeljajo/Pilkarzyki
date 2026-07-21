@@ -119,15 +119,25 @@ export async function resolvePlaceholder(
 
     try {
       // Look up the winner of the specified knockout match
-      // We look at both legs to find the winner_id
-      const { data: matches, error } = await supabaseAdmin
+      // For knockout rounds, winner_id is only set on:
+      // - Leg 2 of two-legged ties (QF, SF)
+      // - Single-leg finals
+      // We must filter by leg to avoid picking up leg 1 incorrectly
+      let query = supabaseAdmin
         .from('cup_matches')
-        .select('winner_id, match_number')
+        .select('winner_id, match_number, leg, stage')
         .eq('cup_id', cupId)
         .eq('stage', stage)
         .eq('match_number', matchNumber)
         .not('winner_id', 'is', null)
-        .limit(1)
+
+      // For two-legged knockout rounds, only leg 2 determines the winner
+      // Finals are single-leg, so they won't have leg=2
+      if (stage !== 'final') {
+        query = query.eq('leg', 2)
+      }
+
+      const { data: matches, error } = await query.limit(1)
 
       if (error || !matches || matches.length === 0) {
         return {

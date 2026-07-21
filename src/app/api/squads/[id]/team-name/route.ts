@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { validateTeamName, formatTeamName } from '@/utils/team-name-resolver'
+import { assertLeagueMutable } from '@/lib/auth-helpers'
 
 /**
  * PATCH /api/squads/[id]/team-name
@@ -56,6 +57,11 @@ export async function PATCH(
     // Verify user owns this squad (or is admin)
     if (squad.manager_id !== userRecord.id && !userRecord.is_admin) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 })
+    }
+
+    const mutable = await assertLeagueMutable(squad.league_id)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
     }
 
     // Check if team name is already taken in this league

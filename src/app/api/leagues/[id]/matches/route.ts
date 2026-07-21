@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { generateRoundRobinSchedule, validateSchedule } from '@/utils/scheduling'
-import { verifyLeagueAdmin } from '@/lib/auth-helpers'
+import { verifyLeagueAdmin, assertLeagueMutable } from '@/lib/auth-helpers'
 
 export async function GET(
   request: NextRequest,
@@ -88,6 +88,11 @@ export async function POST(
     const { isAdmin, error: authError } = await verifyLeagueAdmin(userId, leagueId)
     if (!isAdmin) {
       return NextResponse.json({ error: authError || 'Forbidden' }, { status: 403 })
+    }
+
+    const mutable = await assertLeagueMutable(leagueId)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
     }
 
     const { managerIds, gameweekIds } = await request.json()
@@ -201,6 +206,11 @@ export async function DELETE(
     const { isAdmin, error: authError } = await verifyLeagueAdmin(userId, leagueId)
     if (!isAdmin) {
       return NextResponse.json({ error: authError || 'Forbidden' }, { status: 403 })
+    }
+
+    const mutable = await assertLeagueMutable(leagueId)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
     }
 
     // Verify league exists and user has admin access

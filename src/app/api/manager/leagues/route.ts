@@ -91,17 +91,16 @@ export async function GET(request: NextRequest) {
 
     // Get leagues where user is assigned as manager (via squads table) OR where user is admin
     const [{ data: participantLeagues, error: participantError }, { data: adminLeagues, error: adminError }] = await Promise.all([
-      // Leagues where user participates (has players)
+      // Leagues where user participates (has players) — includes archived seasons
       supabaseAdmin
         .from('leagues')
         .select(`
           *,
           squads!inner(manager_id)
         `)
-        .eq('squads.manager_id', userRecord.id)
-        .eq('is_active', true),
+        .eq('squads.manager_id', userRecord.id),
 
-      // Leagues where user is admin (via league_admins table)
+      // Leagues where user is admin (via league_admins table) — includes archived seasons
       supabaseAdmin
         .from('leagues')
         .select(`
@@ -109,7 +108,6 @@ export async function GET(request: NextRequest) {
           league_admins!inner(user_id)
         `)
         .eq('league_admins.user_id', userRecord.id)
-        .eq('is_active', true)
     ])
 
 

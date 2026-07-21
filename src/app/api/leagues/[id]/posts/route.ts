@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import type { PostWithUser } from '@/types'
+import { assertLeagueMutable } from '@/lib/auth-helpers'
 
 export async function GET(
   request: NextRequest,
@@ -103,6 +104,11 @@ export async function POST(
 
     if (content.length > 5000) {
       return NextResponse.json({ error: 'Content is too long (max 5000 characters)' }, { status: 400 })
+    }
+
+    const mutable = await assertLeagueMutable(leagueId)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
     }
 
     // Get user's database ID from Clerk ID

@@ -3,6 +3,7 @@ import { createClerkSupabaseClientSsr } from '@/lib/supabase-server'
 import { auth } from '@clerk/nextjs/server'
 import { Position } from '@/types'
 import { supabaseAdmin } from '@/lib/supabase'
+import { assertLeagueMutableByName } from '@/lib/auth-helpers'
 
 export async function GET(request: NextRequest) {
   try {
@@ -64,6 +65,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid position' }, { status: 400 })
     }
 
+    if (league) {
+      const mutable = await assertLeagueMutableByName(league)
+      if (!mutable.ok) {
+        return NextResponse.json({ error: mutable.error }, { status: mutable.status })
+      }
+    }
+
     const supabase = await createClerkSupabaseClientSsr()
 
     const { data, error } = await supabase
@@ -116,6 +124,15 @@ export async function PUT(request: NextRequest) {
         return NextResponse.json({
           error: `Invalid position: ${player.position} for player ${player.name} ${player.surname}`
         }, { status: 400 })
+      }
+    }
+
+    // Refuse imports into any archived league
+    const uniqueLeagueNames = [...new Set(players.map((p: any) => p.league).filter(Boolean))]
+    for (const leagueName of uniqueLeagueNames) {
+      const mutable = await assertLeagueMutableByName(leagueName as string)
+      if (!mutable.ok) {
+        return NextResponse.json({ error: mutable.error }, { status: mutable.status })
       }
     }
 

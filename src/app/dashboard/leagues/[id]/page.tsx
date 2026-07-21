@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { unstable_cache } from 'next/cache'
 import { supabaseAdmin } from '@/lib/supabase'
 import { LeagueNavigationCards } from '@/components/LeagueNavigationCards'
+import { ArchivedBanner } from '@/components/ArchivedBanner'
 import { verifyLeagueAdmin } from '@/lib/auth-helpers'
 import Image from 'next/image'
 
@@ -87,6 +88,7 @@ export default async function LeagueDashboardPage({ params }: LeagueDashboardPag
   }
 
   const hasCup = !!cup
+  const isArchived = league.is_active === false
 
   return (
     <div className="min-h-screen bg-white">
@@ -114,6 +116,11 @@ export default async function LeagueDashboardPage({ params }: LeagueDashboardPag
 
       {/* Main Content */}
       <main className="max-w-[1400px] mx-auto px-4 md:px-12 py-16 md:py-24">
+        {isArchived && (
+          <div className="max-w-5xl mx-auto">
+            <ArchivedBanner season={league.season} />
+          </div>
+        )}
         {/* Navigation Cards */}
         <div className="flex items-center justify-center animate-fade-in-up">
           <div className="w-full max-w-5xl">
@@ -122,6 +129,7 @@ export default async function LeagueDashboardPage({ params }: LeagueDashboardPag
               isManager={isManager}
               isAdmin={isAdmin}
               hasCup={hasCup}
+              isArchived={isArchived}
             />
           </div>
         </div>

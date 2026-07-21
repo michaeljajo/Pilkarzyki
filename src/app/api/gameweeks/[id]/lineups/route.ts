@@ -4,6 +4,7 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { recalculateLeagueStandings, recalculateCupGroupStandings } from '@/utils/standings-calculator'
 import { calculateMatchScore, calculateLineupTotalGoals } from '@/utils/own-goal-calculator'
 import { resolveNextRoundPlaceholders } from '@/utils/knockout-winner'
+import { assertLeagueMutableByGameweek } from '@/lib/auth-helpers'
 
 export async function GET(
   request: NextRequest,
@@ -171,6 +172,11 @@ export async function PUT(
       return NextResponse.json({
         error: 'Results must be an array of { player_id, goals, has_played? } objects'
       }, { status: 400 })
+    }
+
+    const mutable = await assertLeagueMutableByGameweek(gameweekId)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
     }
 
     // Start a transaction-like operation

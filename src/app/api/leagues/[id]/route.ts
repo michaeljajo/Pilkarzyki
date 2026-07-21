@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { auth } from '@clerk/nextjs/server'
+import { ARCHIVED_LEAGUE_ERROR_MESSAGE, assertLeagueMutable } from '@/lib/auth-helpers'
 
 export async function GET(
   request: NextRequest,
@@ -82,7 +83,7 @@ export async function PUT(
     // Check if league exists and user is admin
     const { data: league } = await supabaseAdmin
       .from('leagues')
-      .select('admin_id')
+      .select('admin_id, is_active, name')
       .eq('id', id)
       .single()
 
@@ -98,6 +99,20 @@ export async function PUT(
     console.log('Update request body:', requestBody)
 
     const { name, isActive } = requestBody
+
+    // Archived seasons are read-only: the only edit permitted is un-archiving
+    // (isActive: true), which restores the league. Any other change is rejected.
+    if (league.is_active === false) {
+      const onlyReactivating =
+        isActive === true &&
+        (name === undefined || name === league.name)
+      if (!onlyReactivating) {
+        return NextResponse.json(
+          { error: ARCHIVED_LEAGUE_ERROR_MESSAGE },
+          { status: 403 }
+        )
+      }
+    }
 
     const { data, error } = await supabaseAdmin
       .from('leagues')
@@ -165,6 +180,11 @@ export async function DELETE(
 
     if (league.admin_id !== userRecord.id) {
       return NextResponse.json({ error: 'Forbidden: You are not the admin of this league' }, { status: 403 })
+    }
+
+    const mutable = await assertLeagueMutable(id)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
     }
 
     const { data, error } = await supabaseAdmin

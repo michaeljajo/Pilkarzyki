@@ -1,5 +1,214 @@
 import { supabaseAdmin } from '@/lib/supabase'
 
+export const ARCHIVED_LEAGUE_ERROR_MESSAGE =
+  'Ten sezon został zarchiwizowany i jest tylko do odczytu. Zmiany nie są możliwe.'
+
+/**
+ * Checks whether a league is currently mutable (is_active = true).
+ * Use in every mutation endpoint that writes to league-scoped data
+ * (lineups, results, posts, cup matches, squad edits, etc.) so that
+ * archived seasons remain a read-only historical record.
+ *
+ * Returns { ok: true } when the league is active. On failure returns
+ * a Polish error message and an appropriate HTTP status suitable for
+ * NextResponse.json({ error }, { status }).
+ */
+export async function assertLeagueMutable(leagueId: string): Promise<
+  { ok: true } | { ok: false; status: number; error: string }
+> {
+  if (!leagueId) {
+    return { ok: false, status: 400, error: 'Brak identyfikatora ligi.' }
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from('leagues')
+    .select('is_active')
+    .eq('id', leagueId)
+    .maybeSingle()
+
+  if (error) {
+    console.error('assertLeagueMutable: DB error', error)
+    return {
+      ok: false,
+      status: 500,
+      error: 'Błąd serwera podczas weryfikacji statusu ligi.',
+    }
+  }
+
+  if (!data) {
+    return { ok: false, status: 404, error: 'Nie znaleziono ligi.' }
+  }
+
+  if (data.is_active === false) {
+    return { ok: false, status: 403, error: ARCHIVED_LEAGUE_ERROR_MESSAGE }
+  }
+
+  return { ok: true }
+}
+
+/**
+ * Variant of assertLeagueMutable when the caller has a cup id
+ * (all cup-scoped mutations: results, groups, schedule, advance, etc.).
+ */
+export async function assertLeagueMutableByCup(cupId: string) {
+  if (!cupId) {
+    return { ok: false as const, status: 400, error: 'Brak identyfikatora pucharu.' }
+  }
+  const { data, error } = await supabaseAdmin
+    .from('cups')
+    .select('league_id')
+    .eq('id', cupId)
+    .maybeSingle()
+  if (error) {
+    console.error('assertLeagueMutableByCup: DB error', error)
+    return { ok: false as const, status: 500, error: 'Błąd serwera podczas weryfikacji statusu ligi.' }
+  }
+  if (!data) {
+    return { ok: false as const, status: 404, error: 'Nie znaleziono pucharu.' }
+  }
+  return assertLeagueMutable(data.league_id)
+}
+
+/**
+ * Variant when the caller has a gameweek id
+ * (league lineup submits, results, gameweek edits).
+ */
+export async function assertLeagueMutableByGameweek(gameweekId: string) {
+  if (!gameweekId) {
+    return { ok: false as const, status: 400, error: 'Brak identyfikatora kolejki.' }
+  }
+  const { data, error } = await supabaseAdmin
+    .from('gameweeks')
+    .select('league_id')
+    .eq('id', gameweekId)
+    .maybeSingle()
+  if (error) {
+    console.error('assertLeagueMutableByGameweek: DB error', error)
+    return { ok: false as const, status: 500, error: 'Błąd serwera podczas weryfikacji statusu ligi.' }
+  }
+  if (!data) {
+    return { ok: false as const, status: 404, error: 'Nie znaleziono kolejki.' }
+  }
+  return assertLeagueMutable(data.league_id)
+}
+
+/**
+ * Variant when the caller has a cup_gameweek id (cup lineup submits,
+ * ET lineups, penalty lineups).
+ */
+export async function assertLeagueMutableByCupGameweek(cupGameweekId: string) {
+  if (!cupGameweekId) {
+    return { ok: false as const, status: 400, error: 'Brak identyfikatora kolejki pucharu.' }
+  }
+  const { data, error } = await supabaseAdmin
+    .from('cup_gameweeks')
+    .select('cup_id')
+    .eq('id', cupGameweekId)
+    .maybeSingle()
+  if (error) {
+    console.error('assertLeagueMutableByCupGameweek: DB error', error)
+    return { ok: false as const, status: 500, error: 'Błąd serwera podczas weryfikacji statusu ligi.' }
+  }
+  if (!data) {
+    return { ok: false as const, status: 404, error: 'Nie znaleziono kolejki pucharu.' }
+  }
+  return assertLeagueMutableByCup(data.cup_id)
+}
+
+/**
+ * Variant when the caller has a squad id (team name edits).
+ */
+export async function assertLeagueMutableBySquad(squadId: string) {
+  if (!squadId) {
+    return { ok: false as const, status: 400, error: 'Brak identyfikatora składu.' }
+  }
+  const { data, error } = await supabaseAdmin
+    .from('squads')
+    .select('league_id')
+    .eq('id', squadId)
+    .maybeSingle()
+  if (error) {
+    console.error('assertLeagueMutableBySquad: DB error', error)
+    return { ok: false as const, status: 500, error: 'Błąd serwera podczas weryfikacji statusu ligi.' }
+  }
+  if (!data) {
+    return { ok: false as const, status: 404, error: 'Nie znaleziono składu.' }
+  }
+  return assertLeagueMutable(data.league_id)
+}
+
+/**
+ * Variant when the caller has a post id (Tablica posts).
+ */
+export async function assertLeagueMutableByPost(postId: string) {
+  if (!postId) {
+    return { ok: false as const, status: 400, error: 'Brak identyfikatora wpisu.' }
+  }
+  const { data, error } = await supabaseAdmin
+    .from('posts')
+    .select('league_id')
+    .eq('id', postId)
+    .maybeSingle()
+  if (error) {
+    console.error('assertLeagueMutableByPost: DB error', error)
+    return { ok: false as const, status: 500, error: 'Błąd serwera podczas weryfikacji statusu ligi.' }
+  }
+  if (!data) {
+    return { ok: false as const, status: 404, error: 'Nie znaleziono wpisu.' }
+  }
+  return assertLeagueMutable(data.league_id)
+}
+
+/**
+ * Variant when the caller has a league name (players table uses
+ * league name as its foreign key rather than an id).
+ */
+export async function assertLeagueMutableByName(leagueName: string) {
+  if (!leagueName) {
+    return { ok: false as const, status: 400, error: 'Brak nazwy ligi.' }
+  }
+  const { data, error } = await supabaseAdmin
+    .from('leagues')
+    .select('is_active')
+    .eq('name', leagueName)
+    .maybeSingle()
+  if (error) {
+    console.error('assertLeagueMutableByName: DB error', error)
+    return { ok: false as const, status: 500, error: 'Błąd serwera podczas weryfikacji statusu ligi.' }
+  }
+  if (!data) {
+    // No league with that name exists yet — treat as mutable so imports
+    // targeting a not-yet-created league name still succeed.
+    return { ok: true as const }
+  }
+  if (data.is_active === false) {
+    return { ok: false as const, status: 403, error: ARCHIVED_LEAGUE_ERROR_MESSAGE }
+  }
+  return { ok: true as const }
+}
+
+/**
+ * Variant when the caller has a result id.
+ */
+export async function assertLeagueMutableByResult(resultId: string) {
+  if (!resultId) {
+    return { ok: false as const, status: 400, error: 'Brak identyfikatora wyniku.' }
+  }
+  const { data, error } = await supabaseAdmin
+    .from('results')
+    .select('gameweek_id')
+    .eq('id', resultId)
+    .maybeSingle()
+  if (error) {
+    console.error('assertLeagueMutableByResult: DB error', error)
+    return { ok: false as const, status: 500, error: 'Błąd serwera podczas weryfikacji statusu ligi.' }
+  }
+  if (!data) {
+    return { ok: false as const, status: 404, error: 'Nie znaleziono wyniku.' }
+  }
+  return assertLeagueMutableByGameweek(data.gameweek_id)
+}
+
 /**
  * Verifies that a user is an admin of a specific league
  * Uses the league_admins junction table to support multiple admins per league

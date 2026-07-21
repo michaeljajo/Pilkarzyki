@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { auth, clerkClient } from '@clerk/nextjs/server'
 import { resolveUserNames } from '@/utils/name-resolver'
 import { validateLineup } from '@/utils/validation'
+import { assertLeagueMutable } from '@/lib/auth-helpers'
 
 export async function GET(request: NextRequest) {
   try {
@@ -55,6 +56,11 @@ export async function POST(request: NextRequest) {
 
     if (!leagueId || !Array.isArray(playerIds)) {
       return NextResponse.json({ error: 'leagueId and playerIds array are required' }, { status: 400 })
+    }
+
+    const mutable = await assertLeagueMutable(leagueId)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
     }
 
     // Get user record, create if doesn't exist

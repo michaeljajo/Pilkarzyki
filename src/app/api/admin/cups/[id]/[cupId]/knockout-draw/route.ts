@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
-import { verifyLeagueAdmin } from '@/lib/auth-helpers'
+import { verifyLeagueAdmin, assertLeagueMutableByCup } from '@/lib/auth-helpers'
 import {
   resolveMatchPairings,
   validateGroupStageComplete,
@@ -25,6 +25,11 @@ export async function POST(
     }
 
     const { id: cupId } = await context.params
+
+    const mutable = await assertLeagueMutableByCup(cupId)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
+    }
 
     // Get cup and verify it exists
     const { data: cup, error: cupError } = await supabaseAdmin

@@ -3,6 +3,19 @@ import { createClerkSupabaseClientSsr } from '@/lib/supabase-server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { auth } from '@clerk/nextjs/server'
 import { Position } from '@/types'
+import { assertLeagueMutableByName } from '@/lib/auth-helpers'
+
+async function assertPlayerLeagueMutable(playerId: string) {
+  const { data } = await supabaseAdmin
+    .from('players')
+    .select('league')
+    .eq('id', playerId)
+    .maybeSingle()
+  if (!data?.league) {
+    return { ok: true as const }
+  }
+  return assertLeagueMutableByName(data.league)
+}
 
 export async function GET(
   request: NextRequest,
@@ -48,6 +61,17 @@ export async function PUT(
 
     const { id } = await params
     const updates = await request.json()
+
+    const mutable = await assertPlayerLeagueMutable(id)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
+    }
+    if (updates.league) {
+      const targetMutable = await assertLeagueMutableByName(updates.league)
+      if (!targetMutable.ok) {
+        return NextResponse.json({ error: targetMutable.error }, { status: targetMutable.status })
+      }
+    }
 
     // Use admin client for player updates (bypasses Clerk auth issues)
     const supabase = supabaseAdmin
@@ -108,6 +132,12 @@ export async function DELETE(
     }
 
     const { id } = await params
+
+    const mutable = await assertPlayerLeagueMutable(id)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
+    }
+
     const supabase = await createClerkSupabaseClientSsr()
 
     const { error } = await supabase

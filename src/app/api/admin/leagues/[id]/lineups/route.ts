@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { currentUser } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { assertLeagueMutable } from '@/lib/auth-helpers'
 
 // POST /api/admin/leagues/[id]/lineups - Create or update lineup for a manager
 export async function POST(
@@ -20,6 +21,11 @@ export async function POST(
 
     if (!managerId || !gameweekId || !playerIds || !Array.isArray(playerIds)) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    }
+
+    const mutable = await assertLeagueMutable(leagueId)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
     }
 
     // Get admin's internal user ID

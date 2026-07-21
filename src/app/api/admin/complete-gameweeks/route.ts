@@ -25,12 +25,15 @@ export async function POST(request: NextRequest) {
 
     const now = new Date()
 
-    // Find all gameweeks that have passed their end_date but are not yet completed
+    // Find all gameweeks that have passed their end_date but are not yet
+    // completed. Skip anything belonging to an archived league — those
+    // seasons are read-only history.
     const { data: expiredGameweeks, error: fetchError } = await supabaseAdmin
       .from('gameweeks')
-      .select('id, league_id, week, end_date, is_completed')
+      .select('id, league_id, week, end_date, is_completed, leagues!inner(is_active)')
       .eq('is_completed', false)
       .lt('end_date', now.toISOString())
+      .eq('leagues.is_active', true)
 
     if (fetchError) {
       console.error('[Admin] Error fetching expired gameweeks:', fetchError)

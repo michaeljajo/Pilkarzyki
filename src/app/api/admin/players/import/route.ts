@@ -4,6 +4,7 @@ import { supabaseAdmin } from '@/lib/supabase'
 import * as XLSX from 'xlsx'
 import { Position, PlayerImport } from '@/types'
 import { validateTeamName, formatTeamName } from '@/utils/team-name-resolver'
+import { assertLeagueMutable } from '@/lib/auth-helpers'
 
 interface ImportResult {
   success: boolean
@@ -44,6 +45,11 @@ export async function POST(request: NextRequest) {
 
     if (!leagueId) {
       return NextResponse.json({ error: 'League ID required' }, { status: 400 })
+    }
+
+    const mutable = await assertLeagueMutable(leagueId)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
     }
 
     // Verify league exists and get its name

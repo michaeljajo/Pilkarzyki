@@ -7,6 +7,7 @@ import { verifyLeagueAdmin } from '@/lib/auth-helpers'
 import { ArrowLeft, MessageCircle } from 'lucide-react'
 import Image from 'next/image'
 import { TablicaClient } from '@/components/TablicaClient'
+import { ArchivedBanner } from '@/components/ArchivedBanner'
 import type { PostWithUser } from '@/types'
 
 interface TablicaPageProps {
@@ -38,13 +39,15 @@ export default async function TablicaPage({ params }: TablicaPageProps) {
   // Get league details
   const { data: league } = await supabaseAdmin
     .from('leagues')
-    .select('id, name, season')
+    .select('id, name, season, is_active')
     .eq('id', leagueId)
     .single()
 
   if (!league) {
     redirect('/dashboard')
   }
+
+  const isArchived = league.is_active === false
 
   // Check if user is admin of this league using the league_admins table
   const { isAdmin } = await verifyLeagueAdmin(user.id, leagueId)
@@ -135,12 +138,15 @@ export default async function TablicaPage({ params }: TablicaPageProps) {
             </div>
           </div>
 
+          {isArchived && <ArchivedBanner season={league.season} />}
+
           {/* Post Form and List */}
           <TablicaClient
             leagueId={leagueId}
             currentUserId={userRecord.id}
             isLeagueAdmin={isAdmin}
             initialPosts={(posts as any) || []}
+            isArchived={isArchived}
           />
         </div>
       </main>

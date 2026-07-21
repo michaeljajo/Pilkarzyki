@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { assertLeagueMutableByGameweek } from '@/lib/auth-helpers'
 
 export async function PUT(
   request: NextRequest,
@@ -14,6 +15,11 @@ export async function PUT(
     }
 
     const updates = await request.json()
+
+    const mutable = await assertLeagueMutableByGameweek(id)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
+    }
 
     // Get the current gameweek data before updating
     const { data: currentGameweek } = await supabaseAdmin
@@ -95,6 +101,11 @@ export async function DELETE(
     const { userId } = await auth()
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const mutable = await assertLeagueMutableByGameweek(id)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
     }
 
     const { error } = await supabaseAdmin

@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
+import { Archive, ArchiveRestore } from 'lucide-react'
 import { League } from '@/types'
 
 export default function LeagueSettingsPage() {
@@ -15,6 +16,9 @@ export default function LeagueSettingsPage() {
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [showArchiveModal, setShowArchiveModal] = useState(false)
+  const [showRestoreModal, setShowRestoreModal] = useState(false)
+  const [archivingLoading, setArchivingLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     name: '',
@@ -76,6 +80,33 @@ export default function LeagueSettingsPage() {
       setError(err instanceof Error ? err.message : 'Failed to update league')
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function handleToggleArchive(nextActive: boolean) {
+    if (!league) return
+    try {
+      setArchivingLoading(true)
+      setError(null)
+      const response = await fetch(`/api/leagues/${league.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: league.name, isActive: nextActive }),
+      })
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || 'Nie udało się zapisać zmian')
+      }
+      setLeague(data.league)
+      setFormData(prev => ({ ...prev, isActive: nextActive }))
+      setShowArchiveModal(false)
+      setShowRestoreModal(false)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Nie udało się zapisać zmian')
+      setShowArchiveModal(false)
+      setShowRestoreModal(false)
+    } finally {
+      setArchivingLoading(false)
     }
   }
 
@@ -173,20 +204,6 @@ export default function LeagueSettingsPage() {
               </div>
 
 
-              <div>
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={formData.isActive}
-                    onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
-                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">Liga jest aktywna</span>
-                </label>
-                <p className="text-xs text-gray-500 mt-1">
-                  Nieaktywne ligi nie będą wyświetlane na listach publicznych
-                </p>
-              </div>
             </CardContent>
           </Card>
 
@@ -215,6 +232,48 @@ export default function LeagueSettingsPage() {
           </Card>
         </div>
 
+        {/* Archive Season */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Archiwizacja Sezonu</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {formData.isActive ? (
+              <div>
+                <h4 className="font-medium text-gray-900">Zarchiwizuj sezon</h4>
+                <p className="text-sm text-gray-600 mt-1">
+                  Zarchiwizowany sezon staje się tylko do odczytu. Menedżerowie i administrator
+                  nie będą mogli wprowadzać żadnych zmian (składy, wyniki, tablica, puchar).
+                  Wszystkie dane historyczne pozostaną dostępne do wglądu.
+                </p>
+                <Button
+                  variant="secondary"
+                  className="mt-3"
+                  icon={<Archive size={16} />}
+                  onClick={() => setShowArchiveModal(true)}
+                >
+                  Zarchiwizuj sezon
+                </Button>
+              </div>
+            ) : (
+              <div>
+                <h4 className="font-medium text-gray-900">Sezon zarchiwizowany</h4>
+                <p className="text-sm text-gray-600 mt-1">
+                  Ten sezon jest obecnie tylko do odczytu. Możesz go przywrócić, jeśli chcesz
+                  ponownie umożliwić edycję danych.
+                </p>
+                <Button
+                  className="mt-3"
+                  icon={<ArchiveRestore size={16} />}
+                  onClick={() => setShowRestoreModal(true)}
+                >
+                  Przywróć sezon
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Danger Zone */}
         <Card>
           <CardHeader>
@@ -226,11 +285,13 @@ export default function LeagueSettingsPage() {
                 <h4 className="font-medium text-gray-900">Usuń Ligę</h4>
                 <p className="text-sm text-gray-600 mt-1">
                   Po usunięciu ligi nie ma odwrotu. Proszę być pewnym.
+                  {!formData.isActive && ' Aby usunąć zarchiwizowany sezon, najpierw go przywróć.'}
                 </p>
                 <Button
                   variant="secondary"
                   className="mt-3 bg-red-50 text-red-700 hover:bg-red-100"
                   onClick={() => setShowDeleteModal(true)}
+                  disabled={!formData.isActive}
                 >
                   Usuń Ligę
                 </Button>
@@ -250,6 +311,30 @@ export default function LeagueSettingsPage() {
           cancelText="Anuluj"
           loading={deleting}
           variant="danger"
+        />
+
+        {/* Archive Confirmation Modal */}
+        <ConfirmModal
+          isOpen={showArchiveModal}
+          onClose={() => setShowArchiveModal(false)}
+          onConfirm={() => handleToggleArchive(false)}
+          title="Zarchiwizuj sezon"
+          message={`Czy na pewno chcesz zarchiwizować sezon "${league?.name}"? Sezon stanie się tylko do odczytu — nikt (w tym Ty) nie będzie mógł zmieniać składów, wyników, tablicy ani meczów pucharowych. Historyczne dane pozostaną dostępne. Możesz w każdej chwili przywrócić sezon w tym samym miejscu.`}
+          confirmText="Zarchiwizuj"
+          cancelText="Anuluj"
+          loading={archivingLoading}
+        />
+
+        {/* Restore Confirmation Modal */}
+        <ConfirmModal
+          isOpen={showRestoreModal}
+          onClose={() => setShowRestoreModal(false)}
+          onConfirm={() => handleToggleArchive(true)}
+          title="Przywróć sezon"
+          message={`Czy na pewno chcesz przywrócić sezon "${league?.name}"? Menedżerowie i administrator znów będą mogli wprowadzać zmiany w danych sezonu.`}
+          confirmText="Przywróć"
+          cancelText="Anuluj"
+          loading={archivingLoading}
         />
       </div>
   )

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { assertLeagueMutableByResult } from '@/lib/auth-helpers'
 
 export async function DELETE(
   request: NextRequest,
@@ -11,6 +12,11 @@ export async function DELETE(
     const { userId } = await auth()
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const mutable = await assertLeagueMutableByResult(id)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
     }
 
     const { error } = await supabaseAdmin

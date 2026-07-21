@@ -10,9 +10,10 @@ interface TablicaClientProps {
   currentUserId: string
   isLeagueAdmin: boolean
   initialPosts: PostWithUser[]
+  isArchived?: boolean
 }
 
-export function TablicaClient({ leagueId, currentUserId, isLeagueAdmin, initialPosts }: TablicaClientProps) {
+export function TablicaClient({ leagueId, currentUserId, isLeagueAdmin, initialPosts, isArchived = false }: TablicaClientProps) {
   const [posts, setPosts] = useState<PostWithUser[]>(initialPosts)
 
   const handlePostCreated = useCallback(async () => {
@@ -30,17 +31,20 @@ export function TablicaClient({ leagueId, currentUserId, isLeagueAdmin, initialP
 
   return (
     <>
-      {/* Post Form */}
-      <div className="mb-8">
-        <PostForm leagueId={leagueId} onPostCreated={handlePostCreated} />
-      </div>
+      {/* Post Form — hidden on archived seasons */}
+      {!isArchived && (
+        <div className="mb-8">
+          <PostForm leagueId={leagueId} onPostCreated={handlePostCreated} />
+        </div>
+      )}
 
-      {/* Posts List */}
+      {/* Posts List — pass isArchived so per-post edit/delete controls hide too */}
       <PostList
         leagueId={leagueId}
         currentUserId={currentUserId}
         isLeagueAdmin={isLeagueAdmin}
         initialPosts={posts}
+        isArchived={isArchived}
       />
     </>
   )

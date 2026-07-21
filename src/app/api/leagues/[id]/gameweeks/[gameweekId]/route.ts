@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { auth } from '@clerk/nextjs/server'
-import { verifyLeagueAdmin } from '@/lib/auth-helpers'
+import { verifyLeagueAdmin, assertLeagueMutable } from '@/lib/auth-helpers'
 
 export async function PATCH(
   request: NextRequest,
@@ -19,6 +19,11 @@ export async function PATCH(
     const { isAdmin, error: authError } = await verifyLeagueAdmin(userId, id)
     if (!isAdmin) {
       return NextResponse.json({ error: authError || 'Forbidden' }, { status: 403 })
+    }
+
+    const mutable = await assertLeagueMutable(id)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
     }
 
     const body = await request.json()
@@ -82,6 +87,11 @@ export async function DELETE(
     const { isAdmin, error: authError } = await verifyLeagueAdmin(userId, id)
     if (!isAdmin) {
       return NextResponse.json({ error: authError || 'Forbidden' }, { status: 403 })
+    }
+
+    const mutable = await assertLeagueMutable(id)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
     }
 
     // Verify gameweek belongs to this league

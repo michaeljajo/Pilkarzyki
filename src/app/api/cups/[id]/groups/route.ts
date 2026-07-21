@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
-import { verifyLeagueAdmin } from '@/lib/auth-helpers'
+import { verifyLeagueAdmin, assertLeagueMutableByCup } from '@/lib/auth-helpers'
 import { validateGroupAssignments, GroupAssignment } from '@/utils/cup-scheduling'
 
 interface GroupMember {
@@ -93,6 +93,11 @@ export async function POST(
       return NextResponse.json({ error: 'groups array is required' }, { status: 400 })
     }
 
+    const mutable = await assertLeagueMutableByCup(cupId)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
+    }
+
     // Get cup and verify admin access
     const { data: cup, error: cupError } = await supabaseAdmin
       .from('cups')
@@ -180,6 +185,11 @@ export async function DELETE(
     }
 
     const { id: cupId } = await context.params
+
+    const mutable = await assertLeagueMutableByCup(cupId)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
+    }
 
     // Get cup and verify admin access
     const { data: cup, error: cupError } = await supabaseAdmin

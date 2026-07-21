@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
-import { verifyLeagueAdmin } from '@/lib/auth-helpers'
+import { verifyLeagueAdmin, assertLeagueMutable, assertLeagueMutableByCup } from '@/lib/auth-helpers'
 import { canLeagueHaveCup } from '@/utils/cup-scheduling'
 
 /**
@@ -63,6 +63,11 @@ export async function POST(request: NextRequest) {
 
     if (!leagueId || !name) {
       return NextResponse.json({ error: 'leagueId and name are required' }, { status: 400 })
+    }
+
+    const mutable = await assertLeagueMutable(leagueId)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
     }
 
     // Verify user is admin of this league
@@ -139,6 +144,11 @@ export async function DELETE(request: NextRequest) {
 
     if (!cupId) {
       return NextResponse.json({ error: 'cupId is required' }, { status: 400 })
+    }
+
+    const cupMutable = await assertLeagueMutableByCup(cupId)
+    if (!cupMutable.ok) {
+      return NextResponse.json({ error: cupMutable.error }, { status: cupMutable.status })
     }
 
     // Get cup and verify admin access

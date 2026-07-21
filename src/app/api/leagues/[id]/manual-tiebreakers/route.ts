@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { assertLeagueMutable } from '@/lib/auth-helpers'
 
 interface RouteParams {
   params: Promise<{
@@ -61,6 +62,11 @@ export async function PUT(
         { error: 'tiebreakers must be an array' },
         { status: 400 }
       )
+    }
+
+    const mutable = await assertLeagueMutable(leagueId)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
     }
 
     // Validate tiebreakers format
@@ -128,6 +134,11 @@ export async function DELETE(
 ) {
   try {
     const { id: leagueId } = await params
+
+    const mutable = await assertLeagueMutable(leagueId)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
+    }
 
     const { error } = await supabaseAdmin
       .from('manual_tiebreakers')

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { calculateLeagueStandings, recalculateLeagueStandings, ManagerStats } from '@/utils/standings-calculator'
-import { verifyLeagueAdmin } from '@/lib/auth-helpers'
+import { verifyLeagueAdmin, assertLeagueMutable } from '@/lib/auth-helpers'
 
 // Simple in-memory cache to prevent concurrent calculations
 const calculatingStandings = new Map<string, Promise<ManagerStats[]>>()
@@ -212,6 +212,11 @@ export async function POST(
 
     if (!isAdmin) {
       return NextResponse.json({ error: authError || 'Forbidden' }, { status: 403 })
+    }
+
+    const mutable = await assertLeagueMutable(leagueId)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
     }
 
     if (leagueError || !league) {

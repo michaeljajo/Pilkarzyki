@@ -14,12 +14,13 @@ export async function GET(request: NextRequest) {
 
     const now = new Date()
 
-    // Find all gameweeks that have passed their end_date but are not yet completed
+    // Find expired gameweeks, but skip archived seasons — those are frozen.
     const { data: expiredGameweeks, error: fetchError } = await supabaseAdmin
       .from('gameweeks')
-      .select('id, league_id, week, end_date, is_completed')
+      .select('id, league_id, week, end_date, is_completed, leagues!inner(is_active)')
       .eq('is_completed', false)
       .lt('end_date', now.toISOString())
+      .eq('leagues.is_active', true)
 
     if (fetchError) {
       console.error('[Cron] Error fetching expired gameweeks:', fetchError)

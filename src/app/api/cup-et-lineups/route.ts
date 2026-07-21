@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { auth, clerkClient } from '@clerk/nextjs/server'
 import { resolveUserNames } from '@/utils/name-resolver'
 import { validateLineup } from '@/utils/validation'
+import { assertLeagueMutableByCupGameweek } from '@/lib/auth-helpers'
 
 /**
  * POST /api/cup-et-lineups
@@ -24,6 +25,11 @@ export async function POST(request: NextRequest) {
 
     if (!cupGameweekId || !Array.isArray(playerIds)) {
       return NextResponse.json({ error: 'cupGameweekId and playerIds array are required' }, { status: 400 })
+    }
+
+    const mutable = await assertLeagueMutableByCupGameweek(cupGameweekId)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
     }
 
     // Get user record

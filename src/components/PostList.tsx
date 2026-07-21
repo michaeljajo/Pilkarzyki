@@ -11,9 +11,10 @@ interface PostListProps {
   currentUserId: string
   isLeagueAdmin: boolean
   initialPosts: PostWithUser[]
+  isArchived?: boolean
 }
 
-export function PostList({ leagueId, currentUserId, isLeagueAdmin, initialPosts }: PostListProps) {
+export function PostList({ leagueId, currentUserId, isLeagueAdmin, initialPosts, isArchived = false }: PostListProps) {
   const [posts, setPosts] = useState<PostWithUser[]>(initialPosts)
 
   // Update posts when initialPosts changes
@@ -87,6 +88,7 @@ export function PostList({ leagueId, currentUserId, isLeagueAdmin, initialPosts 
           isLeagueAdmin={isLeagueAdmin}
           onDelete={handleDelete}
           onEdit={handleEdit}
+          readOnly={isArchived}
         />
       ))}
     </div>

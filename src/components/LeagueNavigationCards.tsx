@@ -22,6 +22,7 @@ interface LeagueNavigationCardsProps {
   isManager: boolean
   isAdmin: boolean
   hasCup: boolean
+  isArchived?: boolean
 }
 
 // Style constants based on style guide
@@ -159,12 +160,14 @@ function MobileNavCard({ href, icon: Icon, label, isCup = false }: NavCardProps)
   )
 }
 
-export function LeagueNavigationCards({ leagueId, isManager, isAdmin, hasCup }: LeagueNavigationCardsProps) {
+export function LeagueNavigationCards({ leagueId, isManager, isAdmin, hasCup, isArchived = false }: LeagueNavigationCardsProps) {
   const isDesktop = useIsDesktop()
-  
-  // Define all navigation items
+
+  // Archived seasons hide all edit entry points. Admins retain a link to
+  // settings so they can un-archive if needed; the archive toggle itself
+  // is the only mutation the settings page still accepts when archived.
   const navItems = [
-    { id: 'squad', href: `/dashboard/leagues/${leagueId}/squad`, icon: Target, label: 'Wybierz drużynę', isCup: false, showIf: isManager },
+    { id: 'squad', href: `/dashboard/leagues/${leagueId}/squad`, icon: Target, label: 'Wybierz drużynę', isCup: false, showIf: isManager && !isArchived },
     { id: 'results', href: `/dashboard/leagues/${leagueId}/results`, icon: BarChart3, label: 'Wyniki', isCup: false, showIf: true },
     { id: 'standings', href: `/dashboard/leagues/${leagueId}/standings`, icon: Table, label: 'Tabela', isCup: false, showIf: true },
     { id: 'schedule', href: `/dashboard/leagues/${leagueId}/schedule`, icon: Calendar, label: 'Terminarz', isCup: false, showIf: true },
@@ -173,8 +176,8 @@ export function LeagueNavigationCards({ leagueId, isManager, isAdmin, hasCup }: 
     { id: 'cup-results', href: `/dashboard/leagues/${leagueId}/cup/results`, icon: Trophy, label: 'Wyniki Pucharu', isCup: true, showIf: hasCup },
     { id: 'cup-standings', href: `/dashboard/leagues/${leagueId}/cup/standings`, icon: Crown, label: 'Tabela Pucharu', isCup: true, showIf: hasCup },
     { id: 'tablica', href: `/dashboard/leagues/${leagueId}/tablica`, icon: MessageSquare, label: 'Tablica', isCup: false, showIf: true },
-    { id: 'settings', href: `/dashboard/leagues/${leagueId}/settings`, icon: Settings, label: 'Ustawienia', isCup: false, showIf: isManager },
-    { id: 'admin', href: `/dashboard/admin/leagues/${leagueId}/results`, icon: Wrench, label: 'Zarządzaj Ligą', isCup: false, showIf: isAdmin },
+    { id: 'settings', href: `/dashboard/leagues/${leagueId}/settings`, icon: Settings, label: 'Ustawienia', isCup: false, showIf: isManager && !isArchived },
+    { id: 'admin', href: `/dashboard/admin/leagues/${leagueId}/settings`, icon: Wrench, label: isArchived ? 'Ustawienia sezonu' : 'Zarządzaj Ligą', isCup: false, showIf: isAdmin },
   ]
 
   const visibleItems = navItems.filter(item => item.showIf)

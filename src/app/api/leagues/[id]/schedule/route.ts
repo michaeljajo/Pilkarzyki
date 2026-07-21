@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { generateRoundRobinSchedule } from '@/utils/scheduling'
-import { verifyLeagueAdmin } from '@/lib/auth-helpers'
+import { verifyLeagueAdmin, assertLeagueMutable } from '@/lib/auth-helpers'
 
 export async function POST(
   request: NextRequest,
@@ -15,6 +15,11 @@ export async function POST(
     }
 
     const { id: leagueId } = await context.params
+
+    const mutable = await assertLeagueMutable(leagueId)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
+    }
 
     // Verify user is admin of this league
     const { isAdmin, error: authError } = await verifyLeagueAdmin(userId, leagueId)
@@ -200,6 +205,11 @@ export async function DELETE(
 
     const { id: leagueId } = await context.params
 
+    const mutable = await assertLeagueMutable(leagueId)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
+    }
+
     // Verify user is admin of this league
     const { isAdmin, error: authError } = await verifyLeagueAdmin(userId, leagueId)
     if (!isAdmin) {
@@ -269,6 +279,11 @@ export async function GET(
     }
 
     const { id: leagueId } = await context.params
+
+    const mutable = await assertLeagueMutable(leagueId)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
+    }
 
     // Verify user is admin of this league
     const { isAdmin, error: authError } = await verifyLeagueAdmin(userId, leagueId)

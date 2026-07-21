@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { recalculateCupGroupStandings } from '@/utils/standings-calculator'
+import { assertLeagueMutableByCup } from '@/lib/auth-helpers'
 
 /**
  * GET /api/cups/[id]/group-standings
@@ -162,6 +163,11 @@ export async function POST(
     }
 
     const { id: cupId } = await context.params
+
+    const mutable = await assertLeagueMutableByCup(cupId)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
+    }
 
     // Get cup details
     const { data: cup, error: cupError } = await supabaseAdmin

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { assertLeagueMutable } from '@/lib/auth-helpers'
 
 export async function PATCH(
   request: NextRequest,
@@ -49,6 +50,11 @@ export async function PATCH(
     // Only the author can edit
     if (post.user_id !== user.id) {
       return NextResponse.json({ error: 'You do not have permission to edit this post' }, { status: 403 })
+    }
+
+    const mutable = await assertLeagueMutable(post.league_id)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
     }
 
     // Update the post
@@ -136,6 +142,11 @@ export async function DELETE(
     // User must be either the post author or the league admin
     if (!isAuthor && !isLeagueAdmin) {
       return NextResponse.json({ error: 'You do not have permission to delete this post' }, { status: 403 })
+    }
+
+    const mutable = await assertLeagueMutable(post.league_id)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
     }
 
     // Delete the post
