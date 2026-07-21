@@ -4,12 +4,6 @@ import { headers } from 'next/headers'
 import { supabaseAdmin } from '@/lib/supabase'
 import { resolveUserNames } from '@/utils/name-resolver'
 
-const webhookSecret = process.env.CLERK_WEBHOOK_SECRET
-
-if (!webhookSecret) {
-  throw new Error('CLERK_WEBHOOK_SECRET is not set in environment variables')
-}
-
 type ClerkWebhookEvent = {
   type: string
   data: {
@@ -29,6 +23,14 @@ type ClerkWebhookEvent = {
 
 export async function POST(request: NextRequest) {
   try {
+    // Read the secret at request time (not module load) so a missing env var
+    // doesn't crash the production build during "Collecting page data".
+    const webhookSecret = process.env.CLERK_WEBHOOK_SECRET
+    if (!webhookSecret) {
+      console.error('CLERK_WEBHOOK_SECRET is not set in environment variables')
+      return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 })
+    }
+
     // Get the headers
     const headerPayload = await headers()
     const svix_id = headerPayload.get('svix-id')
@@ -45,7 +47,7 @@ export async function POST(request: NextRequest) {
     const payload = await request.text()
 
     // Create a new Svix instance with your secret
-    const wh = new Webhook(webhookSecret!)
+    const wh = new Webhook(webhookSecret)
 
     let evt: ClerkWebhookEvent
 
