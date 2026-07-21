@@ -18,6 +18,12 @@
 /.next/
 /out/
 
+# iCloud duplicate dirs/files (e.g. ".next 2", "node_modules 3", "*.icloud")
+# iCloud appends " <n>" to conflicted copies, which escapes the rules above.
+/.next */
+/node_modules */
+*.icloud
+
 # dev server runtime state
 /.dev-server/
 
