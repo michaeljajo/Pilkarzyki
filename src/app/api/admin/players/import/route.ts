@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth, clerkClient } from '@clerk/nextjs/server'
+import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import * as XLSX from 'xlsx'
-import { Position, PlayerImport } from '@/types'
-import { validateTeamName, formatTeamName } from '@/utils/team-name-resolver'
+import { DraftPoolImport } from '@/types'
 import { assertLeagueMutable } from '@/lib/auth-helpers'
+import { resolvePosition, splitFullName, ALLOWED_POSITIONS_PL } from '@/lib/draft-players'
 
 interface ImportResult {
   success: boolean
@@ -13,9 +13,13 @@ interface ImportResult {
   errors: string[]
   details: {
     players: Record<string, unknown>[]
-    squads: Record<string, unknown>[]
   }
 }
+
+// The 2026/27 pool is imported UNASSIGNED — managers are assigned via the live
+// draft, so there is no Manager/Team Name column. The spreadsheet uses five
+// Polish-headed columns: Imię i Nazwisko, Kraj, Liga, Klub, Pozycja.
+const REQUIRED_COLUMNS = ['Imię i Nazwisko', 'Klub', 'Pozycja'] as const
 
 export async function POST(request: NextRequest) {
   try {
@@ -70,20 +74,19 @@ export async function POST(request: NextRequest) {
     const workbook = XLSX.read(buffer)
     const sheetName = workbook.SheetNames[0]
     const worksheet = workbook.Sheets[sheetName]
-    const jsonData = XLSX.utils.sheet_to_json(worksheet) as PlayerImport[]
+    const jsonData = XLSX.utils.sheet_to_json(worksheet) as DraftPoolImport[]
 
     if (!jsonData || jsonData.length === 0) {
       return NextResponse.json({ error: 'No data found in file' }, { status: 400 })
     }
 
-    // Validate required columns (League is not required - uses the league being imported to)
-    const requiredColumns = ['Name', 'Position', 'Club']
+    // Validate required columns (Kraj and Liga are optional)
     const firstRow = jsonData[0]
-    const missingColumns = requiredColumns.filter(col => !(col in firstRow))
+    const missingColumns = REQUIRED_COLUMNS.filter(col => !(col in firstRow))
 
     if (missingColumns.length > 0) {
       return NextResponse.json({
-        error: `Missing required columns: ${missingColumns.join(', ')}. Optional: Manager`
+        error: `Brakujące wymagane kolumny: ${missingColumns.join(', ')}. Opcjonalne: Kraj, Liga`
       }, { status: 400 })
     }
 
@@ -93,39 +96,9 @@ export async function POST(request: NextRequest) {
       skipped: 0,
       errors: [],
       details: {
-        players: [],
-        squads: []
+        players: []
       }
     }
-
-    // Get existing users from Clerk for manager matching
-    const client = await clerkClient()
-
-    // Fetch ALL users by paginating through all pages
-    let allClerkUsers: any[] = []
-    let offset = 0
-    const limit = 100 // Max limit per page
-
-    while (true) {
-      const clerkUsers = await client.users.getUserList({ limit, offset })
-      allClerkUsers = allClerkUsers.concat(clerkUsers.data)
-
-      // Break if we've fetched all users
-      if (allClerkUsers.length >= clerkUsers.totalCount) {
-        break
-      }
-
-      offset += limit
-    }
-
-    // Transform Clerk users to match expected format
-    const existingUsers = allClerkUsers.map(user => ({
-      clerk_id: user.id,
-      email: user.emailAddresses[0]?.emailAddress || '',
-      first_name: user.firstName || '',
-      last_name: user.lastName || ''
-    }))
-
 
     // Process each row
     for (let i = 0; i < jsonData.length; i++) {
@@ -133,92 +106,37 @@ export async function POST(request: NextRequest) {
       const rowNum = i + 2 // Excel row number (1-indexed + header row)
 
       try {
+        const fullName = String(row['Imię i Nazwisko'] ?? '').trim()
+        const club = String(row['Klub'] ?? '').trim()
+        const rawPosition = String(row['Pozycja'] ?? '').trim()
+
         // Validate required fields
-        if (!row.Name || !row.Position || !row.Club) {
-          result.errors.push(`Row ${rowNum}: Missing required fields (Name, Position, Club)`)
+        if (!fullName || !club || !rawPosition) {
+          result.errors.push(`Wiersz ${rowNum}: Brak wymaganych pól (Imię i Nazwisko, Klub, Pozycja)`)
           result.skipped++
           continue
         }
 
-        // Validate position
-        const validPositions: Position[] = ['Goalkeeper', 'Defender', 'Midfielder', 'Forward']
-        if (!validPositions.includes(row.Position as Position)) {
-          result.errors.push(`Row ${rowNum}: Invalid position "${row.Position}". Must be one of: ${validPositions.join(', ')}`)
-          result.skipped++
-          continue
-        }
-
-        // Parse full name into first name and surname
-        const nameParts = row.Name.trim().split(/\s+/)
-        const firstName = nameParts[0] || ''
-        const surname = nameParts.length > 1 ? nameParts.slice(1).join(' ') : ''
-
+        // Split the full name into first name + surname.
+        const { name: firstName, surname } = splitFullName(fullName)
         if (!firstName) {
-          result.errors.push(`Row ${rowNum}: Name cannot be empty`)
+          result.errors.push(`Wiersz ${rowNum}: Nieprawidłowe imię i nazwisko`)
           result.skipped++
           continue
         }
 
-        // Manager is now optional
-        let clerkManager = null
-        if (row.Manager && row.Manager.trim()) {
-          const managerValue = row.Manager.trim()
-          clerkManager = existingUsers.find(user =>
-            user.email === managerValue ||
-            `${user.first_name} ${user.last_name}`.toLowerCase() === managerValue.toLowerCase() ||
-            user.first_name?.toLowerCase() === managerValue.toLowerCase()
+        // Map/validate position (Goalkeeper is not supported).
+        const position = resolvePosition(rawPosition)
+        if (!position) {
+          result.errors.push(
+            `Wiersz ${rowNum}: Nieprawidłowa pozycja "${rawPosition}". Dozwolone: ${ALLOWED_POSITIONS_PL}`
           )
-
-          if (!clerkManager) {
-            result.errors.push(`Row ${rowNum}: Manager "${managerValue}" not found`)
-            result.skipped++
-            continue
-          }
+          result.skipped++
+          continue
         }
 
-        // Ensure manager exists in Supabase users table (if manager was specified)
-        let manager = null
-        if (clerkManager) {
-          const { data: supabaseManager, error: managerError } = await supabaseAdmin
-            .from('users')
-            .select('id')
-            .eq('clerk_id', clerkManager.clerk_id)
-            .single()
-
-          manager = supabaseManager
-
-          if (managerError && managerError.code === 'PGRST116') {
-            // Manager doesn't exist in Supabase, create them
-            const { data: newManager, error: createError } = await supabaseAdmin
-              .from('users')
-              .insert({
-                clerk_id: clerkManager.clerk_id,
-                email: clerkManager.email,
-                first_name: clerkManager.first_name,
-                last_name: clerkManager.last_name,
-                is_admin: false
-              })
-              .select('id')
-              .single()
-
-            if (createError) {
-              result.errors.push(`Row ${rowNum}: Failed to create manager in database - ${createError.message}`)
-              result.skipped++
-              continue
-            }
-            manager = newManager
-          } else if (managerError) {
-            result.errors.push(`Row ${rowNum}: Failed to fetch manager from database - ${managerError.message}`)
-            result.skipped++
-            continue
-          }
-
-          if (!manager) {
-            result.errors.push(`Row ${rowNum}: Manager data is missing`)
-            result.skipped++
-            continue
-          }
-        }
+        const country = row['Kraj'] ? String(row['Kraj']).trim() || null : null
+        const footballLeague = row['Liga'] ? String(row['Liga']).trim() || null : null
 
         // Check if player already exists in this league
         const { data: existingPlayer } = await supabaseAdmin
@@ -227,134 +145,49 @@ export async function POST(request: NextRequest) {
           .eq('name', firstName)
           .eq('surname', surname)
           .eq('league', leagueName)
-          .single()
+          .maybeSingle()
 
         if (existingPlayer) {
-          result.errors.push(`Row ${rowNum}: Player "${row.Name}" already exists in ${leagueName}`)
+          result.errors.push(`Wiersz ${rowNum}: Zawodnik "${firstName} ${surname}" już istnieje w lidze ${leagueName}`)
           result.skipped++
           continue
         }
 
-        // Insert player (using the league name from the league being imported to)
-        // SAFEGUARD: Always use leagueName from the target league to prevent cross-league data
+        // Insert player UNASSIGNED (manager_id null). The draft assigns managers.
+        // SAFEGUARD: always use leagueName from the target league to prevent
+        // cross-league data.
         const { data: player, error: playerError } = await supabaseAdmin
           .from('players')
           .insert({
             name: firstName,
-            surname: surname,
-            league: leagueName, // CRITICAL: Must match the target league
-            position: row.Position,
-            club: row.Club,
-            football_league: row.League || null,
-            manager_id: manager?.id || null,
+            surname,
+            league: leagueName, // CRITICAL: must match the target league
+            position,
+            country,
+            club,
+            football_league: footballLeague,
+            manager_id: null,
             total_goals: 0
           })
           .select()
           .single()
 
         if (playerError) {
-          result.errors.push(`Row ${rowNum}: Failed to create player - ${playerError.message}`)
+          result.errors.push(`Wiersz ${rowNum}: Nie udało się utworzyć zawodnika - ${playerError.message}`)
           result.skipped++
           continue
         }
 
         result.details.players.push(player)
         result.imported++
-
-        // Create or update squad (only if manager is assigned)
-        if (manager) {
-          const { data: existingSquad } = await supabaseAdmin
-            .from('squads')
-            .select('id, team_name')
-            .eq('manager_id', manager.id)
-            .eq('league_id', leagueId)
-            .single()
-
-          let squadId = existingSquad?.id
-
-          // Process team name if provided
-          let teamName: string | null = null
-          if (row['Team Name'] && typeof row['Team Name'] === 'string' && row['Team Name'].trim()) {
-            const teamNameValue = row['Team Name'].trim()
-            const validation = validateTeamName(teamNameValue)
-
-            if (!validation.valid) {
-              result.errors.push(`Row ${rowNum}: Invalid team name - ${validation.error}`)
-              result.skipped++
-              continue
-            }
-
-            teamName = formatTeamName(teamNameValue)
-
-            // Check if team name is unique within the league
-            const { data: duplicateTeam } = await supabaseAdmin
-              .from('squads')
-              .select('id')
-              .eq('league_id', leagueId)
-              .eq('team_name', teamName)
-              .neq('manager_id', manager.id)
-              .single()
-
-            if (duplicateTeam) {
-              result.errors.push(`Row ${rowNum}: Team name "${teamName}" is already taken in this league`)
-              result.skipped++
-              continue
-            }
-          }
-
-          if (!existingSquad) {
-            const { data: newSquad, error: squadError } = await supabaseAdmin
-              .from('squads')
-              .insert({
-                manager_id: manager.id,
-                league_id: leagueId,
-                team_name: teamName
-              })
-              .select()
-              .single()
-
-            if (squadError) {
-              result.errors.push(`Row ${rowNum}: Failed to create squad - ${squadError.message}`)
-              continue
-            }
-
-            squadId = newSquad.id
-            result.details.squads.push(newSquad)
-          } else if (teamName && teamName !== existingSquad.team_name) {
-            // Update existing squad with team name if it's different
-            const { error: updateError } = await supabaseAdmin
-              .from('squads')
-              .update({ team_name: teamName })
-              .eq('id', existingSquad.id)
-
-            if (updateError) {
-              result.errors.push(`Row ${rowNum}: Failed to update team name - ${updateError.message}`)
-            }
-          }
-
-          // Add player to squad
-          if (squadId) {
-            const { error: squadPlayerError } = await supabaseAdmin
-              .from('squad_players')
-              .insert({
-                squad_id: squadId,
-                player_id: player.id
-              })
-
-            if (squadPlayerError) {
-              result.errors.push(`Row ${rowNum}: Failed to add player to squad - ${squadPlayerError.message}`)
-            }
-          }
-        }
-
       } catch (error) {
-        result.errors.push(`Row ${rowNum}: Unexpected error - ${error instanceof Error ? error.message : 'Unknown error'}`)
+        result.errors.push(`Wiersz ${rowNum}: Nieoczekiwany błąd - ${error instanceof Error ? error.message : 'Nieznany błąd'}`)
         result.skipped++
       }
     }
 
     return NextResponse.json({
-      message: `Import completed. ${result.imported} players imported, ${result.skipped} skipped.`,
+      message: `Import zakończony. Zaimportowano ${result.imported} zawodników, pominięto ${result.skipped}.`,
       result
     })
 
@@ -386,49 +219,47 @@ export async function GET() {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
-    // Create template data
+    // Template data: the five Polish columns of the draft pool import
     const templateData = [
       {
-        Name: 'Lionel Messi',
-        Position: 'Forward',
-        Club: 'Inter Miami',
-        League: 'MLS',
-        Manager: 'manager@example.com',
-        'Team Name': 'Miami Magic'
+        'Imię i Nazwisko': 'Lionel Messi',
+        'Kraj': 'Argentyna',
+        'Liga': 'MLS',
+        'Klub': 'Inter Miami',
+        'Pozycja': 'Napastnik'
       },
       {
-        Name: 'Virgil van Dijk',
-        Position: 'Defender',
-        Club: 'Liverpool FC',
-        League: 'Premier League',
-        Manager: 'manager@example.com',
-        'Team Name': 'Miami Magic'
+        'Imię i Nazwisko': 'Virgil van Dijk',
+        'Kraj': 'Holandia',
+        'Liga': 'Premier League',
+        'Klub': 'Liverpool FC',
+        'Pozycja': 'Obrońca'
       },
       {
-        Name: 'Luka Modric',
-        Position: 'Midfielder',
-        Club: 'Real Madrid',
-        League: 'La Liga',
-        Manager: 'manager2@example.com',
-        'Team Name': 'Real Stars'
+        'Imię i Nazwisko': 'Luka Modrić',
+        'Kraj': 'Chorwacja',
+        'Liga': 'La Liga',
+        'Klub': 'Real Madrid',
+        'Pozycja': 'Pomocnik'
       }
     ]
 
     // Create workbook
     const workbook = XLSX.utils.book_new()
-    const worksheet = XLSX.utils.json_to_sheet(templateData)
+    const worksheet = XLSX.utils.json_to_sheet(templateData, {
+      header: ['Imię i Nazwisko', 'Kraj', 'Liga', 'Klub', 'Pozycja']
+    })
 
     // Set column widths
     worksheet['!cols'] = [
-      { width: 20 }, // Name
-      { width: 12 }, // Position
-      { width: 20 }, // Club
-      { width: 20 }, // League
-      { width: 25 }, // Manager
-      { width: 20 }  // Team Name
+      { width: 26 }, // Imię i Nazwisko
+      { width: 16 }, // Kraj
+      { width: 20 }, // Liga
+      { width: 20 }, // Klub
+      { width: 14 }  // Pozycja
     ]
 
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Players')
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Zawodnicy')
 
     // Generate buffer
     const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' })

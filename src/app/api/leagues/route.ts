@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { supabaseAdmin } from '@/lib/supabase'
 import { auth } from '@clerk/nextjs/server'
 import { LEAGUE_LIMITS, SEASON_FORMAT, VALIDATION_MESSAGES } from '@/config/constants'
@@ -53,11 +54,22 @@ export async function POST(request: NextRequest) {
     const requestBody = await request.json()
     const {
       name,
-      season
+      season,
+      maxManagers
     } = requestBody
 
     // Generate season from current year if not provided
     const currentSeason = season || SEASON_FORMAT.generate()
+
+    // Resolve and validate the admin-defined league size (default 18).
+    const managerCount = maxManagers == null ? LEAGUE_LIMITS.DEFAULT_MANAGERS : Number(maxManagers)
+    if (
+      !Number.isInteger(managerCount) ||
+      managerCount < LEAGUE_LIMITS.MIN_MANAGERS ||
+      managerCount > LEAGUE_LIMITS.MAX_MANAGERS
+    ) {
+      return NextResponse.json({ error: VALIDATION_MESSAGES.INVALID_MANAGER_COUNT }, { status: 400 })
+    }
 
     // Create a minimal user record first, then the league
     // NOTE: is_admin is NOT set - that's reserved for super admins only
@@ -111,6 +123,7 @@ export async function POST(request: NextRequest) {
         admin_id: adminId,
         season: currentSeason,
         current_gameweek: 1,
+        max_managers: managerCount,
         is_active: true
       })
       .select('*')
@@ -122,6 +135,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: leagueError.message }, { status: 500 })
     }
 
+
+    // Bust the cached dashboard league lists so the new league appears immediately.
+    revalidateTag('user-leagues', 'max')
+    revalidatePath('/dashboard')
 
     return NextResponse.json({
       league,

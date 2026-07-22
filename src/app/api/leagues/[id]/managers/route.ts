@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { auth } from '@clerk/nextjs/server'
 import { resolveUserNames } from '@/utils/name-resolver'
 import { verifyLeagueAdmin, assertLeagueMutable } from '@/lib/auth-helpers'
+import { LEAGUE_LIMITS, VALIDATION_MESSAGES } from '@/config/constants'
 
 export async function GET(
   request: NextRequest,
@@ -166,6 +167,22 @@ export async function POST(
 
     if (existingSquad) {
       return NextResponse.json({ error: 'User is already a manager in this league' }, { status: 400 })
+    }
+
+    // Enforce the admin-defined league size (leagues.max_managers).
+    const maxManagers = league.max_managers ?? LEAGUE_LIMITS.DEFAULT_MANAGERS
+    const { count: currentManagerCount, error: countError } = await supabaseAdmin
+      .from('squads')
+      .select('*', { count: 'exact', head: true })
+      .eq('league_id', id)
+
+    if (countError) {
+      console.error('Error counting managers:', countError)
+      return NextResponse.json({ error: 'Failed to verify league size' }, { status: 500 })
+    }
+
+    if (currentManagerCount !== null && currentManagerCount >= maxManagers) {
+      return NextResponse.json({ error: VALIDATION_MESSAGES.MANAGER_LIMIT_REACHED }, { status: 400 })
     }
 
     // Create squad for the manager in this league

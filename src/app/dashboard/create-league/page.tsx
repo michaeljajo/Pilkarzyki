@@ -14,7 +14,8 @@ export default function CreateLeaguePage() {
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
-    season: ''
+    season: '',
+    maxManagers: '18'
   })
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,7 +36,11 @@ export default function CreateLeaguePage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          name: formData.name,
+          season: formData.season,
+          maxManagers: Number(formData.maxManagers),
+        }),
       })
 
       if (response.ok) {
@@ -171,6 +176,27 @@ export default function CreateLeaguePage() {
               />
               <p className="text-xs text-[var(--foreground-tertiary)] mt-2">
                 Pozostaw puste, aby automatycznie użyć bieżącego sezonu
+              </p>
+            </div>
+
+            <div>
+              <label htmlFor="maxManagers" className="block text-sm font-semibold text-[var(--foreground)] mb-2">
+                Liczba menedżerów <span className="text-[var(--danger)]">*</span>
+              </label>
+              <input
+                type="number"
+                id="maxManagers"
+                name="maxManagers"
+                required
+                min={2}
+                max={32}
+                value={formData.maxManagers}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3 bg-[var(--background-secondary)] border border-[var(--navy-border)] rounded-lg text-[var(--foreground)] placeholder-[var(--foreground-tertiary)] focus:outline-none focus:ring-2 focus:ring-[var(--mineral-green)] focus:border-transparent transition-all"
+                placeholder="18"
+              />
+              <p className="text-xs text-[var(--foreground-tertiary)] mt-2">
+                Maksymalna liczba menedżerów (drużyn) w lidze. Można ją później zmienić w ustawieniach.
               </p>
             </div>
 

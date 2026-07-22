@@ -12,9 +12,10 @@ import {
   Crosshair, 
   Crown, 
   MessageSquare, 
-  Calendar, 
+  Calendar,
   Users,
-  Wrench
+  Wrench,
+  ListOrdered
 } from 'lucide-react'
 
 interface LeagueNavigationCardsProps {
@@ -168,6 +169,7 @@ export function LeagueNavigationCards({ leagueId, isManager, isAdmin, hasCup, is
   // is the only mutation the settings page still accepts when archived.
   const navItems = [
     { id: 'squad', href: `/dashboard/leagues/${leagueId}/squad`, icon: Target, label: 'Wybierz drużynę', isCup: false, showIf: isManager && !isArchived },
+    { id: 'draft', href: `/dashboard/leagues/${leagueId}/draft`, icon: ListOrdered, label: 'Draft', isCup: false, showIf: (isAdmin || isManager) && !isArchived },
     { id: 'results', href: `/dashboard/leagues/${leagueId}/results`, icon: BarChart3, label: 'Wyniki', isCup: false, showIf: true },
     { id: 'standings', href: `/dashboard/leagues/${leagueId}/standings`, icon: Table, label: 'Tabela', isCup: false, showIf: true },
     { id: 'schedule', href: `/dashboard/leagues/${leagueId}/schedule`, icon: Calendar, label: 'Terminarz', isCup: false, showIf: true },

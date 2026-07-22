@@ -1,7 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { supabaseAdmin } from '@/lib/supabase'
 import { auth } from '@clerk/nextjs/server'
 import { ARCHIVED_LEAGUE_ERROR_MESSAGE, assertLeagueMutable } from '@/lib/auth-helpers'
+import { LEAGUE_LIMITS, VALIDATION_MESSAGES } from '@/config/constants'
+
+// Bust the cached league lists that power the dashboard ("Moje Ligi") so
+// deletes/archives are reflected immediately instead of after the cache TTL.
+function revalidateLeagueLists() {
+  revalidateTag('user-leagues', 'max')
+  revalidatePath('/dashboard')
+}
 
 export async function GET(
   request: NextRequest,
@@ -83,7 +92,7 @@ export async function PUT(
     // Check if league exists and user is admin
     const { data: league } = await supabaseAdmin
       .from('leagues')
-      .select('admin_id, is_active, name')
+      .select('admin_id, is_active, name, max_managers')
       .eq('id', id)
       .single()
 
@@ -98,14 +107,15 @@ export async function PUT(
     const requestBody = await request.json()
     console.log('Update request body:', requestBody)
 
-    const { name, isActive } = requestBody
+    const { name, isActive, maxManagers } = requestBody
 
     // Archived seasons are read-only: the only edit permitted is un-archiving
     // (isActive: true), which restores the league. Any other change is rejected.
     if (league.is_active === false) {
       const onlyReactivating =
         isActive === true &&
-        (name === undefined || name === league.name)
+        (name === undefined || name === league.name) &&
+        maxManagers === undefined
       if (!onlyReactivating) {
         return NextResponse.json(
           { error: ARCHIVED_LEAGUE_ERROR_MESSAGE },
@@ -114,13 +124,41 @@ export async function PUT(
       }
     }
 
+    // Validate an optional league-size change: within bounds and never below
+    // the number of managers already in the league.
+    const updates: Record<string, unknown> = {
+      name,
+      is_active: isActive,
+      updated_at: new Date().toISOString()
+    }
+    if (maxManagers !== undefined) {
+      const managerCount = Number(maxManagers)
+      if (
+        !Number.isInteger(managerCount) ||
+        managerCount < LEAGUE_LIMITS.MIN_MANAGERS ||
+        managerCount > LEAGUE_LIMITS.MAX_MANAGERS
+      ) {
+        return NextResponse.json({ error: VALIDATION_MESSAGES.INVALID_MANAGER_COUNT }, { status: 400 })
+      }
+
+      const { count: currentManagerCount } = await supabaseAdmin
+        .from('squads')
+        .select('*', { count: 'exact', head: true })
+        .eq('league_id', id)
+
+      if (currentManagerCount !== null && managerCount < currentManagerCount) {
+        return NextResponse.json(
+          { error: `Liga ma już ${currentManagerCount} menedżerów — nie można ustawić mniejszego limitu.` },
+          { status: 400 }
+        )
+      }
+
+      updates.max_managers = managerCount
+    }
+
     const { data, error } = await supabaseAdmin
       .from('leagues')
-      .update({
-        name,
-        is_active: isActive,
-        updated_at: new Date().toISOString()
-      })
+      .update(updates)
       .eq('id', id)
       .select('*')
       .single()
@@ -135,6 +173,8 @@ export async function PUT(
     if (!data) {
       return NextResponse.json({ error: 'League not found' }, { status: 404 })
     }
+
+    revalidateLeagueLists()
 
     return NextResponse.json({ league: data })
   } catch (error) {
@@ -204,6 +244,8 @@ export async function DELETE(
     if (!data) {
       return NextResponse.json({ error: 'League not found' }, { status: 404 })
     }
+
+    revalidateLeagueLists()
 
     return NextResponse.json({ success: true, league: data })
   } catch (error) {

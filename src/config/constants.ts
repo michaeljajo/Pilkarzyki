@@ -4,8 +4,12 @@
 
 export const LEAGUE_LIMITS = {
   MAX_PER_USER: 5,
-  MAX_MANAGERS: 16,
+  // Upper bound for the admin-defined league size. The actual size is stored
+  // per-league on leagues.max_managers (default DEFAULT_MANAGERS) and enforced
+  // when adding managers.
+  MAX_MANAGERS: 32,
   MIN_MANAGERS: 2,
+  DEFAULT_MANAGERS: 18,
 } as const
 
 export const SEASON_FORMAT = {
@@ -28,7 +32,8 @@ export const SEASON_FORMAT = {
 export const VALIDATION_MESSAGES = {
   LEAGUE_LIMIT_REACHED: 'You have reached the maximum limit of 5 leagues per user',
   INVALID_SEASON_FORMAT: 'Season must be in YYYY/YYYY format',
-  INVALID_MANAGER_COUNT: 'League must have between 2 and 16 managers',
+  INVALID_MANAGER_COUNT: 'Liczba menedżerów musi wynosić od 2 do 32',
+  MANAGER_LIMIT_REACHED: 'Osiągnięto maksymalną liczbę menedżerów w tej lidze',
   UNAUTHORIZED: 'You are not authorized to perform this action',
 } as const
 

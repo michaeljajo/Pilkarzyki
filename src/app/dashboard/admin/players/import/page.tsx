@@ -18,7 +18,6 @@ interface ImportResult {
   errors: string[]
   details: {
     players: Record<string, unknown>[]
-    squads: Record<string, unknown>[]
   }
 }
 
@@ -168,7 +167,7 @@ export default function PlayerImportPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Import Players</h1>
-          <p className="mt-1 text-gray-600">Upload Excel file to assign players to managers</p>
+          <p className="mt-1 text-gray-600">Upload the Excel player pool (unassigned — managers are assigned via the draft)</p>
         </div>
         <Button onClick={() => router.back()} variant="secondary">
           Back
@@ -182,7 +181,8 @@ export default function PlayerImportPage() {
         </CardHeader>
         <CardContent>
           <p className="text-gray-600 mb-4">
-            Download the Excel template with the required columns and example data.
+            Download the Excel template. Columns: <strong>Imię i Nazwisko, Kraj, Liga, Klub, Pozycja</strong>
+            {' '}(Kraj and Liga optional). Positions: Obrońca / Pomocnik / Napastnik (no goalkeepers).
           </p>
           <Button onClick={handleDownloadTemplate} loading={downloading}>
             Download Template
@@ -346,19 +346,6 @@ export default function PlayerImportPage() {
                       </li>
                     ))}
                   </ul>
-                </div>
-              </div>
-            )}
-
-            {result.details.squads.length > 0 && (
-              <div>
-                <h4 className="font-medium text-gray-900 mb-2">
-                  Created Squads ({result.details.squads.length}):
-                </h4>
-                <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-                  <div className="text-sm text-blue-700">
-                    {result.details.squads.length} new squad(s) created for managers
-                  </div>
                 </div>
               </div>
             )}
