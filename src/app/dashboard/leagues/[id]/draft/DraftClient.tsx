@@ -86,6 +86,27 @@ function fold(value: string): string {
   return value.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '')
 }
 
+// Flag per league (the "Liga" field holds a Polish country adjective).
+// England uses the subdivision (tag) flag emoji.
+const ENGLAND_FLAG = '\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}'
+const LEAGUE_FLAGS: Record<string, string> = {
+  francuska: '🇫🇷',
+  angielska: ENGLAND_FLAG,
+  hiszpanska: '🇪🇸',
+  portugalska: '🇵🇹',
+  wloska: '🇮🇹',
+  belgijska: '🇧🇪',
+  holenderska: '🇳🇱',
+  polska: '🇵🇱',
+  turecka: '🇹🇷',
+  niemiecka: '🇩🇪',
+}
+
+function leagueFlag(league?: string | null): string {
+  if (!league) return ''
+  return LEAGUE_FLAGS[fold(league).trim()] || ''
+}
+
 function managerName(m: ManagerRow | undefined | null): string {
   if (!m) return '—'
   const full = [m.firstName, m.lastName].filter(Boolean).join(' ').trim()
@@ -950,7 +971,12 @@ function DraftBoard({
                 <span className="font-medium text-gray-900">{managerName(m)}</span>
                 <span className="text-xs text-gray-500">
                   {mp.length}/{squadSize}
-                  {onClock && <span className="ml-2 text-[#29544D] font-semibold">na kolejce</span>}
+                  {onClock && (
+                    <>
+                      {' '}
+                      <span className="ml-1 text-[#29544D] font-semibold">teraz wybiera</span>
+                    </>
+                  )}
                 </span>
               </div>
               {mp.length > 0 && (
@@ -959,6 +985,9 @@ function DraftBoard({
                     const pl = playersById.get(pick.player_id)
                     return (
                       <li key={pick.id} className="text-xs text-gray-600">
+                        {pl && leagueFlag(pl.football_league) && (
+                          <span className="mr-1" title={pl.football_league || ''}>{leagueFlag(pl.football_league)}</span>
+                        )}
                         {pl ? `${pl.name} ${pl.surname}` : '—'}
                         <span className="text-gray-400"> · {pl ? positionLabel(pl.position) : ''}</span>
                       </li>
