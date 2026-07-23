@@ -381,7 +381,7 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
     if (!snap) return []
     const q = fold(search)
     return snap.players.filter(p => {
-      if (q && !fold(p.surname).includes(q)) return false
+      if (q && !fold(`${p.name} ${p.surname}`).includes(q)) return false
       if (fLeague && p.football_league !== fLeague) return false
       if (fClub && p.club !== fClub) return false
       if (fPosition && p.position !== fPosition) return false
@@ -607,7 +607,7 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
               <input
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                placeholder="Szukaj po nazwisku"
+                placeholder="Szukaj zawodnika"
                 className="px-3 py-2 text-sm border border-gray-300 rounded-md sm:col-span-2 lg:col-span-1"
               />
               <FilterCombo label="Liga" value={fLeague} options={distinct(p => p.football_league)} onChange={setFLeague} />
@@ -629,8 +629,7 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 sticky top-0 z-10">
                     <tr className="text-left text-gray-600">
-                      <th className="px-3 py-2 font-medium">Imię</th>
-                      <th className="px-3 py-2 font-medium">Nazwisko</th>
+                      <th className="px-3 py-2 font-medium">Imię i Nazwisko</th>
                       <th className="px-3 py-2 font-medium">Liga</th>
                       <th className="px-3 py-2 font-medium">Klub</th>
                       <th className="px-3 py-2 font-medium">Pozycja</th>
@@ -656,8 +655,7 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
                             setPendingPlayerId(isPending ? null : p.id)
                           }}
                         >
-                          <td className={`px-3 py-2 ${picked ? 'line-through' : ''}`}>{p.name}</td>
-                          <td className={`px-3 py-2 font-medium ${picked ? 'line-through' : ''}`}>{p.surname}</td>
+                          <td className={`px-3 py-2 font-medium ${picked ? 'line-through' : ''}`}>{`${p.name} ${p.surname}`.trim()}</td>
                           <td className="px-3 py-2">{p.football_league || '—'}</td>
                           <td className="px-3 py-2">{p.club || '—'}</td>
                           <td className="px-3 py-2">{positionLabel(p.position)}</td>
@@ -700,7 +698,7 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
                     })}
                     {filteredPlayers.length === 0 && (
                       <tr>
-                        <td colSpan={6} className="px-3 py-8 text-center text-gray-400">
+                        <td colSpan={5} className="px-3 py-8 text-center text-gray-400">
                           Brak zawodników pasujących do filtrów.
                         </td>
                       </tr>
