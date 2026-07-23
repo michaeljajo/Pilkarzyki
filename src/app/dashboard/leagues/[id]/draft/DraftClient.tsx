@@ -730,20 +730,20 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
             </div>
           </div>
 
-          {/* Right: board + chat */}
+          {/* Right: chat + board */}
           <div className="space-y-6">
+            <Chat
+              messages={messages}
+              value={chatInput}
+              onChange={setChatInput}
+              onSend={sendMessage}
+            />
             <DraftBoard
               managers={snap.managers}
               picks={snap.picks}
               players={snap.players}
               onClockSquadId={snap.onTheClockSquadId}
               squadSize={snap.draft.squad_size}
-            />
-            <Chat
-              messages={messages}
-              value={chatInput}
-              onChange={setChatInput}
-              onSend={sendMessage}
             />
           </div>
         </div>
@@ -955,6 +955,15 @@ function DraftBoard({
     return map
   }, [picks])
 
+  const [expanded, setExpanded] = useState<Set<string>>(new Set())
+  const toggle = (squadId: string) =>
+    setExpanded(prev => {
+      const next = new Set(prev)
+      if (next.has(squadId)) next.delete(squadId)
+      else next.add(squadId)
+      return next
+    })
+
   return (
     <div className="rounded-xl border border-gray-200 p-4">
       <h2 className="text-lg font-semibold text-gray-900 mb-3">Składy</h2>
@@ -962,13 +971,21 @@ function DraftBoard({
         {managers.map(m => {
           const mp = picksBySquad.get(m.squadId) || []
           const onClock = m.squadId === onClockSquadId
+          const isOpen = expanded.has(m.squadId)
           return (
             <div
               key={m.squadId}
               className={`rounded-lg border p-3 ${onClock ? 'border-[#29544D] bg-[#29544D]/5' : 'border-gray-100'}`}
             >
-              <div className="flex items-center justify-between">
-                <span className="font-medium text-gray-900">{managerName(m)}</span>
+              <button
+                type="button"
+                onClick={() => toggle(m.squadId)}
+                className="w-full flex items-center justify-between gap-2 text-left"
+              >
+                <span className="flex items-center gap-1.5 font-medium text-gray-900">
+                  <span className={`text-gray-400 transition-transform ${isOpen ? 'rotate-90' : ''}`}>▸</span>
+                  {managerName(m)}
+                </span>
                 <span className="text-xs text-gray-500">
                   {mp.length}/{squadSize}
                   {onClock && (
@@ -978,8 +995,11 @@ function DraftBoard({
                     </>
                   )}
                 </span>
-              </div>
-              {mp.length > 0 && (
+              </button>
+              {isOpen && mp.length === 0 && (
+                <p className="mt-2 text-xs text-gray-400">Brak wyborów.</p>
+              )}
+              {isOpen && mp.length > 0 && (
                 <ul className="mt-2 space-y-0.5">
                   {mp.map(pick => {
                     const pl = playersById.get(pick.player_id)
