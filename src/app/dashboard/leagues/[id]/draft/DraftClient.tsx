@@ -585,7 +585,7 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
       {status === 'finished' && (
         <div className="rounded-xl border border-[#29544D]/30 bg-[#29544D]/5 p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Draft zakończony 🎉</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Draft zakończony</h2>
             <p className="text-sm text-gray-600">
               Składy zostały przypisane do menedżerów i są rozpoznawane przez aplikację.
               {isAdmin && ' Możesz teraz wygenerować terminarz i rozpocząć rozgrywki.'}
@@ -594,7 +594,8 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
           {isAdmin && (
             <a
               href={`/dashboard/admin/leagues/${leagueId}`}
-              className="shrink-0 whitespace-nowrap inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-[#29544D] text-white font-medium hover:bg-[#1f423c]"
+              className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg font-medium hover:opacity-90"
+              style={{ flexShrink: 0, whiteSpace: 'nowrap', backgroundColor: '#29544D', color: '#ffffff' }}
             >
               Przejdź do zarządzania ligą
             </a>
@@ -1093,11 +1094,13 @@ function Chat({
           }}
           placeholder="Napisz wiadomość…"
           maxLength={500}
-          className="flex-1 min-w-0 px-3 py-2 text-sm border border-gray-300 rounded-md"
+          className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md"
+          style={{ minWidth: 0 }}
         />
         <button
           onClick={onSend}
-          className="shrink-0 whitespace-nowrap px-4 py-2 text-sm rounded-md bg-[#29544D] text-white hover:bg-[#1f423c]"
+          className="px-5 py-2 text-sm rounded-md hover:opacity-90"
+          style={{ flexShrink: 0, whiteSpace: 'nowrap', backgroundColor: '#29544D', color: '#ffffff' }}
         >
           Wyślij
         </button>
