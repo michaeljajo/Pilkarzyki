@@ -581,6 +581,27 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
         </div>
       </div>
 
+      {/* FINISHED banner + proceed CTA */}
+      {status === 'finished' && (
+        <div className="rounded-xl border border-[#29544D]/30 bg-[#29544D]/5 p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Draft zakończony 🎉</h2>
+            <p className="text-sm text-gray-600">
+              Składy zostały przypisane do menedżerów i są rozpoznawane przez aplikację.
+              {isAdmin && ' Możesz teraz wygenerować terminarz i rozpocząć rozgrywki.'}
+            </p>
+          </div>
+          {isAdmin && (
+            <a
+              href={`/dashboard/admin/leagues/${leagueId}`}
+              className="shrink-0 whitespace-nowrap inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-[#29544D] text-white font-medium hover:bg-[#1f423c]"
+            >
+              Przejdź do zarządzania ligą
+            </a>
+          )}
+        </div>
+      )}
+
       {/* SETUP (admin) */}
       {status === 'setup' && (
         <SetupPanel
