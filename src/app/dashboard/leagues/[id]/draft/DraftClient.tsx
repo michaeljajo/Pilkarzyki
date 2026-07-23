@@ -984,12 +984,19 @@ function DraftBoard({
                   {mp.map(pick => {
                     const pl = playersById.get(pick.player_id)
                     return (
-                      <li key={pick.id} className="text-xs text-gray-600">
-                        {pl && leagueFlag(pl.football_league) && (
-                          <span className="mr-1" title={pl.football_league || ''}>{leagueFlag(pl.football_league)}</span>
+                      <li key={pick.id} className="text-xs text-gray-600 flex items-center justify-between gap-2">
+                        <span className="truncate">
+                          {pl ? `${pl.name} ${pl.surname}` : '—'}
+                          <span className="text-gray-400"> · {pl ? positionLabel(pl.position) : ''}</span>
+                        </span>
+                        {pl?.club && (
+                          <span className="text-gray-500 whitespace-nowrap flex items-center gap-1">
+                            {leagueFlag(pl.football_league) && (
+                              <span title={pl.football_league || ''}>{leagueFlag(pl.football_league)}</span>
+                            )}
+                            {pl.club}
+                          </span>
                         )}
-                        {pl ? `${pl.name} ${pl.surname}` : '—'}
-                        <span className="text-gray-400"> · {pl ? positionLabel(pl.position) : ''}</span>
                       </li>
                     )
                   })}
