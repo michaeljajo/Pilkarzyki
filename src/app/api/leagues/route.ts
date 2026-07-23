@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { supabaseAdmin } from '@/lib/supabase'
-import { auth } from '@clerk/nextjs/server'
+import { auth, clerkClient } from '@clerk/nextjs/server'
+import { resolveUserNames } from '@/utils/name-resolver'
 import { LEAGUE_LIMITS, SEASON_FORMAT, VALIDATION_MESSAGES } from '@/config/constants'
 
 export async function GET() {
@@ -71,17 +72,39 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: VALIDATION_MESSAGES.INVALID_MANAGER_COUNT }, { status: 400 })
     }
 
-    // Create a minimal user record first, then the league
-    // NOTE: is_admin is NOT set - that's reserved for super admins only
-    // This user becomes admin of THIS league via admin_id, not a global admin
+    // Ensure the creator's user record exists, using their REAL Clerk profile
+    // (name + email). Previously this upserted placeholder values
+    // ("Admin User" / admin-<clerkId>@temp.com), which clobbered the user's
+    // real profile every time they created a league.
+    // NOTE: is_admin is NOT set - that's reserved for super admins only.
+    // This user becomes admin of THIS league via league_admins, not globally.
+    let creatorEmail = `admin-${userId}@temp.com`
+    let creatorFirst = 'Admin'
+    let creatorLast = 'User'
+    try {
+      const client = await clerkClient()
+      const clerkUser = await client.users.getUser(userId)
+      const email = clerkUser.emailAddresses[0]?.emailAddress || ''
+      const { firstName, lastName } = resolveUserNames({
+        email,
+        first_name: clerkUser.firstName,
+        last_name: clerkUser.lastName,
+        username: clerkUser.username,
+      })
+      if (email) creatorEmail = email
+      creatorFirst = firstName
+      creatorLast = lastName
+    } catch (clerkErr) {
+      console.error('Could not fetch Clerk profile for league creator, falling back to placeholder:', clerkErr)
+    }
+
     const { data: userRecord, error: userError } = await supabaseAdmin
       .from('users')
       .upsert({
         clerk_id: userId,
-        email: `admin-${userId}@temp.com`,
-        first_name: 'Admin',
-        last_name: 'User'
-        // Removed is_admin: true - league creators are NOT global admins
+        email: creatorEmail,
+        first_name: creatorFirst,
+        last_name: creatorLast
       }, {
         onConflict: 'clerk_id'
       })
