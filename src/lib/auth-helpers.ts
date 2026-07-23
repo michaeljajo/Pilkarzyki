@@ -279,11 +279,15 @@ export async function userAdminsAnyLeague(clerkUserId: string): Promise<boolean>
       return false
     }
 
-    // Check if user is admin of any active league via league_admins table
+    // Check if user is admin of any ACTIVE league via league_admins table.
+    // The is_active filter must be applied in the query itself — filtering
+    // after a .limit(1) can fetch a single archived-league row and wrongly
+    // report no admin access when the user also admins an active league.
     const { data: adminRecords, error: adminError } = await supabaseAdmin
       .from('league_admins')
       .select('league_id, leagues!inner(is_active)')
       .eq('user_id', userRecord.id)
+      .eq('leagues.is_active', true)
       .limit(1)
 
     if (adminError) {
@@ -291,12 +295,7 @@ export async function userAdminsAnyLeague(clerkUserId: string): Promise<boolean>
       return false
     }
 
-    // Filter for active leagues
-    const hasActiveLeague = adminRecords?.some((record: any) =>
-      record.leagues?.is_active === true
-    )
-
-    return !!hasActiveLeague
+    return (adminRecords?.length ?? 0) > 0
   } catch (error) {
     console.error('Error checking if user admins any league:', error)
     return false
