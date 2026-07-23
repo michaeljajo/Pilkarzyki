@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import toast from 'react-hot-toast'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
+import { leagueFlag } from '@/utils/league-flag'
 
 // ----------------------------------------------------------------------------
 // Types
@@ -86,26 +87,7 @@ function fold(value: string): string {
   return value.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '')
 }
 
-// Flag per league (the "Liga" field holds a Polish country adjective).
-// England uses the subdivision (tag) flag emoji.
-const ENGLAND_FLAG = '\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}'
-const LEAGUE_FLAGS: Record<string, string> = {
-  francuska: '🇫🇷',
-  angielska: ENGLAND_FLAG,
-  hiszpanska: '🇪🇸',
-  portugalska: '🇵🇹',
-  wloska: '🇮🇹',
-  belgijska: '🇧🇪',
-  holenderska: '🇳🇱',
-  polska: '🇵🇱',
-  turecka: '🇹🇷',
-  niemiecka: '🇩🇪',
-}
-
-function leagueFlag(league?: string | null): string {
-  if (!league) return ''
-  return LEAGUE_FLAGS[fold(league).trim()] || ''
-}
+// leagueFlag is shared with the squad-picking UI (see utils/league-flag).
 
 function managerName(m: ManagerRow | undefined | null): string {
   if (!m) return '—'

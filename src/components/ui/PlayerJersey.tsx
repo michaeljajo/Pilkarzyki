@@ -2,6 +2,7 @@
 
 import { ReactNode } from 'react'
 import { cn } from '@/utils/cn'
+import { leagueFlag } from '@/utils/league-flag'
 
 interface PlayerJerseyProps {
   player: {
@@ -92,18 +93,20 @@ export function PlayerJersey({
               {player.club}
             </p>
           )}
-          {(player.footballLeague || player.football_league) && (
-            <p
-              className="text-gray-500 truncate"
-              style={{
-                fontSize: '10px',
-                lineHeight: '1.3'
-              }}
-              title={player.footballLeague || player.football_league}
-            >
-              {player.footballLeague || player.football_league}
-            </p>
-          )}
+          {(() => {
+            const league = player.footballLeague || player.football_league
+            if (!league) return null
+            const flag = leagueFlag(league)
+            return (
+              <p
+                className="text-gray-500 truncate"
+                style={{ fontSize: flag ? '15px' : '10px', lineHeight: '1.3' }}
+                title={league}
+              >
+                {flag || league}
+              </p>
+            )
+          })()}
         </div>
       </div>
 
