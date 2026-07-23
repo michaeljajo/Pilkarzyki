@@ -669,7 +669,7 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
                                     onClick={handleConfirmPick}
                                     disabled={submitting}
                                     title="Potwierdź"
-                                    className="px-2 py-1 rounded bg-[#29544D] text-white hover:bg-[#1f423c] disabled:opacity-50"
+                                    className="px-5 py-1 min-w-[56px] rounded bg-[#29544D] text-white hover:bg-[#1f423c] disabled:opacity-50"
                                   >
                                     ✓
                                   </button>
@@ -686,7 +686,7 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
                                 <button
                                   onClick={() => setPendingPlayerId(null)}
                                   title="Anuluj"
-                                  className="px-2 py-1 rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
+                                  className="px-5 py-1 min-w-[56px] rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
                                 >
                                   ✕
                                 </button>
