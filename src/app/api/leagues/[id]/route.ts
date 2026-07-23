@@ -12,6 +12,28 @@ function revalidateLeagueLists() {
   revalidatePath('/dashboard')
 }
 
+// Map a raw leagues row (snake_case) to the League shape the client expects
+// (camelCase). The admin pages read league.isActive / currentGameweek /
+// createdAt, so returning the raw row made isActive undefined -> the settings
+// page always showed the "archived" banner.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapLeagueRow(data: any) {
+  if (!data) return data
+  return {
+    id: data.id,
+    name: data.name,
+    adminId: data.admin_id,
+    maxManagers: data.max_managers,
+    currentGameweek: data.current_gameweek,
+    season: data.season,
+    startDate: data.start_date,
+    endDate: data.end_date,
+    isActive: data.is_active,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+  }
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -58,7 +80,7 @@ export async function GET(
       return NextResponse.json({ error: 'Forbidden: You are not the admin of this league' }, { status: 403 })
     }
 
-    return NextResponse.json({ league: data })
+    return NextResponse.json({ league: mapLeagueRow(data) })
   } catch (error) {
     console.error('GET league catch error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -176,7 +198,7 @@ export async function PUT(
 
     revalidateLeagueLists()
 
-    return NextResponse.json({ league: data })
+    return NextResponse.json({ league: mapLeagueRow(data) })
   } catch (error) {
     console.error('PUT league catch error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -247,7 +269,7 @@ export async function DELETE(
 
     revalidateLeagueLists()
 
-    return NextResponse.json({ success: true, league: data })
+    return NextResponse.json({ success: true, league: mapLeagueRow(data) })
   } catch (error) {
     console.error('DELETE league catch error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
