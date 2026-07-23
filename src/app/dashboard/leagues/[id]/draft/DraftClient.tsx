@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import toast from 'react-hot-toast'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
-import { leagueFlag } from '@/utils/league-flag'
+import { LeagueFlag } from '@/components/ui/LeagueFlag'
 
 // ----------------------------------------------------------------------------
 // Types
@@ -87,7 +87,7 @@ function fold(value: string): string {
   return value.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '')
 }
 
-// leagueFlag is shared with the squad-picking UI (see utils/league-flag).
+// League flags use the shared <LeagueFlag> chip (components/ui/LeagueFlag).
 
 function managerName(m: ManagerRow | undefined | null): string {
   if (!m) return '—'
@@ -1011,9 +1011,7 @@ function DraftBoard({
                       <li key={pick.id} className="text-xs text-gray-600 flex items-center gap-1.5 flex-wrap">
                         <span className="font-medium text-gray-800">{pl ? `${pl.name} ${pl.surname}` : '—'}</span>
                         {pl?.club && <span className="text-gray-500">{pl.club}</span>}
-                        {pl && leagueFlag(pl.football_league) && (
-                          <span title={pl.football_league || ''}>{leagueFlag(pl.football_league)}</span>
-                        )}
+                        {pl && <LeagueFlag league={pl.football_league} height={11} />}
                         {pl && <span className="text-gray-400">{positionLabel(pl.position)}</span>}
                       </li>
                     )

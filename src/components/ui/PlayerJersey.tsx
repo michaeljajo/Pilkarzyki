@@ -2,7 +2,7 @@
 
 import { ReactNode } from 'react'
 import { cn } from '@/utils/cn'
-import { leagueFlag } from '@/utils/league-flag'
+import { LeagueFlag, hasLeagueFlag } from '@/components/ui/LeagueFlag'
 
 interface PlayerJerseyProps {
   player: {
@@ -96,14 +96,17 @@ export function PlayerJersey({
           {(() => {
             const league = player.footballLeague || player.football_league
             if (!league) return null
-            const flag = leagueFlag(league)
-            return (
+            return hasLeagueFlag(league) ? (
+              <div className="flex justify-center" title={league}>
+                <LeagueFlag league={league} height={13} />
+              </div>
+            ) : (
               <p
                 className="text-gray-500 truncate"
-                style={{ fontSize: flag ? '15px' : '10px', lineHeight: '1.3' }}
+                style={{ fontSize: '10px', lineHeight: '1.3' }}
                 title={league}
               >
-                {flag || league}
+                {league}
               </p>
             )
           })()}
