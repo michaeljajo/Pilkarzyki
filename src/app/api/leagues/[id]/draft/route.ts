@@ -35,14 +35,15 @@ export async function GET(
     }
 
     // Ensure a draft row exists (one per league). Lazily created so the screen
-    // always has a draft in 'setup' to configure.
+    // always has a draft in 'setup' to configure — but NEVER for an archived
+    // league (archived seasons are strictly read-only).
     let { data: draft } = await supabaseAdmin
       .from('drafts')
       .select('*')
       .eq('league_id', leagueId)
       .maybeSingle()
 
-    if (!draft) {
+    if (!draft && league.is_active !== false) {
       const { data: created, error: createError } = await supabaseAdmin
         .from('drafts')
         .insert({ league_id: leagueId })

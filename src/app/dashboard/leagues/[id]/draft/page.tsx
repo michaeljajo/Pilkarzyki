@@ -39,6 +39,12 @@ export default async function DraftPage({ params }: DraftPageProps) {
     redirect('/dashboard')
   }
 
+  // The draft is a season-setup activity — archived (read-only) leagues have no
+  // draft screen.
+  if (league.is_active === false) {
+    redirect(`/dashboard/leagues/${leagueId}`)
+  }
+
   const { isAdmin } = await verifyLeagueAdmin(user.id, leagueId)
 
   const { data: squad } = await supabaseAdmin
