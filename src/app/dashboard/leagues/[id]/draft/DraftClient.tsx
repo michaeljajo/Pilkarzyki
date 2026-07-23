@@ -563,7 +563,7 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
           {isAdmin && status !== 'finished' && (
             <button
               onClick={() => setShowAddPlayer(true)}
-              className="text-sm px-3 py-2 rounded-md bg-[#29544D] text-white hover:bg-[#1f423c]"
+              className="text-sm whitespace-nowrap px-3 py-2 rounded-md bg-[#29544D] text-white hover:bg-[#1f423c]"
             >
               + Dodaj zawodnika
             </button>
@@ -606,14 +606,14 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
                 <button
                   onClick={() => setConfirmSkip(true)}
                   disabled={submitting}
-                  className="text-sm px-3 py-1.5 rounded-md bg-amber-600 text-white hover:bg-amber-700 disabled:opacity-50"
+                  className="text-sm whitespace-nowrap px-3 py-1.5 rounded-md bg-amber-600 text-white hover:bg-amber-700 disabled:opacity-50"
                 >
                   Pomiń kolejkę
                 </button>
                 <button
                   onClick={handleUndo}
                   disabled={submitting || snap.picks.length === 0}
-                  className="text-sm px-3 py-1.5 rounded-md bg-gray-700 text-white hover:bg-gray-800 disabled:opacity-50"
+                  className="text-sm whitespace-nowrap px-3 py-1.5 rounded-md bg-gray-700 text-white hover:bg-gray-800 disabled:opacity-50"
                 >
                   Cofnij ostatni wybór
                 </button>
@@ -1072,11 +1072,11 @@ function Chat({
           }}
           placeholder="Napisz wiadomość…"
           maxLength={500}
-          className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md"
+          className="flex-1 min-w-0 px-3 py-2 text-sm border border-gray-300 rounded-md"
         />
         <button
           onClick={onSend}
-          className="px-4 py-2 text-sm rounded-md bg-[#29544D] text-white hover:bg-[#1f423c]"
+          className="shrink-0 whitespace-nowrap px-4 py-2 text-sm rounded-md bg-[#29544D] text-white hover:bg-[#1f423c]"
         >
           Wyślij
         </button>
