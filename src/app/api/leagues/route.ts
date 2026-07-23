@@ -135,6 +135,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: leagueError.message }, { status: 500 })
     }
 
+    // Register the creator as a league admin. Admin access is resolved via the
+    // league_admins junction table (not the deprecated leagues.admin_id), so a
+    // new league MUST have a row here or its creator is denied the admin area.
+    const { error: adminInsertError } = await supabaseAdmin
+      .from('league_admins')
+      .insert({ league_id: league.id, user_id: adminId, created_by: adminId })
+
+    if (adminInsertError && adminInsertError.code !== '23505') {
+      console.error('Error registering league admin:', adminInsertError)
+      return NextResponse.json(
+        { error: 'League created but admin registration failed. Please try again.' },
+        { status: 500 }
+      )
+    }
+
 
     // Bust the cached dashboard league lists so the new league appears immediately.
     revalidateTag('user-leagues', 'max')
