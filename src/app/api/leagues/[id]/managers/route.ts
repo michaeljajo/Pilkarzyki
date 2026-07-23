@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { supabaseAdmin } from '@/lib/supabase'
 import { auth } from '@clerk/nextjs/server'
 import { resolveUserNames } from '@/utils/name-resolver'
@@ -200,6 +201,11 @@ export async function POST(
       return NextResponse.json({ error: 'Failed to add manager to league' }, { status: 500 })
     }
 
+    // Bust the cached dashboard league lists so the newly-added manager sees
+    // the league immediately (getUserLeagues is cached under this tag).
+    revalidateTag('user-leagues', 'max')
+    revalidatePath('/dashboard')
+
     return NextResponse.json({
       success: true,
       manager: user,
@@ -274,6 +280,11 @@ export async function DELETE(
       console.error('Error removing manager:', deleteError)
       return NextResponse.json({ error: 'Failed to remove manager from league' }, { status: 500 })
     }
+
+    // Bust the cached dashboard league lists so the removed manager stops
+    // seeing the league immediately.
+    revalidateTag('user-leagues', 'max')
+    revalidatePath('/dashboard')
 
     return NextResponse.json({
       success: true,
