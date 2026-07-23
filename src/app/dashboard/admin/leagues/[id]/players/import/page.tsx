@@ -176,7 +176,6 @@ export default function LeaguePlayersImportPage() {
             </p>
             <ul className="list-disc list-inside space-y-1 text-gray-600">
               <li><strong>Imię i Nazwisko</strong>: Pełne imię i nazwisko zawodnika</li>
-              <li><strong>Kraj</strong> (opcjonalne): Kraj pochodzenia</li>
               <li><strong>Liga</strong> (opcjonalne): Liga (np. Premier League, La Liga)</li>
               <li><strong>Klub</strong>: Nazwa klubu zawodnika</li>
               <li><strong>Pozycja</strong>: Obrońca, Pomocnik lub Napastnik</li>
@@ -189,16 +188,14 @@ export default function LeaguePlayersImportPage() {
               Przykład:
             </p>
             <div className="bg-gray-50 p-3 rounded font-mono text-xs overflow-x-auto">
-              <div className="grid grid-cols-5 gap-4 font-semibold mb-1 min-w-[520px]">
+              <div className="grid grid-cols-4 gap-4 font-semibold mb-1 min-w-[420px]">
                 <div>Imię i Nazwisko</div>
-                <div>Kraj</div>
                 <div>Liga</div>
                 <div>Klub</div>
                 <div>Pozycja</div>
               </div>
-              <div className="grid grid-cols-5 gap-4 min-w-[520px]">
+              <div className="grid grid-cols-4 gap-4 min-w-[420px]">
                 <div>Lionel Messi</div>
-                <div>Argentyna</div>
                 <div>MLS</div>
                 <div>Inter Miami</div>
                 <div>Napastnik</div>

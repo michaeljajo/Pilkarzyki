@@ -38,7 +38,6 @@ export async function POST(
     const fullName = String(body?.fullName ?? '').trim()
     const club = String(body?.club ?? '').trim()
     const rawPosition = String(body?.position ?? '').trim()
-    const country = body?.country ? String(body.country).trim() || null : null
     const footballLeague = body?.footballLeague ? String(body.footballLeague).trim() || null : null
 
     if (!fullName || !club || !rawPosition) {
@@ -94,13 +93,12 @@ export async function POST(
         surname,
         league: league.name,
         position,
-        country,
         club,
         football_league: footballLeague,
         manager_id: null,
         total_goals: 0,
       })
-      .select('id, name, surname, country, club, football_league, position')
+      .select('id, name, surname, club, football_league, position')
       .single()
 
     if (insertError) {

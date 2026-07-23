@@ -33,7 +33,6 @@ interface PlayerRow {
   id: string
   name: string
   surname: string
-  country: string | null
   club: string | null
   football_league: string | null
   position: string
@@ -213,7 +212,6 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
 
   // Filters
   const [search, setSearch] = useState('')
-  const [fCountry, setFCountry] = useState('')
   const [fLeague, setFLeague] = useState('')
   const [fClub, setFClub] = useState('')
   const [fPosition, setFPosition] = useState('')
@@ -232,7 +230,7 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
 
   // Add-player (admin)
   const [showAddPlayer, setShowAddPlayer] = useState(false)
-  const [addForm, setAddForm] = useState({ fullName: '', country: '', footballLeague: '', club: '', position: 'Napastnik' })
+  const [addForm, setAddForm] = useState({ fullName: '', footballLeague: '', club: '', position: 'Napastnik' })
   const [addingPlayer, setAddingPlayer] = useState(false)
 
   // Notifications
@@ -384,13 +382,12 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
     const q = fold(search)
     return snap.players.filter(p => {
       if (q && !fold(p.surname).includes(q)) return false
-      if (fCountry && p.country !== fCountry) return false
       if (fLeague && p.football_league !== fLeague) return false
       if (fClub && p.club !== fClub) return false
       if (fPosition && p.position !== fPosition) return false
       return true
     })
-  }, [snap, search, fCountry, fLeague, fClub, fPosition])
+  }, [snap, search, fLeague, fClub, fPosition])
 
   const onClockManager = snap ? managersByManagerId.get(snap.onTheClockManagerId || '') : undefined
   const status = snap?.draft?.status
@@ -465,7 +462,7 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
       }
       toast.success('Dodano zawodnika.')
       setShowAddPlayer(false)
-      setAddForm({ fullName: '', country: '', footballLeague: '', club: '', position: 'Napastnik' })
+      setAddForm({ fullName: '', footballLeague: '', club: '', position: 'Napastnik' })
       await fetchSnapshot()
     } catch {
       toast.error('Błąd połączenia.')
@@ -606,14 +603,13 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
             )}
 
             {/* Filters */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
               <input
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Szukaj po nazwisku"
                 className="px-3 py-2 text-sm border border-gray-300 rounded-md sm:col-span-2 lg:col-span-1"
               />
-              <FilterCombo label="Kraj" value={fCountry} options={distinct(p => p.country)} onChange={setFCountry} />
               <FilterCombo label="Liga" value={fLeague} options={distinct(p => p.football_league)} onChange={setFLeague} />
               <FilterCombo label="Klub" value={fClub} options={distinct(p => p.club)} onChange={setFClub} />
               <FilterCombo
@@ -635,7 +631,6 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
                     <tr className="text-left text-gray-600">
                       <th className="px-3 py-2 font-medium">Imię</th>
                       <th className="px-3 py-2 font-medium">Nazwisko</th>
-                      <th className="px-3 py-2 font-medium">Kraj</th>
                       <th className="px-3 py-2 font-medium">Liga</th>
                       <th className="px-3 py-2 font-medium">Klub</th>
                       <th className="px-3 py-2 font-medium">Pozycja</th>
@@ -663,7 +658,6 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
                         >
                           <td className={`px-3 py-2 ${picked ? 'line-through' : ''}`}>{p.name}</td>
                           <td className={`px-3 py-2 font-medium ${picked ? 'line-through' : ''}`}>{p.surname}</td>
-                          <td className="px-3 py-2">{p.country || '—'}</td>
                           <td className="px-3 py-2">{p.football_league || '—'}</td>
                           <td className="px-3 py-2">{p.club || '—'}</td>
                           <td className="px-3 py-2">{positionLabel(p.position)}</td>
@@ -706,7 +700,7 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
                     })}
                     {filteredPlayers.length === 0 && (
                       <tr>
-                        <td colSpan={7} className="px-3 py-8 text-center text-gray-400">
+                        <td colSpan={6} className="px-3 py-8 text-center text-gray-400">
                           Brak zawodników pasujących do filtrów.
                         </td>
                       </tr>
@@ -804,23 +798,13 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
                   </select>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Kraj</label>
-                  <input
-                    value={addForm.country}
-                    onChange={e => setAddForm(f => ({ ...f, country: e.target.value }))}
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Liga</label>
-                  <input
-                    value={addForm.footballLeague}
-                    onChange={e => setAddForm(f => ({ ...f, footballLeague: e.target.value }))}
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md"
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Liga</label>
+                <input
+                  value={addForm.footballLeague}
+                  onChange={e => setAddForm(f => ({ ...f, footballLeague: e.target.value }))}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md"
+                />
               </div>
             </div>
             <div className="mt-5 flex justify-end gap-2">

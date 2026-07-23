@@ -20,8 +20,7 @@ const LEAGUE_NAME = process.argv[2] || 'Draft Test League'
 const MANAGER_COUNT = Number(process.argv[3] || 18)
 const POOL_SIZE = Number(process.argv[4] || 200)
 
-const POSITIONS = ['Goalkeeper', 'Defender', 'Midfielder', 'Forward'] as const
-const COUNTRIES = ['Polska', 'Anglia', 'Hiszpania', 'Niemcy', 'Francja', 'Włochy', 'Brazylia', 'Argentyna']
+const POSITIONS = ['Defender', 'Midfielder', 'Forward'] as const
 const LEAGUES = ['Ekstraklasa', 'Premier League', 'La Liga', 'Bundesliga', 'Ligue 1', 'Serie A']
 const CLUBS = ['Legia', 'Arsenal', 'Real Madryt', 'Bayern', 'PSG', 'Juventus', 'Barcelona', 'Liverpool', 'Milan']
 
@@ -94,7 +93,6 @@ async function main() {
         surname: `Nr${i}`,
         league: league.name,
         position: pick(POSITIONS, i),
-        country: pick(COUNTRIES, i),
         club: pick(CLUBS, i),
         football_league: pick(LEAGUES, i),
         manager_id: null,

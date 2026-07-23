@@ -181,8 +181,8 @@ export default function PlayerImportPage() {
         </CardHeader>
         <CardContent>
           <p className="text-gray-600 mb-4">
-            Download the Excel template. Columns: <strong>Imię i Nazwisko, Kraj, Liga, Klub, Pozycja</strong>
-            {' '}(Kraj and Liga optional). Positions: Obrońca / Pomocnik / Napastnik (no goalkeepers).
+            Download the Excel template. Columns: <strong>Imię i Nazwisko, Liga, Klub, Pozycja</strong>
+            {' '}(Liga optional). Positions: Obrońca / Pomocnik / Napastnik (no goalkeepers).
           </p>
           <Button onClick={handleDownloadTemplate} loading={downloading}>
             Download Template

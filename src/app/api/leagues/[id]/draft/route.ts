@@ -81,7 +81,7 @@ export async function GET(
     // Player pool for the league.
     const { data: players } = await supabaseAdmin
       .from('players')
-      .select('id, name, surname, country, club, football_league, position')
+      .select('id, name, surname, club, football_league, position')
       .eq('league', league.name)
       .order('surname', { ascending: true })
 

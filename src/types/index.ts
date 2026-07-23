@@ -47,7 +47,6 @@ export interface Player {
   surname: string
   league: string
   position: Position
-  country?: string  // Country of origin (Kraj) - informational, used for draft filtering
   club?: string
   footballLeague?: string  // Real-life football league (e.g., "Premier League", "La Liga")
   managerId?: string
@@ -63,7 +62,6 @@ export interface PlayerWithManager {
   surname: string
   league: string
   position: Position
-  country?: string
   club?: string
   football_league?: string
   manager_id?: string
@@ -196,12 +194,11 @@ export interface PlayerImport {
   'Team Name'?: string  // Optional - team name for the squad
 }
 
-// 2026/27 draft-pool import: five Polish-headed columns. Players are imported
+// 2026/27 draft-pool import: four Polish-headed columns. Players are imported
 // into an unassigned pool; managers are assigned via the live draft, so there
 // is no Manager / Team Name column.
 export interface DraftPoolImport {
   'Imię i Nazwisko': string  // Full name -> split into players.name + players.surname
-  'Kraj'?: string            // Country -> players.country (optional)
   'Liga'?: string            // Real-life league -> players.football_league (optional)
   'Klub': string             // Club -> players.club
   'Pozycja': string          // Position (Polish) -> players.position (mapped to English enum)

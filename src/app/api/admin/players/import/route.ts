@@ -17,8 +17,8 @@ interface ImportResult {
 }
 
 // The 2026/27 pool is imported UNASSIGNED — managers are assigned via the live
-// draft, so there is no Manager/Team Name column. The spreadsheet uses five
-// Polish-headed columns: Imię i Nazwisko, Kraj, Liga, Klub, Pozycja.
+// draft, so there is no Manager/Team Name column. The spreadsheet uses four
+// Polish-headed columns: Imię i Nazwisko, Liga, Klub, Pozycja.
 const REQUIRED_COLUMNS = ['Imię i Nazwisko', 'Klub', 'Pozycja'] as const
 
 export async function POST(request: NextRequest) {
@@ -80,13 +80,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No data found in file' }, { status: 400 })
     }
 
-    // Validate required columns (Kraj and Liga are optional)
+    // Validate required columns (Liga is optional)
     const firstRow = jsonData[0]
     const missingColumns = REQUIRED_COLUMNS.filter(col => !(col in firstRow))
 
     if (missingColumns.length > 0) {
       return NextResponse.json({
-        error: `Brakujące wymagane kolumny: ${missingColumns.join(', ')}. Opcjonalne: Kraj, Liga`
+        error: `Brakujące wymagane kolumny: ${missingColumns.join(', ')}. Opcjonalne: Liga`
       }, { status: 400 })
     }
 
@@ -135,7 +135,6 @@ export async function POST(request: NextRequest) {
           continue
         }
 
-        const country = row['Kraj'] ? String(row['Kraj']).trim() || null : null
         const footballLeague = row['Liga'] ? String(row['Liga']).trim() || null : null
 
         // Check if player already exists in this league
@@ -163,7 +162,6 @@ export async function POST(request: NextRequest) {
             surname,
             league: leagueName, // CRITICAL: must match the target league
             position,
-            country,
             club,
             football_league: footballLeague,
             manager_id: null,
@@ -219,25 +217,22 @@ export async function GET() {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
-    // Template data: the five Polish columns of the draft pool import
+    // Template data: the four Polish columns of the draft pool import
     const templateData = [
       {
         'Imię i Nazwisko': 'Lionel Messi',
-        'Kraj': 'Argentyna',
         'Liga': 'MLS',
         'Klub': 'Inter Miami',
         'Pozycja': 'Napastnik'
       },
       {
         'Imię i Nazwisko': 'Virgil van Dijk',
-        'Kraj': 'Holandia',
         'Liga': 'Premier League',
         'Klub': 'Liverpool FC',
         'Pozycja': 'Obrońca'
       },
       {
         'Imię i Nazwisko': 'Luka Modrić',
-        'Kraj': 'Chorwacja',
         'Liga': 'La Liga',
         'Klub': 'Real Madrid',
         'Pozycja': 'Pomocnik'
@@ -247,13 +242,12 @@ export async function GET() {
     // Create workbook
     const workbook = XLSX.utils.book_new()
     const worksheet = XLSX.utils.json_to_sheet(templateData, {
-      header: ['Imię i Nazwisko', 'Kraj', 'Liga', 'Klub', 'Pozycja']
+      header: ['Imię i Nazwisko', 'Liga', 'Klub', 'Pozycja']
     })
 
     // Set column widths
     worksheet['!cols'] = [
       { width: 26 }, // Imię i Nazwisko
-      { width: 16 }, // Kraj
       { width: 20 }, // Liga
       { width: 20 }, // Klub
       { width: 14 }  // Pozycja
