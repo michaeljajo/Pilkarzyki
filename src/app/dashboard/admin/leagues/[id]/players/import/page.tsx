@@ -74,7 +74,9 @@ export default function LeaguePlayersImportPage() {
         throw new Error(data.error || 'Failed to import players')
       }
 
-      setSuccess(`Successfully imported ${data.count} players`)
+      const imported = data.result?.imported ?? 0
+      const skipped = data.result?.skipped ?? 0
+      setSuccess(`Zaimportowano ${imported} zawodników${skipped ? `, pominięto ${skipped}` : ''}.`)
       setFile(null)
 
       // Redirect back to players page after 2 seconds
@@ -173,29 +175,33 @@ export default function LeaguePlayersImportPage() {
               Twój plik Excel powinien zawierać następujące kolumny:
             </p>
             <ul className="list-disc list-inside space-y-1 text-gray-600">
-              <li><strong>Name</strong>: Pełne imię i nazwisko zawodnika</li>
-              <li><strong>Position</strong>: Goalkeeper, Defender, Midfielder lub Forward</li>
-              <li><strong>Club</strong>: Nazwa klubu zawodnika</li>
-              <li><strong>Manager</strong> (opcjonalne): Adres e-mail menedżera lub imię i nazwisko</li>
+              <li><strong>Imię i Nazwisko</strong>: Pełne imię i nazwisko zawodnika</li>
+              <li><strong>Kraj</strong> (opcjonalne): Kraj pochodzenia</li>
+              <li><strong>Liga</strong> (opcjonalne): Liga (np. Premier League, La Liga)</li>
+              <li><strong>Klub</strong>: Nazwa klubu zawodnika</li>
+              <li><strong>Pozycja</strong>: Obrońca, Pomocnik lub Napastnik</li>
             </ul>
             <p className="text-gray-500 text-xs mt-2">
-              Uwaga: Wszyscy zawodnicy zostaną automatycznie przypisani do tej ligi.
+              Uwaga: Zawodnicy trafiają do puli tej ligi jako nieprzypisani — menedżerowie
+              wybierają ich podczas draftu. Bramkarze nie są obsługiwani.
             </p>
             <p className="text-gray-700 mt-4">
               Przykład:
             </p>
-            <div className="bg-gray-50 p-3 rounded font-mono text-xs">
-              <div className="grid grid-cols-4 gap-4 font-semibold mb-1">
-                <div>Name</div>
-                <div>Position</div>
-                <div>Club</div>
-                <div>Manager</div>
+            <div className="bg-gray-50 p-3 rounded font-mono text-xs overflow-x-auto">
+              <div className="grid grid-cols-5 gap-4 font-semibold mb-1 min-w-[520px]">
+                <div>Imię i Nazwisko</div>
+                <div>Kraj</div>
+                <div>Liga</div>
+                <div>Klub</div>
+                <div>Pozycja</div>
               </div>
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-5 gap-4 min-w-[520px]">
                 <div>Lionel Messi</div>
-                <div>Forward</div>
+                <div>Argentyna</div>
+                <div>MLS</div>
                 <div>Inter Miami</div>
-                <div>manager@example.com</div>
+                <div>Napastnik</div>
               </div>
             </div>
           </div>
