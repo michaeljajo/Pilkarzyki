@@ -112,6 +112,7 @@ export async function POST(
       .from('drafts')
       .update({ updated_at: new Date().toISOString() })
       .eq('league_id', leagueId)
+      .eq('kind', 'preseason')
 
     return NextResponse.json({ success: true, player })
   } catch (error) {

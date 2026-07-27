@@ -34,6 +34,7 @@ export async function POST(
       .from('drafts')
       .select('id')
       .eq('league_id', leagueId)
+      .eq('kind', 'preseason')
       .maybeSingle()
 
     if (!draft) {

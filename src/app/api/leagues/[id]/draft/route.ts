@@ -41,12 +41,13 @@ export async function GET(
       .from('drafts')
       .select('*')
       .eq('league_id', leagueId)
+      .eq('kind', 'preseason')
       .maybeSingle()
 
     if (!draft && league.is_active !== false) {
       const { data: created, error: createError } = await supabaseAdmin
         .from('drafts')
-        .insert({ league_id: leagueId })
+        .insert({ league_id: leagueId, kind: 'preseason' })
         .select('*')
         .single()
       if (createError) {

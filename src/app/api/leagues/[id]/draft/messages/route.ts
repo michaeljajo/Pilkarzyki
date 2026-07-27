@@ -8,6 +8,7 @@ async function getDraftId(leagueId: string): Promise<string | null> {
     .from('drafts')
     .select('id')
     .eq('league_id', leagueId)
+    .eq('kind', 'preseason')
     .maybeSingle()
   return data?.id ?? null
 }
