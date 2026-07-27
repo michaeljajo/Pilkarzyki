@@ -125,6 +125,31 @@ export default function MidseasonDraftClient({ leagueId }: { leagueId: string })
     }
   }, [snap?.draft?.status, participants])
 
+  // Dedicated drop toggle: does NOT flip the global busy flag (so other rows stay
+  // interactive) and returns success so the row can show its own saved/failed cue.
+  const toggleDrop = useCallback(
+    async (playerId: string, wasDropped: boolean): Promise<boolean> => {
+      try {
+        const res = await fetch(`/api/leagues/${leagueId}/midseason-draft/drops`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ playerId, action: wasDropped ? 'remove' : 'add' }),
+        })
+        const data = await res.json()
+        if (!res.ok) {
+          toast.error(data.error || 'Nie udało się zapisać wyboru.')
+          return false
+        }
+        await fetchSnapshot()
+        return true
+      } catch {
+        toast.error('Błąd sieci — wybór nie został zapisany.')
+        return false
+      }
+    },
+    [leagueId, fetchSnapshot]
+  )
+
   async function post(path: string, body?: unknown): Promise<boolean> {
     setBusy(true)
     try {
@@ -206,7 +231,7 @@ export default function MidseasonDraftClient({ leagueId }: { leagueId: string })
           isManager={access.isManager}
           isAdmin={access.isAdmin}
           busy={busy}
-          onToggle={(playerId, isDropped) => post('/drops', { playerId, action: isDropped ? 'remove' : 'add' })}
+          onToggle={toggleDrop}
           onCloseDrops={() => setConfirmClose(true)}
         />
       )}
@@ -294,29 +319,58 @@ function DropsPhase({
   isManager: boolean
   isAdmin: boolean
   busy: boolean
-  onToggle: (playerId: string, isDropped: boolean) => void
+  onToggle: (playerId: string, wasDropped: boolean) => Promise<boolean>
   onCloseDrops: () => void
 }) {
-  const myDrops = new Set(drops.filter((d) => d.manager_id === myManagerId).map((d) => d.player_id))
+  const serverMyDrops = new Set(drops.filter((d) => d.manager_id === myManagerId).map((d) => d.player_id))
   const mySquad = players.filter((p) => p.manager_id === myManagerId)
   const dropsByManager = new Map<string, number>()
   drops.forEach((d) => dropsByManager.set(d.manager_id, (dropsByManager.get(d.manager_id) || 0) + 1))
+
+  // Optimistic overrides so a tick flips instantly; cleared once the server
+  // snapshot (refetched inside onToggle) already reflects the change.
+  const [override, setOverride] = useState<Record<string, boolean>>({})
+  const [saving, setSaving] = useState<Set<string>>(new Set())
+
+  const isDropped = (id: string) => override[id] ?? serverMyDrops.has(id)
+  const myDropCount = mySquad.filter((p) => isDropped(p.id)).length
+
+  async function handleToggle(id: string) {
+    const wasDropped = isDropped(id)
+    setOverride((o) => ({ ...o, [id]: !wasDropped }))
+    setSaving((s) => new Set(s).add(id))
+    const ok = await onToggle(id, wasDropped)
+    setSaving((s) => {
+      const n = new Set(s)
+      n.delete(id)
+      return n
+    })
+    setOverride((o) => {
+      const n = { ...o }
+      delete n[id]
+      return n
+    })
+    if (ok) toast.success(!wasDropped ? 'Zwolnienie zapisane' : 'Cofnięto zwolnienie')
+  }
 
   return (
     <div className="space-y-6">
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
         Okno zwolnień jest otwarte. Zaznacz zawodników, których chcesz zwolnić — otrzymasz tyle
-        wyborów w draftcie, ilu zawodników zwolnisz.
+        wyborów w draftcie, ilu zawodników zwolnisz.{' '}
+        <strong>Wybory zapisują się automatycznie — nie ma przycisku zatwierdzania.</strong> Poczekaj,
+        aż administrator zamknie okno zwolnień.
       </div>
 
       {isManager && myManagerId && (
         <div className="bg-white border border-gray-200 rounded-xl p-4">
           <h2 className="font-semibold text-gray-900 mb-3">
-            Twój skład — zwolnienia ({myDrops.size})
+            Twój skład — zwolnisz {myDropCount} {myDropCount === 1 ? 'zawodnika' : 'zawodników'}
           </h2>
           <div className="space-y-2">
             {mySquad.map((p) => {
-              const dropped = myDrops.has(p.id)
+              const dropped = isDropped(p.id)
+              const isSaving = saving.has(p.id)
               return (
                 <label
                   key={p.id}
@@ -327,13 +381,20 @@ function DropsPhase({
                   <input
                     type="checkbox"
                     checked={dropped}
-                    disabled={busy}
-                    onChange={() => onToggle(p.id, dropped)}
+                    disabled={isSaving}
+                    onChange={() => handleToggle(p.id)}
                     className="w-4 h-4"
                   />
-                  <span className={`text-sm ${dropped ? 'text-red-800 line-through' : 'text-gray-800'}`}>
+                  <span className={`text-sm flex-1 ${dropped ? 'text-red-800 line-through' : 'text-gray-800'}`}>
                     {playerLabel(p)}
                   </span>
+                  {isSaving ? (
+                    <span className="text-xs text-gray-400">Zapisywanie…</span>
+                  ) : dropped ? (
+                    <span className="text-xs text-red-600 inline-flex items-center gap-1">
+                      <Check size={12} /> zwolniony
+                    </span>
+                  ) : null}
                 </label>
               )
             })}
