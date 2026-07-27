@@ -5,6 +5,7 @@ import { createClient } from '@supabase/supabase-js'
 import toast from 'react-hot-toast'
 import { Check, Trophy } from 'lucide-react'
 import { DraftLiveBoard } from '@/components/draft/DraftLiveBoard'
+import { DraftChat, DraftChatMessage } from '@/components/draft/DraftChat'
 
 interface DraftRow {
   id: string
@@ -58,6 +59,8 @@ export default function MidseasonDraftClient({ leagueId }: { leagueId: string })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [messages, setMessages] = useState<DraftChatMessage[]>([])
+  const [chatInput, setChatInput] = useState('')
 
   const supabase = useMemo(
     () =>
@@ -84,11 +87,24 @@ export default function MidseasonDraftClient({ leagueId }: { leagueId: string })
     }
   }, [leagueId])
 
+  const fetchMessages = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/leagues/${leagueId}/midseason-draft/messages`, { cache: 'no-store' })
+      if (res.ok) {
+        const d = await res.json()
+        setMessages(d.messages || [])
+      }
+    } catch {
+      // non-fatal
+    }
+  }, [leagueId])
+
   useEffect(() => {
     fetchSnapshot()
-  }, [fetchSnapshot])
+    fetchMessages()
+  }, [fetchSnapshot, fetchMessages])
 
-  // Realtime: any change to this league's draft / picks / drops → refetch.
+  // Realtime: any change to this league's draft / picks / drops / chat → refetch.
   const draftId = snap?.draft?.id
   useEffect(() => {
     const channel = supabase
@@ -98,12 +114,78 @@ export default function MidseasonDraftClient({ leagueId }: { leagueId: string })
       channel
         .on('postgres_changes', { event: '*', schema: 'public', table: 'draft_picks', filter: `draft_id=eq.${draftId}` }, () => fetchSnapshot())
         .on('postgres_changes', { event: '*', schema: 'public', table: 'draft_drops', filter: `draft_id=eq.${draftId}` }, () => fetchSnapshot())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'draft_messages', filter: `draft_id=eq.${draftId}` }, () => fetchMessages())
     }
     channel.subscribe()
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [supabase, leagueId, draftId, fetchSnapshot])
+  }, [supabase, leagueId, draftId, fetchSnapshot, fetchMessages])
+
+  const sendMessage = async () => {
+    const text = chatInput.trim()
+    if (!text) return
+    setChatInput('')
+    try {
+      const res = await fetch(`/api/leagues/${leagueId}/midseason-draft/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ body: text }),
+      })
+      if (res.ok) fetchMessages()
+      else {
+        const d = await res.json().catch(() => ({}))
+        toast.error(d.error || 'Nie udało się wysłać wiadomości.')
+      }
+    } catch {
+      toast.error('Nie udało się wysłać wiadomości.')
+    }
+  }
+
+  const addPlayer = async (form: { fullName: string; footballLeague: string; club: string; position: string }): Promise<boolean> => {
+    try {
+      const res = await fetch(`/api/leagues/${leagueId}/midseason-draft/add-player`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      })
+      const d = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        toast.error(d.error || 'Nie udało się dodać zawodnika.')
+        return false
+      }
+      toast.success('Dodano zawodnika.')
+      await fetchSnapshot()
+      return true
+    } catch {
+      toast.error('Błąd sieci.')
+      return false
+    }
+  }
+
+  const editPlayer = async (
+    playerId: string,
+    form: { name: string; surname: string; club: string; footballLeague: string; position: string }
+  ): Promise<boolean> => {
+    try {
+      const res = await fetch(`/api/leagues/${leagueId}/draft-edit-player`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ playerId, ...form }),
+      })
+      const d = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        toast.error(d.error || 'Nie udało się zapisać zmian.')
+        return false
+      }
+      toast.success('Zapisano zmiany zawodnika.')
+      await fetchSnapshot()
+      return true
+    } catch {
+      toast.error('Błąd sieci.')
+      return false
+    }
+  }
 
 
   // Dedicated drop toggle: does NOT flip the global busy flag (so other rows stay
@@ -235,6 +317,11 @@ export default function MidseasonDraftClient({ leagueId }: { leagueId: string })
           onSkip={() => post('/action', { action: 'skip' })}
           onUndo={() => post('/action', { action: 'undo' })}
           slotCount={(sid) => picks.filter((p) => p.squad_id === sid).length + (draft.pick_quotas[sid] || 0)}
+          onAddPlayer={addPlayer}
+          onEditPlayer={editPlayer}
+          sideTop={
+            <DraftChat messages={messages} value={chatInput} onChange={setChatInput} onSend={sendMessage} />
+          }
         />
       )}
     </div>

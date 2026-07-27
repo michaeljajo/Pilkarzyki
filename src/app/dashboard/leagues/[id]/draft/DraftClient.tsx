@@ -236,6 +236,11 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
   const [addForm, setAddForm] = useState({ fullName: '', footballLeague: '', club: '', position: 'Napastnik' })
   const [addingPlayer, setAddingPlayer] = useState(false)
 
+  // Edit-player (admin) — live detail change (e.g. last-minute transfer)
+  const [editingPlayer, setEditingPlayer] = useState<PlayerRow | null>(null)
+  const [editForm, setEditForm] = useState({ name: '', surname: '', club: '', footballLeague: '', position: 'Forward' })
+  const [savingEdit, setSavingEdit] = useState(false)
+
   // Notifications
   const [notifStatus, setNotifStatus] = useState<NotificationPermission | 'unsupported'>('unsupported')
   const prevMyTurn = useRef(false)
@@ -474,6 +479,41 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
     }
   }
 
+  const openEditPlayer = (p: PlayerRow) => {
+    setEditForm({
+      name: p.name,
+      surname: p.surname,
+      club: p.club || '',
+      footballLeague: p.football_league || '',
+      position: p.position,
+    })
+    setEditingPlayer(p)
+  }
+
+  const handleSavePlayerEdit = async () => {
+    if (!editingPlayer) return
+    setSavingEdit(true)
+    try {
+      const res = await fetch(`/api/leagues/${leagueId}/draft-edit-player`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ playerId: editingPlayer.id, ...editForm }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        toast.error(data.error || 'Nie udało się zapisać zmian.')
+        return
+      }
+      toast.success('Zapisano zmiany zawodnika.')
+      setEditingPlayer(null)
+      await fetchSnapshot()
+    } catch {
+      toast.error('Błąd połączenia.')
+    } finally {
+      setSavingEdit(false)
+    }
+  }
+
   const sendMessage = async () => {
     const text = chatInput.trim()
     if (!text) return
@@ -685,6 +725,19 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
                           <td className="px-3 py-2">{p.club || '—'}</td>
                           <td className="px-3 py-2">{positionLabel(p.position)}</td>
                           <td className="px-3 py-2 text-right whitespace-nowrap">
+                            <span className="inline-flex items-center gap-1 justify-end">
+                            {isAdmin && status !== 'finished' && (
+                              <button
+                                onClick={e => {
+                                  e.stopPropagation()
+                                  openEditPlayer(p)
+                                }}
+                                title="Edytuj dane zawodnika"
+                                className="px-2 py-1 rounded border border-gray-300 text-gray-600 text-xs hover:bg-gray-50"
+                              >
+                                ✎
+                              </button>
+                            )}
                             {picked ? (
                               <span className="text-xs italic">Wybrany przez {managerName(pickedBy)}</span>
                             ) : isPending ? (
@@ -717,6 +770,7 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
                                 </button>
                               </span>
                             ) : null}
+                            </span>
                           </td>
                         </tr>
                       )
@@ -844,6 +898,88 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
                 className="px-4 py-2 text-sm rounded-md bg-[#29544D] text-white hover:bg-[#1f423c] disabled:opacity-50"
               >
                 {addingPlayer ? 'Dodawanie…' : 'Dodaj'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit-player modal (admin) — live detail change */}
+      {editingPlayer && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onClick={() => !savingEdit && setEditingPlayer(null)}
+        >
+          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">Edytuj dane zawodnika</h3>
+            <p className="text-sm text-gray-500 mb-4">
+              Zmień dane na żywo (np. transfer w ostatniej chwili) bez restartu draftu.
+            </p>
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Imię *</label>
+                  <input
+                    value={editForm.name}
+                    onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Nazwisko</label>
+                  <input
+                    value={editForm.surname}
+                    onChange={e => setEditForm(f => ({ ...f, surname: e.target.value }))}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Klub *</label>
+                  <input
+                    value={editForm.club}
+                    onChange={e => setEditForm(f => ({ ...f, club: e.target.value }))}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Pozycja *</label>
+                  <select
+                    value={editForm.position}
+                    onChange={e => setEditForm(f => ({ ...f, position: e.target.value }))}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md bg-white"
+                  >
+                    <option value="Goalkeeper">Bramkarz</option>
+                    <option value="Defender">Obrońca</option>
+                    <option value="Midfielder">Pomocnik</option>
+                    <option value="Forward">Napastnik</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Liga</label>
+                <input
+                  value={editForm.footballLeague}
+                  onChange={e => setEditForm(f => ({ ...f, footballLeague: e.target.value }))}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md"
+                />
+              </div>
+            </div>
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                onClick={() => setEditingPlayer(null)}
+                disabled={savingEdit}
+                className="px-4 py-2 text-sm rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50"
+              >
+                Anuluj
+              </button>
+              <button
+                onClick={handleSavePlayerEdit}
+                disabled={savingEdit}
+                className="px-4 py-2 text-sm rounded-md bg-[#29544D] text-white hover:bg-[#1f423c] disabled:opacity-50"
+              >
+                {savingEdit ? 'Zapisywanie…' : 'Zapisz'}
               </button>
             </div>
           </div>

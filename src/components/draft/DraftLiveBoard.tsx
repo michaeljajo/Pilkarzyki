@@ -242,6 +242,21 @@ interface DraftLiveBoardProps {
   slotCount: (squadId: string) => number
   /** Optional right-column content above the roster (e.g. chat). */
   sideTop?: ReactNode
+  /** Admin: add a free-agent player to the pool live. Renders the button+modal when set. */
+  onAddPlayer?: (form: { fullName: string; footballLeague: string; club: string; position: string }) => Promise<boolean>
+  /** Admin: edit a player's details live (e.g. a last-minute transfer). Renders a row action when set. */
+  onEditPlayer?: (
+    playerId: string,
+    form: { name: string; surname: string; club: string; footballLeague: string; position: string }
+  ) => Promise<boolean>
+}
+
+const POSITION_OPTIONS_PL = ['Bramkarz', 'Obrońca', 'Pomocnik', 'Napastnik']
+const POSITION_EN_BY_PL: Record<string, string> = {
+  Bramkarz: 'Goalkeeper',
+  Obrońca: 'Defender',
+  Pomocnik: 'Midfielder',
+  Napastnik: 'Forward',
 }
 
 export function DraftLiveBoard({
@@ -262,12 +277,55 @@ export function DraftLiveBoard({
   onUndo,
   slotCount,
   sideTop,
+  onAddPlayer,
+  onEditPlayer,
 }: DraftLiveBoardProps) {
   const [search, setSearch] = useState('')
   const [fLeague, setFLeague] = useState('')
   const [fClub, setFClub] = useState('')
   const [fPosition, setFPosition] = useState('')
   const [pending, setPending] = useState<string | null>(null)
+
+  const [showAdd, setShowAdd] = useState(false)
+  const [addForm, setAddForm] = useState({ fullName: '', footballLeague: '', club: '', position: 'Napastnik' })
+  const [addingPlayer, setAddingPlayer] = useState(false)
+
+  const [editing, setEditing] = useState<BoardPlayer | null>(null)
+  const [editForm, setEditForm] = useState({ name: '', surname: '', club: '', footballLeague: '', position: 'Forward' })
+  const [savingEdit, setSavingEdit] = useState(false)
+
+  const canEdit = isAdmin && !!onEditPlayer
+  const canAdd = isAdmin && !!onAddPlayer && status === 'live'
+
+  const openEdit = (p: BoardPlayer) => {
+    setEditForm({
+      name: p.name,
+      surname: p.surname,
+      club: p.club || '',
+      footballLeague: p.football_league || '',
+      position: p.position,
+    })
+    setEditing(p)
+  }
+
+  const submitAdd = async () => {
+    if (!onAddPlayer) return
+    setAddingPlayer(true)
+    const ok = await onAddPlayer(addForm)
+    setAddingPlayer(false)
+    if (ok) {
+      setShowAdd(false)
+      setAddForm({ fullName: '', footballLeague: '', club: '', position: 'Napastnik' })
+    }
+  }
+
+  const submitEdit = async () => {
+    if (!onEditPlayer || !editing) return
+    setSavingEdit(true)
+    const ok = await onEditPlayer(editing.id, editForm)
+    setSavingEdit(false)
+    if (ok) setEditing(null)
+  }
 
   const managersByManagerId = useMemo(() => {
     const map = new Map<string, BoardManager>()
@@ -316,7 +374,7 @@ export function DraftLiveBoard({
         </div>
       )}
 
-      <div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
         {status === 'live' ? (
           <p className="text-gray-600">
             {roundLabel} · Teraz wybiera:{' '}
@@ -324,6 +382,14 @@ export function DraftLiveBoard({
           </p>
         ) : (
           <p className="text-gray-600">Draft zakończony</p>
+        )}
+        {canAdd && (
+          <button
+            onClick={() => setShowAdd(true)}
+            className="text-sm whitespace-nowrap px-3 py-2 rounded-md bg-[#29544D] text-white hover:bg-[#1f423c]"
+          >
+            + Dodaj zawodnika
+          </button>
         )}
       </div>
 
@@ -408,6 +474,19 @@ export function DraftLiveBoard({
                         <td className="px-3 py-2">{p.club || '—'}</td>
                         <td className="px-3 py-2">{positionLabel(p.position)}</td>
                         <td className="px-3 py-2 text-right whitespace-nowrap">
+                          <span className="inline-flex items-center gap-1 justify-end">
+                          {canEdit && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                openEdit(p)
+                              }}
+                              title="Edytuj dane zawodnika"
+                              className="px-2 py-1 rounded border border-gray-300 text-gray-600 text-xs hover:bg-gray-50"
+                            >
+                              ✎
+                            </button>
+                          )}
                           {picked ? (
                             <span className="text-xs italic">Wybrany przez {managerName(pickedBy)}</span>
                           ) : isPending ? (
@@ -440,6 +519,7 @@ export function DraftLiveBoard({
                               </button>
                             </span>
                           ) : null}
+                          </span>
                         </td>
                       </tr>
                     )
@@ -469,6 +549,102 @@ export function DraftLiveBoard({
           />
         </div>
       </div>
+
+      {/* Add player (admin) */}
+      {showAdd && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => !addingPlayer && setShowAdd(false)}>
+          <div className="bg-white rounded-xl w-full max-w-md p-5 space-y-3" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-semibold text-gray-900">Dodaj zawodnika</h3>
+            <input
+              value={addForm.fullName}
+              onChange={(e) => setAddForm({ ...addForm, fullName: e.target.value })}
+              placeholder="Imię i nazwisko"
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md"
+            />
+            <input
+              value={addForm.club}
+              onChange={(e) => setAddForm({ ...addForm, club: e.target.value })}
+              placeholder="Klub"
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md"
+            />
+            <input
+              value={addForm.footballLeague}
+              onChange={(e) => setAddForm({ ...addForm, footballLeague: e.target.value })}
+              placeholder="Liga (opcjonalnie)"
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md"
+            />
+            <select
+              value={addForm.position}
+              onChange={(e) => setAddForm({ ...addForm, position: e.target.value })}
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md"
+            >
+              {POSITION_OPTIONS_PL.map((pl) => (
+                <option key={pl} value={pl}>{pl}</option>
+              ))}
+            </select>
+            <div className="flex justify-end gap-2 pt-1">
+              <button onClick={() => setShowAdd(false)} disabled={addingPlayer} className="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50">
+                Anuluj
+              </button>
+              <button onClick={submitAdd} disabled={addingPlayer} className="px-4 py-2 text-sm rounded-md bg-[#29544D] text-white hover:bg-[#1f423c] disabled:opacity-50">
+                {addingPlayer ? 'Dodawanie…' : 'Dodaj'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit player (admin) — live detail change */}
+      {editing && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => !savingEdit && setEditing(null)}>
+          <div className="bg-white rounded-xl w-full max-w-md p-5 space-y-3" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-semibold text-gray-900">Edytuj dane zawodnika</h3>
+            <div className="grid grid-cols-2 gap-2">
+              <input
+                value={editForm.name}
+                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                placeholder="Imię"
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md"
+              />
+              <input
+                value={editForm.surname}
+                onChange={(e) => setEditForm({ ...editForm, surname: e.target.value })}
+                placeholder="Nazwisko"
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md"
+              />
+            </div>
+            <input
+              value={editForm.club}
+              onChange={(e) => setEditForm({ ...editForm, club: e.target.value })}
+              placeholder="Klub"
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md"
+            />
+            <input
+              value={editForm.footballLeague}
+              onChange={(e) => setEditForm({ ...editForm, footballLeague: e.target.value })}
+              placeholder="Liga (opcjonalnie)"
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md"
+            />
+            <select
+              value={editForm.position}
+              onChange={(e) => setEditForm({ ...editForm, position: e.target.value })}
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md"
+            >
+              {POSITION_OPTIONS_PL.map((pl) => (
+                <option key={pl} value={POSITION_EN_BY_PL[pl]}>{pl}</option>
+              ))}
+            </select>
+            <div className="flex justify-end gap-2 pt-1">
+              <button onClick={() => setEditing(null)} disabled={savingEdit} className="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50">
+                Anuluj
+              </button>
+              <button onClick={submitEdit} disabled={savingEdit} className="px-4 py-2 text-sm rounded-md bg-[#29544D] text-white hover:bg-[#1f423c] disabled:opacity-50">
+                {savingEdit ? 'Zapisywanie…' : 'Zapisz'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
