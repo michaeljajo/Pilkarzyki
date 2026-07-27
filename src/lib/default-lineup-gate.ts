@@ -88,6 +88,19 @@ export async function checkDefaultLineupGate(
     // there would trap the manager. Never gate an inactive league.
     if (league.is_active === false) return INACTIVE
 
+    // While a draft (pre-season or mid-season) is open, squads are in flux —
+    // forcing a default lineup then is pointless and would block the draft
+    // screen itself. Never gate a league with an unfinished draft. The partial
+    // unique index guarantees at most one such draft per league.
+    const { data: openDraft } = await supabaseAdmin
+      .from('drafts')
+      .select('id')
+      .eq('league_id', leagueId)
+      .neq('status', 'finished')
+      .maybeSingle()
+
+    if (openDraft) return INACTIVE
+
     // Current squad for this manager in this league.
     const { data: squadPlayers } = await supabaseAdmin
       .from('players')
