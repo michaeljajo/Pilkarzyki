@@ -1,688 +1,353 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useState, useEffect, useCallback } from 'react'
+import { useParams } from 'next/navigation'
+import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Alert } from '@/components/ui/Alert'
-import { Modal } from '@/components/ui/Modal'
-import { Select } from '@/components/ui/Select'
-import { Input } from '@/components/ui/Input'
-import { EmptyState } from '@/components/ui/EmptyState'
-import { Avatar } from '@/components/ui/Avatar'
-import { League, User } from '@/types'
-import { Users, UserPlus, Edit3, Trash2, Calendar, AlertTriangle, Trophy, CheckCircle, Download } from 'lucide-react'
-import { motion } from 'framer-motion'
+import {
+  AlertTriangle,
+  CheckCircle,
+  ClipboardList,
+  BarChart3,
+  Table,
+  Shield,
+  Trophy,
+  Zap,
+} from 'lucide-react'
 
-export default function LeagueDetailsPage() {
-  const params = useParams()
-  const router = useRouter()
-  const [league, setLeague] = useState<League | null>(null)
-  const [managers, setManagers] = useState<User[]>([])
-  interface ScheduleGameweek {
+type GameweekState = 'open' | 'locked' | 'completed'
+
+interface PanelData {
+  league: { id: string; name: string; isActive: boolean }
+  gameweek: {
     id: string
     week: number
-    is_completed?: boolean
-    matches: Array<{
-      id: string
-      home_manager: { first_name: string | null; last_name: string | null; email: string } | null
-      away_manager: { first_name: string | null; last_name: string | null; email: string } | null
-      home_score: number | null
-      away_score: number | null
-      is_completed: boolean
-    }>
+    lockDate: string
+    isCompleted: boolean
+    state: GameweekState
+  } | null
+  lineups: {
+    total: number
+    submittedOwn: number
+    zelazko: number
+    missing: number
+    zelazkoNames: string[]
+    missingNames: string[]
+  } | null
+  warnings: {
+    invalidDefaults: Array<{ managerName: string; removedPlayerNames: string[] }>
+    cronFailure: { missingNames: string[] } | null
   }
-  const [schedule, setSchedule] = useState<ScheduleGameweek[]>([])
-  const [hasSchedule, setHasSchedule] = useState(false)
-  const [allUsers, setAllUsers] = useState<User[]>([])
+  cup: { name: string; round: string } | null
+}
+
+const PIPELINE: { key: string; label: string; activeFor: GameweekState[] }[] = [
+  { key: 'open', label: 'Składy otwarte', activeFor: ['open'] },
+  { key: 'locked', label: 'Zablokowana', activeFor: ['locked'] },
+  { key: 'results', label: 'Wpisywanie wyników', activeFor: ['locked'] },
+  { key: 'completed', label: 'Zakończona', activeFor: ['completed'] },
+]
+
+const STATE_LABEL: Record<GameweekState, string> = {
+  open: 'Składy otwarte',
+  locked: 'Zablokowana — wpisywanie wyników',
+  completed: 'Zakończona',
+}
+
+export default function LeaguePanelPage() {
+  const params = useParams()
+  const leagueId = params.id as string
+
+  const [data, setData] = useState<PanelData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [exporting, setExporting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
-  const [showAddManager, setShowAddManager] = useState(false)
-  const [editingName, setEditingName] = useState(false)
-  const [formData, setFormData] = useState({
-    name: ''
-  })
-  const [selectedUserId, setSelectedUserId] = useState('')
+  const [applying, setApplying] = useState(false)
+  const [notice, setNotice] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (params.id) {
-      fetchLeagueData(params.id as string)
-    }
-  }, [params.id])
-
-  // Clear messages after 5 seconds
-  useEffect(() => {
-    if (error || success) {
-      const timer = setTimeout(() => {
-        setError(null)
-        setSuccess(null)
-      }, 5000)
-      return () => clearTimeout(timer)
-    }
-  }, [error, success])
-
-  async function fetchLeagueData(id: string) {
+  const fetchPanel = useCallback(async () => {
     try {
-      setLoading(true)
-      const [leagueRes, managersRes, scheduleRes, usersRes] = await Promise.all([
-        fetch(`/api/leagues/${id}`),
-        fetch(`/api/leagues/${id}/managers`),
-        fetch(`/api/leagues/${id}/schedule`),
-        fetch(`/api/users`)
-      ])
-
-      const [leagueData, managersData, scheduleData, usersData] = await Promise.all([
-        leagueRes.json(),
-        managersRes.json(),
-        scheduleRes.json(),
-        usersRes.json()
-      ])
-
-      if (!leagueRes.ok) {
-        throw new Error(leagueData.error || 'Failed to fetch league')
-      }
-
-      setLeague(leagueData.league)
-      setFormData({
-        name: leagueData.league.name
-      })
-
-      if (managersRes.ok) {
-        setManagers(managersData.managers || [])
-      } else {
-        setManagers([])
-      }
-
-      if (scheduleRes.ok) {
-        setSchedule(scheduleData.schedule || [])
-        setHasSchedule(scheduleData.hasSchedule || false)
-      } else {
-        setSchedule([])
-        setHasSchedule(false)
-      }
-
-      if (usersRes.ok) {
-        setAllUsers(usersData.users || [])
-      } else {
-        setAllUsers([])
-      }
+      const res = await fetch(`/api/admin/leagues/${leagueId}/panel`)
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || 'Nie udało się wczytać panelu')
+      setData(json)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      setError(err instanceof Error ? err.message : 'Wystąpił błąd')
     } finally {
       setLoading(false)
     }
-  }
+  }, [leagueId])
 
-  async function updateLeagueName() {
-    if (!league || formData.name === league.name) {
-      setEditingName(false)
-      return
-    }
+  useEffect(() => {
+    fetchPanel()
+  }, [fetchPanel])
 
+  async function applyZelazka() {
     try {
-      setSaving(true)
-      const response = await fetch(`/api/leagues/${league.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: formData.name, isActive: league.isActive })
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to update league name')
-      }
-
-      const data = await response.json()
-      setLeague(data.league)
-      setEditingName(false)
-      setSuccess('League name updated successfully!')
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update league name')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  async function addManager(userId: string) {
-    try {
-      setSaving(true)
-      const response = await fetch(`/api/leagues/${league?.id}/managers`, {
+      setApplying(true)
+      setError(null)
+      setNotice(null)
+      const res = await fetch(`/api/admin/leagues/${leagueId}/apply-default-lineups`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId })
+        body: JSON.stringify({ gameweekId: data?.gameweek?.id }),
       })
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Failed to add manager')
-      }
-
-      await fetchLeagueData(params.id as string)
-      setShowAddManager(false)
-      setSelectedUserId('')
-      setSuccess('Manager added successfully!')
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || 'Nie udało się zastosować żelazek')
+      setNotice(json.message)
+      await fetchPanel()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add manager')
+      setError(err instanceof Error ? err.message : 'Wystąpił błąd')
     } finally {
-      setSaving(false)
-    }
-  }
-
-  async function removeManager(managerId: string, managerName: string) {
-    if (!confirm(`Are you sure you want to remove ${managerName} from this league? This action cannot be undone.`)) {
-      return
-    }
-
-    try {
-      setSaving(true)
-      setError(null)
-      const response = await fetch(`/api/leagues/${league?.id}/managers`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ managerId })
-      })
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Failed to remove manager')
-      }
-
-      setSuccess(`${managerName} has been removed from the league`)
-      await fetchLeagueData(params.id as string)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to remove manager')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  async function generateSchedule() {
-    if (!league || managers.length < 2) {
-      setError('Need at least 2 managers to generate schedule')
-      return
-    }
-
-    try {
-      setSaving(true)
-      setError(null)
-      const response = await fetch(`/api/leagues/${league.id}/schedule`, {
-        method: 'POST'
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to generate schedule')
-      }
-
-      setSuccess(`Schedule generated successfully! ${data.stats.totalMatches} matches across ${data.stats.totalGameweeks} gameweeks.`)
-      setTimeout(async () => {
-        await fetchLeagueData(params.id as string)
-      }, 200)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to generate schedule')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  async function deleteSchedule() {
-    if (!league || !confirm('Are you sure you want to delete the entire schedule? This action cannot be undone.')) {
-      return
-    }
-
-    try {
-      setSaving(true)
-      setError(null)
-      const response = await fetch(`/api/leagues/${league.id}/schedule`, {
-        method: 'DELETE'
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to delete schedule')
-      }
-
-      setSuccess('Schedule deleted successfully')
-      await fetchLeagueData(params.id as string)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete schedule')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  async function deleteLeague() {
-    if (!league || !confirm(`Are you sure you want to delete "${league.name}"? This action cannot be undone.`)) {
-      return
-    }
-
-    try {
-      setSaving(true)
-      const response = await fetch(`/api/leagues/${league.id}`, {
-        method: 'DELETE'
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to delete league')
-      }
-
-      router.push('/dashboard/admin/leagues')
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete league')
-      setSaving(false)
-    }
-  }
-
-  async function exportToExcel() {
-    if (!league) return
-
-    try {
-      setExporting(true)
-      setError(null)
-      const response = await fetch(`/api/admin/leagues/${league.id}/export`)
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Failed to export data')
-      }
-
-      // Get the blob from response
-      const blob = await response.blob()
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `${league.name}_${league.season}_Export_${new Date().toISOString().split('T')[0]}.xlsx`
-      document.body.appendChild(a)
-      a.click()
-      window.URL.revokeObjectURL(url)
-      document.body.removeChild(a)
-
-      setSuccess('Data exported successfully!')
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to export data')
-    } finally {
-      setExporting(false)
+      setApplying(false)
     }
   }
 
   if (loading) {
     return (
       <div className="animate-pulse space-y-8">
-        <div className="h-12 bg-[var(--background-secondary)] rounded-xl w-1/3"></div>
-        <div className="h-64 bg-[var(--background-secondary)] rounded-xl"></div>
+        <div className="h-12 bg-[var(--background-secondary)] rounded-xl w-1/3" />
+        <div className="h-48 bg-[var(--background-secondary)] rounded-xl" />
+        <div className="h-48 bg-[var(--background-secondary)] rounded-xl" />
       </div>
     )
   }
 
-  if (error && !league) {
-    return (
-      <div className="text-center py-12">
-        <Alert variant="error">{error}</Alert>
-        <Button onClick={() => router.back()} className="mt-4">Go Back</Button>
-      </div>
-    )
+  if (error && !data) {
+    return <Alert variant="error">{error}</Alert>
   }
 
-  const currentManagerIds = managers.map(m => m.id)
-  const filteredUsers = allUsers.filter(user => !currentManagerIds.includes(user.id))
+  const gw = data?.gameweek
+  const lineups = data?.lineups
+  const warnings = data?.warnings
+  const hasWarnings =
+    (warnings?.invalidDefaults.length ?? 0) > 0 || !!warnings?.cronFailure
+
+  const ctaHref = `/dashboard/admin/leagues/${leagueId}/kolejka`
+  const ctaLabel =
+    gw?.state === 'locked'
+      ? 'Wpisz wyniki'
+      : gw?.state === 'open'
+        ? 'Zobacz składy'
+        : 'Otwórz kolejkę'
 
   return (
-    <div className="space-y-6 sm:space-y-8 lg:space-y-12">
+    <div className="space-y-6 sm:space-y-8">
       {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col gap-2 sm:gap-3"
-      >
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--foreground)]">
-          Przegląd Ligi
-        </h1>
-        <p className="text-base sm:text-lg lg:text-xl text-[var(--foreground-secondary)]">
-          Zarządzaj wszystkimi aspektami swojej ligi
+      <div className="flex flex-col gap-2">
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--foreground)]">Panel</h1>
+        <p className="text-base sm:text-lg text-[var(--foreground-secondary)]">
+          {data?.league.name}
+          {data && !data.league.isActive && ' — sezon zarchiwizowany'}
         </p>
-      </motion.div>
+      </div>
 
-      {/* Error and Success Messages */}
+      {notice && (
+        <Alert variant="success" dismissible onDismiss={() => setNotice(null)}>
+          {notice}
+        </Alert>
+      )}
       {error && (
         <Alert variant="error" dismissible onDismiss={() => setError(null)}>
           {error}
         </Alert>
       )}
 
-      {success && (
-        <Alert variant="success" dismissible onDismiss={() => setSuccess(null)}>
-          {success}
-        </Alert>
+      {/* System-health warnings — only when something is wrong */}
+      {hasWarnings && (
+        <div className="space-y-4">
+          {warnings?.cronFailure && (
+            <Card className="border-[var(--danger)]/40 bg-[var(--danger)]/5">
+              <CardContent className="py-5">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="text-[var(--danger)] shrink-0 mt-0.5" size={24} />
+                    <div>
+                      <div className="font-semibold text-[var(--foreground)]">
+                        Kolejka zablokowana, a {warnings.cronFailure.missingNames.length} menedżer(ów) bez składu
+                      </div>
+                      <div className="text-sm text-[var(--foreground-secondary)] mt-1">
+                        Automat żelazek prawdopodobnie się nie wykonał: {warnings.cronFailure.missingNames.join(', ')}.
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={applyZelazka}
+                    loading={applying}
+                    icon={<Zap size={18} />}
+                    className="shrink-0 w-full sm:w-auto"
+                  >
+                    Zastosuj żelazka teraz
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {(warnings?.invalidDefaults.length ?? 0) > 0 && (
+            <Card className="border-[var(--warning)]/40 bg-[var(--warning)]/5">
+              <CardContent className="py-5">
+                <div className="flex items-start gap-3">
+                  <Shield className="text-[var(--warning)] shrink-0 mt-0.5" size={24} />
+                  <div>
+                    <div className="font-semibold text-[var(--foreground)]">
+                      Nieprawidłowe żelazka po transferach
+                    </div>
+                    <ul className="text-sm text-[var(--foreground-secondary)] mt-2 space-y-1">
+                      {warnings!.invalidDefaults.map((d) => (
+                        <li key={d.managerName}>
+                          <span className="font-medium text-[var(--foreground)]">{d.managerName}</span>
+                          {' — utracił: '}
+                          {d.removedPlayerNames.join(', ')}
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="text-xs text-[var(--foreground-tertiary)] mt-2">
+                      Ci menedżerowie muszą zaktualizować swoje żelazko przed blokadą kolejki.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       )}
 
-      {/* League Name & Cup Access & Export */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+      {/* Current gameweek */}
+      {gw ? (
+        <Card className="hover-lift">
+          <CardHeader>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <CardTitle className="flex items-center gap-3">
+                <ClipboardList size={26} className="text-[var(--mineral-green)]" />
+                Kolejka {gw.week}
+              </CardTitle>
+              <span className="text-sm font-semibold px-3 py-1.5 rounded-full bg-[var(--background-tertiary)] text-[var(--foreground)]">
+                {STATE_LABEL[gw.state]}
+              </span>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Pipeline */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-2">
+              {PIPELINE.map((step, i) => {
+                const isActive = step.activeFor.includes(gw.state)
+                const stateOrder: GameweekState[] = ['open', 'locked', 'completed']
+                const isPast =
+                  stateOrder.indexOf(gw.state) >
+                  stateOrder.indexOf(step.activeFor[0])
+                return (
+                  <div key={step.key} className="flex items-center gap-2 shrink-0">
+                    <div
+                      className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${
+                        isActive
+                          ? 'bg-[var(--mineral-green)] text-white'
+                          : isPast
+                            ? 'bg-[var(--success)]/15 text-[var(--success)]'
+                            : 'bg-[var(--background-tertiary)] text-[var(--foreground-tertiary)]'
+                      }`}
+                    >
+                      {step.label}
+                    </div>
+                    {i < PIPELINE.length - 1 && (
+                      <span className="text-[var(--foreground-tertiary)]">→</span>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+
+            <Link href={ctaHref}>
+              <Button size="lg" icon={<ClipboardList size={18} />} className="w-full sm:w-auto">
+                {ctaLabel}
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardContent className="py-8 text-center text-[var(--foreground-secondary)]">
+            Brak kolejek w tej lidze. Wygeneruj terminarz w sekcji Terminarz.
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Lineup status */}
+      {lineups && gw && (
         <Card className="hover-lift">
           <CardHeader>
             <CardTitle className="flex items-center gap-3">
-              <Trophy size={28} className="text-[var(--mineral-green)]" />
-              Nazwa Ligi
+              <CheckCircle size={24} className="text-[var(--mineral-green)]" />
+              Składy — kolejka {gw.week}
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            {editingName ? (
-              <div className="space-y-6">
-                <Input
-                  value={formData.name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Enter league name"
-                  fullWidth
-                />
-                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                  <Button onClick={updateLeagueName} loading={saving} icon={<CheckCircle size={18} />} className="w-full sm:w-auto">
-                    Zapisz
-                  </Button>
-                  <Button onClick={() => setEditingName(false)} variant="secondary" className="w-full sm:w-auto">
-                    Anuluj
-                  </Button>
-                </div>
-              </div>
+          <CardContent className="space-y-4">
+            {gw.state === 'open' ? (
+              <p className="text-[var(--foreground)]">
+                <span className="font-semibold">{lineups.submittedOwn}</span> z{' '}
+                <span className="font-semibold">{lineups.total}</span> wybrało skład
+                {lineups.missing > 0 && (
+                  <>
+                    {', '}
+                    <span className="font-semibold">{lineups.missing}</span> jeszcze nie
+                  </>
+                )}
+                . Przy blokadzie brakujące składy zostaną uzupełnione żelazkiem.
+              </p>
             ) : (
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <span className="text-2xl sm:text-3xl font-semibold text-[var(--foreground)]">{league?.name}</span>
-                <Button onClick={() => setEditingName(true)} variant="ghost" icon={<Edit3 size={18} />} className="w-full sm:w-auto">
-                  Edytuj
-                </Button>
+              <p className="text-[var(--foreground)]">
+                Wszystkie <span className="font-semibold">{lineups.total}</span> składy istnieją —{' '}
+                <span className="font-semibold">{lineups.zelazko}</span> z żelazka.
+              </p>
+            )}
+
+            {lineups.zelazkoNames.length > 0 && (
+              <div className="text-sm text-[var(--foreground-secondary)]">
+                <span className="font-medium">Żelazko:</span> {lineups.zelazkoNames.join(', ')}
+              </div>
+            )}
+            {gw.state === 'open' && lineups.missingNames.length > 0 && (
+              <div className="text-sm text-[var(--foreground-secondary)]">
+                <span className="font-medium">Bez składu:</span> {lineups.missingNames.join(', ')}
               </div>
             )}
           </CardContent>
         </Card>
+      )}
 
-        <Card className="hover-lift bg-gradient-to-br from-yellow-50 to-amber-50 border-yellow-200 md:col-span-2 lg:col-span-1">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3 text-yellow-800">
-              🏆 Turniej Pucharowy
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm sm:text-base text-yellow-700 mb-4 sm:mb-6">
-              Zarządzaj turniejami pucharowymi równolegle z ligą
-            </p>
-            <Button
-              onClick={() => router.push(`/dashboard/admin/leagues/${params.id}/cup`)}
-              variant="secondary"
-              size="lg"
-              className="w-full !bg-yellow-500 hover:!bg-yellow-600 !text-white !border-0"
-            >
-              Zarządzaj Pucharem
-            </Button>
+      {/* Cup status */}
+      {data?.cup && (
+        <Card>
+          <CardContent className="py-4 flex items-center gap-3">
+            <Trophy size={20} className="text-yellow-500" />
+            <span className="text-[var(--foreground)]">
+              <span className="font-semibold">{data.cup.name}</span>
+              {data.cup.round ? ` — ${data.cup.round}` : ''} w tej kolejce
+            </span>
           </CardContent>
         </Card>
+      )}
 
-        <Card className="hover-lift bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 md:col-span-2 lg:col-span-1">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3 text-green-800">
-              <Download size={28} className="text-green-600" />
-              Eksport do Excel
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm sm:text-base text-green-700 mb-4 sm:mb-6">
-              Eksportuj wszystkie dane ligi i pucharu do pliku Excel
-            </p>
-            <Button
-              onClick={exportToExcel}
-              loading={exporting}
-              variant="secondary"
-              size="lg"
-              className="w-full !bg-green-500 hover:!bg-green-600 !text-white !border-0"
-              icon={<Download size={18} />}
-            >
-              {exporting ? 'Eksportowanie...' : 'Pobierz Excel'}
-            </Button>
-          </CardContent>
-        </Card>
+      {/* Read-only quick links */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Link href={`/dashboard/admin/leagues/${leagueId}/kolejka`}>
+          <Card className="hover-lift cursor-pointer">
+            <CardContent className="py-5 flex items-center gap-3">
+              <BarChart3 size={22} className="text-[var(--mineral-green)]" />
+              <span className="font-medium text-[var(--foreground)]">Ostatnie wyniki</span>
+            </CardContent>
+          </Card>
+        </Link>
+        <Link href={`/dashboard/admin/leagues/${leagueId}/standings`}>
+          <Card className="hover-lift cursor-pointer">
+            <CardContent className="py-5 flex items-center gap-3">
+              <Table size={22} className="text-[var(--mineral-green)]" />
+              <span className="font-medium text-[var(--foreground)]">Aktualna tabela</span>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
-
-      {/* Managers List */}
-      <Card className="hover-lift">
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle className="flex items-center gap-3">
-              <Users size={28} className="text-[var(--mineral-green)]" />
-              Menedżerowie Ligi ({managers.length})
-            </CardTitle>
-            <Button
-              onClick={() => setShowAddManager(true)}
-              icon={<UserPlus size={18} />}
-              size="lg"
-            >
-              Dodaj Menedżera
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {managers.length === 0 ? (
-            <EmptyState
-              icon={<Users size={56} />}
-              title="Brak menedżerów"
-              description="Dodaj menedżerów, aby rozpocząć budowanie ligi"
-              action={{
-                label: 'Dodaj Pierwszego Menedżera',
-                onClick: () => setShowAddManager(true),
-                icon: <UserPlus size={18} />
-              }}
-            />
-          ) : (
-            <div className="space-y-3 sm:space-y-5">
-              {managers.map((manager, index) => (
-                <motion.div
-                  key={manager.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 sm:p-6 bg-[var(--background-tertiary)] rounded-2xl hover:bg-[var(--background-tertiary)]/90 transition-colors group"
-                >
-                  <div className="flex items-center gap-3 sm:gap-5 w-full sm:w-auto">
-                    <Avatar
-                      fallback={`${manager.firstName} ${manager.lastName}`}
-                      size="lg"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-base sm:text-lg text-[var(--foreground)] truncate">
-                        {manager.firstName} {manager.lastName}
-                      </div>
-                      <div className="text-sm sm:text-base text-[var(--foreground-secondary)] mt-1 truncate">{manager.email}</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto justify-between sm:justify-end">
-                    <span className="text-sm sm:text-base text-[var(--foreground-tertiary)]">Menedżer #{index + 1}</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-[var(--danger)] hover:bg-[var(--danger)]/10 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
-                      onClick={() => removeManager(manager.id, `${manager.firstName} ${manager.lastName}`)}
-                      disabled={saving}
-                      icon={<Trash2 size={16} />}
-                    >
-                      Usuń
-                    </Button>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* League Schedule */}
-      <Card className="hover-lift">
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle className="flex items-center gap-3">
-              <Calendar size={28} className="text-[var(--mineral-green)]" />
-              Harmonogram Ligi
-            </CardTitle>
-            {hasSchedule ? (
-              <Button
-                onClick={deleteSchedule}
-                disabled={saving}
-                variant="danger"
-                icon={<Trash2 size={18} />}
-              >
-                Usuń Harmonogram
-              </Button>
-            ) : (
-              <Button
-                onClick={generateSchedule}
-                disabled={managers.length < 2 || saving}
-                size="lg"
-                icon={<Calendar size={18} />}
-              >
-                Generuj Harmonogram
-              </Button>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent>
-          {!hasSchedule ? (
-            <EmptyState
-              icon={<Calendar size={56} />}
-              title="Nie wygenerowano jeszcze harmonogramu"
-              description={
-                managers.length < 2
-                  ? 'Dodaj co najmniej 2 menedżerów, aby wygenerować harmonogram'
-                  : `Gotowy do wygenerowania harmonogramu ${2 * (managers.length - 1)} kolejek dla ${managers.length} menedżerów`
-              }
-              action={
-                managers.length >= 2
-                  ? {
-                      label: 'Generuj Profesjonalny Harmonogram Ligi',
-                      onClick: generateSchedule,
-                      icon: <Calendar size={18} />,
-                      disabled: saving
-                    }
-                  : undefined
-              }
-            />
-          ) : (
-            <div className="space-y-4 sm:space-y-6 lg:space-y-8 max-h-[500px] overflow-y-auto pr-2 sm:pr-3">
-              {schedule.map((gameweek, idx) => (
-                <motion.div
-                  key={gameweek.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.05 }}
-                  className="border border-[var(--navy-border)]/30 rounded-2xl p-4 sm:p-6 lg:p-8 bg-[var(--background-tertiary)]/60"
-                >
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4 sm:mb-6">
-                    <h4 className="font-semibold text-xl sm:text-2xl text-[var(--foreground)]">
-                      Kolejka {gameweek.week}
-                    </h4>
-                    <span
-                      className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-full ${
-                        gameweek.is_completed
-                          ? 'bg-[var(--success)]/20 text-[var(--success)]'
-                          : 'bg-[var(--warning)]/20 text-[var(--warning)]'
-                      }`}
-                    >
-                      {gameweek.is_completed ? 'Zakończona' : 'Oczekująca'}
-                    </span>
-                  </div>
-
-                  {gameweek.matches && gameweek.matches.length > 0 ? (
-                    <div className="space-y-3 sm:space-y-4">
-                      {gameweek.matches.map((match) => (
-                        <div
-                          key={match.id}
-                          className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0 p-3 sm:p-5 bg-[var(--background-secondary)] rounded-xl"
-                        >
-                          <div className="flex flex-wrap items-center gap-2 sm:gap-5 w-full sm:w-auto">
-                            <span className="font-medium text-sm sm:text-base text-[var(--foreground)]">
-                              {match.home_manager?.first_name} {match.home_manager?.last_name}
-                            </span>
-                            <span className="text-[var(--foreground-tertiary)] text-sm sm:text-base">vs</span>
-                            <span className="font-medium text-sm sm:text-base text-[var(--foreground)]">
-                              {match.away_manager?.first_name} {match.away_manager?.last_name}
-                            </span>
-                          </div>
-                          {match.is_completed && (
-                            <div className="text-sm sm:text-base font-bold text-[var(--mineral-green)]">
-                              {match.home_score} - {match.away_score}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-[var(--foreground-secondary)] text-sm sm:text-base">Brak meczy w tej kolejce</p>
-                  )}
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Add Manager Modal */}
-      <Modal
-        isOpen={showAddManager}
-        onClose={() => {
-          setShowAddManager(false)
-          setSelectedUserId('')
-        }}
-        title="Dodaj Menedżera do Ligi"
-        description="Wybierz użytkownika z listy, aby dodać go jako menedżera"
-        icon={<UserPlus size={24} />}
-        footer={
-          <div className="flex flex-col sm:flex-row gap-3 justify-end">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => {
-                setShowAddManager(false)
-                setSelectedUserId('')
-              }}
-              disabled={saving}
-              className="w-full sm:w-auto"
-            >
-              Anuluj
-            </Button>
-            <Button
-              type="button"
-              onClick={() => addManager(selectedUserId)}
-              loading={saving}
-              disabled={filteredUsers.length === 0 || !selectedUserId}
-              icon={<UserPlus size={18} />}
-              className="w-full sm:w-auto"
-            >
-              Dodaj Menedżera
-            </Button>
-          </div>
-        }
-      >
-        {filteredUsers.length === 0 ? (
-          <EmptyState
-            icon={<Users size={32} />}
-            title="Brak dostępnych użytkowników"
-            description="Wszyscy zarejestrowani użytkownicy są już menedżerami w tej lidze"
-          />
-        ) : (
-          <Select
-            label="Wybierz Użytkownika"
-            value={selectedUserId}
-            onChange={(e) => setSelectedUserId(e.target.value)}
-            fullWidth
-            required
-          >
-            <option value="">Wybierz użytkownika...</option>
-            {filteredUsers.map((user) => (
-              <option key={user.id} value={user.id}>
-                {user.firstName} {user.lastName} ({user.email})
-              </option>
-            ))}
-          </Select>
-        )}
-      </Modal>
     </div>
   )
 }

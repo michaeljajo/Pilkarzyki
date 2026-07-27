@@ -7,63 +7,104 @@ import { Button } from '@/components/ui/Button'
 import { Alert } from '@/components/ui/Alert'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Avatar } from '@/components/ui/Avatar'
+import { Modal } from '@/components/ui/Modal'
+import { Select } from '@/components/ui/Select'
 import { User } from '@/types'
-import { Users, RefreshCw } from 'lucide-react'
+import { Users, RefreshCw, UserPlus, Trash2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 export default function LeagueManagersPage() {
   const params = useParams()
+  const leagueId = params.id as string
   const [managers, setManagers] = useState<User[]>([])
+  const [allUsers, setAllUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+  const [showAddManager, setShowAddManager] = useState(false)
+  const [selectedUserId, setSelectedUserId] = useState('')
 
   useEffect(() => {
-    if (params.id) {
-      fetchManagers()
+    if (leagueId) {
+      fetchData()
     }
-  }, [params.id])
+  }, [leagueId]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function fetchManagers() {
+  useEffect(() => {
+    if (error || success) {
+      const timer = setTimeout(() => {
+        setError(null)
+        setSuccess(null)
+      }, 5000)
+      return () => clearTimeout(timer)
+    }
+  }, [error, success])
+
+  async function fetchData() {
     try {
       setLoading(true)
-      const response = await fetch(`/api/leagues/${params.id}/managers`)
-      const data = await response.json()
+      const [managersRes, usersRes] = await Promise.all([
+        fetch(`/api/leagues/${leagueId}/managers`),
+        fetch(`/api/users`),
+      ])
+      const [managersData, usersData] = await Promise.all([managersRes.json(), usersRes.json()])
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch managers')
-      }
-
-      setManagers(data.managers || [])
+      if (!managersRes.ok) throw new Error(managersData.error || 'Nie udało się wczytać menedżerów')
+      setManagers(managersData.managers || [])
+      setAllUsers(usersRes.ok ? usersData.users || [] : [])
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      setError(err instanceof Error ? err.message : 'Wystąpił błąd')
     } finally {
       setLoading(false)
     }
   }
 
-  async function handleToggleAdmin(userId: string, isAdmin: boolean) {
+  async function addManager(userId: string) {
     try {
-      const response = await fetch(`/api/users/${userId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ isAdmin }),
+      setSaving(true)
+      const response = await fetch(`/api/leagues/${leagueId}/managers`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId }),
       })
-
-      const data = await response.json()
-
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to update user')
+        const data = await response.json()
+        throw new Error(data.error || 'Nie udało się dodać menedżera')
       }
-
-      // Update local state
-      setManagers(prev => prev.map(manager =>
-        manager.id === userId ? { ...manager, isAdmin } : manager
-      ))
+      await fetchData()
+      setShowAddManager(false)
+      setSelectedUserId('')
+      setSuccess('Menedżer dodany pomyślnie.')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update user')
-      setTimeout(() => setError(null), 5000)
+      setError(err instanceof Error ? err.message : 'Nie udało się dodać menedżera')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function removeManager(managerId: string, managerName: string) {
+    if (!confirm(`Czy na pewno usunąć ${managerName} z tej ligi? Tej operacji nie można cofnąć.`)) {
+      return
+    }
+    try {
+      setSaving(true)
+      setError(null)
+      const response = await fetch(`/api/leagues/${leagueId}/managers`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ managerId }),
+      })
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Nie udało się usunąć menedżera')
+      }
+      setSuccess(`${managerName} został usunięty z ligi.`)
+      await fetchData()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Nie udało się usunąć menedżera')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -76,6 +117,9 @@ export default function LeagueManagersPage() {
     )
   }
 
+  const currentManagerIds = managers.map((m) => m.id)
+  const filteredUsers = allUsers.filter((user) => !currentManagerIds.includes(user.id))
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -86,17 +130,27 @@ export default function LeagueManagersPage() {
         <div>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--foreground)]">Menedżerowie Ligi</h1>
           <p className="mt-2 sm:mt-3 text-base sm:text-lg lg:text-xl text-[var(--foreground-secondary)]">
-            Przeglądaj i zarządzaj menedżerami w tej lidze
+            Dodawaj, usuwaj i przeglądaj menedżerów tej ligi
           </p>
         </div>
-        <Button onClick={fetchManagers} variant="secondary" icon={<RefreshCw size={18} />} size="lg" className="w-full sm:w-auto">
-          Odśwież
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Button onClick={fetchData} variant="secondary" icon={<RefreshCw size={18} />} size="lg" className="w-full sm:w-auto">
+            Odśwież
+          </Button>
+          <Button onClick={() => setShowAddManager(true)} icon={<UserPlus size={18} />} size="lg" className="w-full sm:w-auto">
+            Dodaj Menedżera
+          </Button>
+        </div>
       </div>
 
       {error && (
         <Alert variant="error" dismissible onDismiss={() => setError(null)}>
           {error}
+        </Alert>
+      )}
+      {success && (
+        <Alert variant="success" dismissible onDismiss={() => setSuccess(null)}>
+          {success}
         </Alert>
       )}
 
@@ -112,7 +166,12 @@ export default function LeagueManagersPage() {
             <EmptyState
               icon={<Users size={56} />}
               title="Brak menedżerów w tej lidze"
-              description="Menedżerowie pojawią się tutaj po dodaniu ich do ligi"
+              description="Dodaj menedżerów, aby rozpocząć budowanie ligi"
+              action={{
+                label: 'Dodaj Pierwszego Menedżera',
+                onClick: () => setShowAddManager(true),
+                icon: <UserPlus size={18} />,
+              }}
             />
           ) : (
             <div className="space-y-3 sm:space-y-5">
@@ -122,39 +181,28 @@ export default function LeagueManagersPage() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 sm:p-6 bg-[var(--background-tertiary)] rounded-2xl hover:bg-[var(--background-tertiary)]/90 transition-colors"
+                  className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 sm:p-6 bg-[var(--background-tertiary)] rounded-2xl hover:bg-[var(--background-tertiary)]/90 transition-colors group"
                 >
                   <div className="flex items-center gap-3 sm:gap-5 w-full sm:w-auto">
-                    <Avatar
-                      fallback={`${manager.firstName} ${manager.lastName}`}
-                      size="lg"
-                    />
+                    <Avatar fallback={`${manager.firstName} ${manager.lastName}`} size="lg" />
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-                        <div className="font-semibold text-base sm:text-lg text-[var(--foreground)] truncate">
-                          {manager.firstName} {manager.lastName}
-                        </div>
-                        <span
-                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full flex-shrink-0 ${
-                            manager.isAdmin
-                              ? 'bg-red-100 text-red-800'
-                              : 'bg-green-100 text-green-800'
-                          }`}
-                        >
-                          {manager.isAdmin ? 'Admin' : 'Menedżer'}
-                        </span>
+                      <div className="font-semibold text-base sm:text-lg text-[var(--foreground)] truncate">
+                        {manager.firstName} {manager.lastName}
                       </div>
                       <div className="text-sm sm:text-base text-[var(--foreground-secondary)] mt-1 truncate">{manager.email}</div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
+                  <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto justify-between sm:justify-end">
+                    <span className="text-sm sm:text-base text-[var(--foreground-tertiary)]">Menedżer #{index + 1}</span>
                     <Button
-                      variant={manager.isAdmin ? 'danger' : 'secondary'}
+                      variant="ghost"
                       size="sm"
-                      onClick={() => handleToggleAdmin(manager.id, !manager.isAdmin)}
-                      className="w-full sm:w-auto"
+                      className="text-[var(--danger)] hover:bg-[var(--danger)]/10 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                      onClick={() => removeManager(manager.id, `${manager.firstName} ${manager.lastName}`)}
+                      disabled={saving}
+                      icon={<Trash2 size={16} />}
                     >
-                      {manager.isAdmin ? 'Usuń Admina' : 'Nadaj Admina'}
+                      Usuń
                     </Button>
                   </div>
                 </motion.div>
@@ -163,6 +211,66 @@ export default function LeagueManagersPage() {
           )}
         </CardContent>
       </Card>
+
+      <Modal
+        isOpen={showAddManager}
+        onClose={() => {
+          setShowAddManager(false)
+          setSelectedUserId('')
+        }}
+        title="Dodaj Menedżera do Ligi"
+        description="Wybierz użytkownika z listy, aby dodać go jako menedżera"
+        icon={<UserPlus size={24} />}
+        footer={
+          <div className="flex flex-col sm:flex-row gap-3 justify-end">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => {
+                setShowAddManager(false)
+                setSelectedUserId('')
+              }}
+              disabled={saving}
+              className="w-full sm:w-auto"
+            >
+              Anuluj
+            </Button>
+            <Button
+              type="button"
+              onClick={() => addManager(selectedUserId)}
+              loading={saving}
+              disabled={filteredUsers.length === 0 || !selectedUserId}
+              icon={<UserPlus size={18} />}
+              className="w-full sm:w-auto"
+            >
+              Dodaj Menedżera
+            </Button>
+          </div>
+        }
+      >
+        {filteredUsers.length === 0 ? (
+          <EmptyState
+            icon={<Users size={32} />}
+            title="Brak dostępnych użytkowników"
+            description="Wszyscy zarejestrowani użytkownicy są już menedżerami w tej lidze"
+          />
+        ) : (
+          <Select
+            label="Wybierz Użytkownika"
+            value={selectedUserId}
+            onChange={(e) => setSelectedUserId(e.target.value)}
+            fullWidth
+            required
+          >
+            <option value="">Wybierz użytkownika...</option>
+            {filteredUsers.map((user) => (
+              <option key={user.id} value={user.id}>
+                {user.firstName} {user.lastName} ({user.email})
+              </option>
+            ))}
+          </Select>
+        )}
+      </Modal>
     </motion.div>
   )
 }

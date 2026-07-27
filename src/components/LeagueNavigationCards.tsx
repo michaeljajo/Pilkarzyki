@@ -179,7 +179,7 @@ export function LeagueNavigationCards({ leagueId, isManager, isAdmin, hasCup, is
     { id: 'cup-standings', href: `/dashboard/leagues/${leagueId}/cup/standings`, icon: Crown, label: 'Tabela Pucharu', isCup: true, showIf: hasCup },
     { id: 'tablica', href: `/dashboard/leagues/${leagueId}/tablica`, icon: MessageSquare, label: 'Tablica', isCup: false, showIf: true },
     { id: 'settings', href: `/dashboard/leagues/${leagueId}/settings`, icon: Settings, label: 'Ustawienia', isCup: false, showIf: isManager && !isArchived },
-    { id: 'admin', href: `/dashboard/admin/leagues/${leagueId}/settings`, icon: Wrench, label: isArchived ? 'Ustawienia sezonu' : 'Zarządzaj Ligą', isCup: false, showIf: isAdmin },
+    { id: 'admin', href: isArchived ? `/dashboard/admin/leagues/${leagueId}/settings` : `/dashboard/admin/leagues/${leagueId}`, icon: Wrench, label: isArchived ? 'Ustawienia sezonu' : 'Zarządzaj Ligą', isCup: false, showIf: isAdmin },
   ]
 
   const visibleItems = navItems.filter(item => item.showIf)

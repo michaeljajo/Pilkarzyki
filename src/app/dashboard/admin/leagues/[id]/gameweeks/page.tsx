@@ -32,6 +32,9 @@ export default function LeagueGameweeksPage() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editingGameweek, setEditingGameweek] = useState<EditingGameweek | null>(null)
   const [saving, setSaving] = useState(false)
+  const [scheduleBusy, setScheduleBusy] = useState(false)
+  const [managersCount, setManagersCount] = useState(0)
+  const [success, setSuccess] = useState<string | null>(null)
 
   useEffect(() => {
     if (params.id) {
@@ -42,18 +45,70 @@ export default function LeagueGameweeksPage() {
   async function fetchGameweeks() {
     try {
       setLoading(true)
-      const response = await fetch(`/api/leagues/${params.id}/gameweeks`)
-      const data = await response.json()
+      const [gwRes, managersRes] = await Promise.all([
+        fetch(`/api/leagues/${params.id}/gameweeks`),
+        fetch(`/api/leagues/${params.id}/managers`),
+      ])
+      const data = await gwRes.json()
 
-      if (!response.ok) {
+      if (!gwRes.ok) {
         throw new Error(data.error || 'Failed to fetch gameweeks')
       }
 
       setGameweeks(data.gameweeks || [])
+      if (managersRes.ok) {
+        const managersData = await managersRes.json()
+        setManagersCount((managersData.managers || []).length)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function generateSchedule() {
+    if (managersCount < 2) {
+      setError('Potrzeba co najmniej 2 menedżerów, aby wygenerować terminarz.')
+      return
+    }
+    try {
+      setScheduleBusy(true)
+      setError(null)
+      setSuccess(null)
+      const response = await fetch(`/api/leagues/${params.id}/schedule`, { method: 'POST' })
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || 'Nie udało się wygenerować terminarza')
+      }
+      setSuccess('Terminarz wygenerowany pomyślnie.')
+      await fetchGameweeks()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Nie udało się wygenerować terminarza')
+    } finally {
+      setScheduleBusy(false)
+    }
+  }
+
+  async function deleteSchedule() {
+    if (!confirm('Czy na pewno usunąć cały terminarz? Tej operacji nie można cofnąć.')) {
+      return
+    }
+    try {
+      setScheduleBusy(true)
+      setError(null)
+      setSuccess(null)
+      const response = await fetch(`/api/leagues/${params.id}/schedule`, { method: 'DELETE' })
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || 'Nie udało się usunąć terminarza')
+      }
+      setSuccess('Terminarz usunięty.')
+      await fetchGameweeks()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Nie udało się usunąć terminarza')
+    } finally {
+      setScheduleBusy(false)
     }
   }
 
@@ -220,6 +275,52 @@ export default function LeagueGameweeksPage() {
           <div className="text-base text-[var(--danger)]">{error}</div>
         </div>
       )}
+      {success && (
+        <div className="bg-[var(--success)]/10 border border-[var(--success)]/30 rounded-2xl p-6">
+          <div className="text-base text-[var(--success)]">{success}</div>
+        </div>
+      )}
+
+      {/* Schedule generation / deletion */}
+      <Card className="hover-lift">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3">Terminarz</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {gameweeks.length === 0 ? (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <p className="text-[var(--foreground-secondary)]">
+                {managersCount < 2
+                  ? 'Dodaj co najmniej 2 menedżerów, aby wygenerować terminarz.'
+                  : `Gotowe do wygenerowania ${2 * (managersCount - 1)} kolejek dla ${managersCount} menedżerów.`}
+              </p>
+              <Button
+                onClick={generateSchedule}
+                loading={scheduleBusy}
+                disabled={managersCount < 2}
+                size="lg"
+                className="w-full sm:w-auto"
+              >
+                Generuj Terminarz
+              </Button>
+            </div>
+          ) : (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <p className="text-[var(--foreground-secondary)]">
+                Terminarz istnieje ({gameweeks.length} kolejek). Aby wygenerować nowy, najpierw usuń obecny.
+              </p>
+              <Button
+                onClick={deleteSchedule}
+                loading={scheduleBusy}
+                variant="danger"
+                className="w-full sm:w-auto"
+              >
+                Usuń Terminarz
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <Card className="hover-lift">
         <CardHeader>

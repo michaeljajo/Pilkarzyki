@@ -30,6 +30,20 @@ interface SquadData {
 interface SquadSelectionProps {
   leagueId: string
   isDefaultMode?: boolean
+  /**
+   * Which default is being edited (only meaningful when isDefaultMode):
+   *   'regular'  — league default for a league-only gameweek (default_lineups.player_ids)
+   *   'cup-week' — league + cup default for a gameweek that also has a cup match
+   *                (default_lineups.cup_week_player_ids + default_cup_lineups)
+   * Defaults to 'regular'.
+   */
+  defaultVariant?: 'regular' | 'cup-week'
+  /**
+   * When set, navigate here after a successful default-mode save. Used by the
+   * mandatory default-lineup gate so the manager lands back on the league
+   * dashboard once a valid default is saved.
+   */
+  redirectAfterSave?: string
 }
 
 interface DropZoneProps {
@@ -79,7 +93,7 @@ function DropZone({ onDrop, onDragOver, onRemove, onDragStart, player, index, is
   )
 }
 
-export default function SquadSelection({ leagueId, isDefaultMode = false }: SquadSelectionProps) {
+export default function SquadSelection({ leagueId, isDefaultMode = false, defaultVariant = 'regular', redirectAfterSave }: SquadSelectionProps) {
   const [squadData, setSquadData] = useState<SquadData | null>(null)
   const [selectedPlayers, setSelectedPlayers] = useState<(Player | null)[]>([null, null, null])
   const [selectedCupPlayers, setSelectedCupPlayers] = useState<(Player | null)[]>([null, null, null])
@@ -140,11 +154,20 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
 
         // DEFAULT MODE: Load default lineups for editing
         if (isDefaultMode) {
-          if (data.defaultLineup?.player_ids) {
-            setSelectedPlayers(loadPlayersFromIds(data.defaultLineup.player_ids))
-          }
-          if (data.defaultCupLineup?.player_ids) {
-            setSelectedCupPlayers(loadPlayersFromIds(data.defaultCupLineup.player_ids))
+          if (defaultVariant === 'cup-week') {
+            // Cup-week league default lives in cup_week_player_ids; the cup
+            // default in default_cup_lineups.
+            if (data.defaultLineup?.cup_week_player_ids?.length) {
+              setSelectedPlayers(loadPlayersFromIds(data.defaultLineup.cup_week_player_ids))
+            }
+            if (data.defaultCupLineup?.player_ids) {
+              setSelectedCupPlayers(loadPlayersFromIds(data.defaultCupLineup.player_ids))
+            }
+          } else {
+            // Regular league default.
+            if (data.defaultLineup?.player_ids?.length) {
+              setSelectedPlayers(loadPlayersFromIds(data.defaultLineup.player_ids))
+            }
           }
         }
         // REGULAR MODE: Conditional pre-population based on lock status
@@ -429,13 +452,15 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
       if (isDefaultMode) {
         const cupPlayerIds = selectedCupPlayers.filter(p => p !== null).map(p => p!.id)
 
-        // Save league default lineup
+        // Save the league default into the column matching this variant:
+        // 'regular' → player_ids, 'cup-week' → cup_week_player_ids.
         const leagueResponse = await fetch('/api/default-lineups', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             leagueId: squadData?.league.id,
-            playerIds: leaguePlayerIds
+            playerIds: leaguePlayerIds,
+            variant: defaultVariant
           }),
         })
 
@@ -444,8 +469,8 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
           throw new Error(errorData.error || 'Nie udało się zapisać domyślnego składu ligowego')
         }
 
-        // Save cup default lineup if cup exists
-        if (squadData?.cup && cupPlayerIds.length > 0) {
+        // Save the cup default only in the cup-week variant.
+        if (defaultVariant === 'cup-week' && squadData?.cup && cupPlayerIds.length > 0) {
           const cupResponse = await fetch('/api/default-cup-lineups', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -463,6 +488,16 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
           alert('Domyślne składy (żelazo) zostały zapisane pomyślnie!')
         } else {
           alert('Domyślny skład (żelazo) został zapisany pomyślnie!')
+        }
+
+        // When invoked by the mandatory-default gate, return to the league
+        // dashboard. Use a full navigation so the shared league layout re-runs
+        // and the gate re-evaluates authoritatively — if the default is now
+        // valid the manager lands on the dashboard; if something is still
+        // missing (e.g. a required cup default) the gate bounces them back.
+        if (redirectAfterSave) {
+          window.location.href = redirectAfterSave
+          return
         }
       }
       // REGULAR MODE: Save to regular lineup APIs
@@ -590,6 +625,13 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
   const activePlayers = selectedPlayers.filter(p => p !== null) as Player[]
   const activeCupPlayers = selectedCupPlayers.filter(p => p !== null) as Player[]
 
+  // In the cup-week default variant, show and require the cup lineup even though
+  // the current gameweek may not itself be a cup week. `treatAsDual` unifies the
+  // real dual-gameweek case with this default-editing case for validation and
+  // for showing the cup picker.
+  const showCupInDefault = isDefaultMode && defaultVariant === 'cup-week' && !!squadData.cup
+  const treatAsDual = squadData.isDualGameweek || showCupInDefault
+
   // Format deadline information
   const formatDeadline = (date: Date | null) => {
     if (!date) return null
@@ -618,14 +660,14 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
     penaltyValidationErrors.length === 0
   )
 
-  const isValid = squadData.isDualGameweek
+  const isValid = treatAsDual
     ? isLeagueLineupValid && isCupLineupValid && crossLineupErrors.length === 0 && isEtLineupValid && isPenaltyLineupValid
     : isLeagueLineupValid
 
   // Players excluded from league and cup dropdowns (league + cup + ET, no penalty)
   const selectedPlayerIds = new Set([
     ...selectedPlayers.filter(p => p !== null).map(p => p!.id),
-    ...(squadData.isDualGameweek ? selectedCupPlayers.filter(p => p !== null).map(p => p!.id) : []),
+    ...(treatAsDual ? selectedCupPlayers.filter(p => p !== null).map(p => p!.id) : []),
     ...(squadData.isKnockoutDecider ? selectedEtPlayers.filter(p => p !== null).map(p => p!.id) : [])
   ])
 
@@ -880,7 +922,7 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
             </Card>
 
             {/* Cup Lineup (Only shown if dual gameweek or default mode with cup) */}
-            {((squadData.isDualGameweek && squadData.currentCupGameweek) || (isDefaultMode && squadData.cup)) && (
+            {((squadData.isDualGameweek && squadData.currentCupGameweek) || showCupInDefault) && (
               <Card className={`border-yellow-500 border-2 ${isDefaultMode ? 'bg-gray-50' : 'bg-[#F2F2F2]'}`}>
                 <CardHeader className={`px-4 py-3 rounded-t-2xl ${isDefaultMode ? 'bg-gray-100' : 'bg-yellow-50'}`}>
                   <div className="flex items-center justify-between">
@@ -1374,7 +1416,7 @@ export default function SquadSelection({ leagueId, isDefaultMode = false }: Squa
             </Card>
 
             {/* Cup Pitch (Only shown if dual gameweek or default mode with cup) */}
-            {((squadData.isDualGameweek && squadData.currentCupGameweek) || (isDefaultMode && squadData.cup)) && (
+            {((squadData.isDualGameweek && squadData.currentCupGameweek) || showCupInDefault) && (
               <Card className={isDefaultMode ? "bg-gray-50 border-yellow-500 border-2 overflow-hidden" : "bg-[#F2F2F2] border-yellow-500 border-2 overflow-hidden"}>
                 <CardHeader style={{ padding: '16px 24px' }} className={isDefaultMode ? "bg-gray-100 rounded-t-2xl" : "bg-yellow-50 rounded-t-2xl"}>
                   <div className="flex items-center justify-between">

@@ -52,11 +52,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { leagueId, playerIds } = await request.json()
+    const { leagueId, playerIds, variant } = await request.json()
 
     if (!leagueId || !Array.isArray(playerIds)) {
       return NextResponse.json({ error: 'leagueId and playerIds array are required' }, { status: 400 })
     }
+
+    // 'regular' → league default for a league-only gameweek (player_ids)
+    // 'cup-week' → league default for a gameweek that also has a cup match
+    //              (cup_week_player_ids). Defaults to 'regular'.
+    const column = variant === 'cup-week' ? 'cup_week_player_ids' : 'player_ids'
 
     const mutable = await assertLeagueMutable(leagueId)
     if (!mutable.ok) {
@@ -160,13 +165,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create or update default lineup
+    // Create or update the default lineup. Only the targeted column is written,
+    // so saving the regular default never clears the cup-week default and vice
+    // versa. On first insert the untouched column keeps its '{}' default.
     const { data: defaultLineup, error } = await supabaseAdmin
       .from('default_lineups')
       .upsert({
         manager_id: userRecord.id,
         league_id: leagueId,
-        player_ids: playerIds
+        [column]: playerIds
       }, {
         onConflict: 'manager_id,league_id'
       })

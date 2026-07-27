@@ -404,7 +404,7 @@ export default function CupOverviewPage() {
                     </div>
                   </div>
                   <Button
-                    onClick={() => router.push(`/dashboard/admin/leagues/${params.id}/cup-lineups`)}
+                    onClick={() => router.push(`/dashboard/admin/leagues/${params.id}/kolejka`)}
                     disabled={!stats.scheduleGenerated}
                     variant="secondary"
                     icon={<Edit3 size={18} />}

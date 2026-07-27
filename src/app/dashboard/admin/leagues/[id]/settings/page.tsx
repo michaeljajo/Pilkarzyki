@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
-import { Archive, ArchiveRestore } from 'lucide-react'
+import { Archive, ArchiveRestore, Download } from 'lucide-react'
 import { League } from '@/types'
 
 export default function LeagueSettingsPage() {
@@ -19,6 +19,7 @@ export default function LeagueSettingsPage() {
   const [showArchiveModal, setShowArchiveModal] = useState(false)
   const [showRestoreModal, setShowRestoreModal] = useState(false)
   const [archivingLoading, setArchivingLoading] = useState(false)
+  const [exporting, setExporting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     name: '',
@@ -107,6 +108,32 @@ export default function LeagueSettingsPage() {
       setShowRestoreModal(false)
     } finally {
       setArchivingLoading(false)
+    }
+  }
+
+  async function exportToExcel() {
+    if (!league) return
+    try {
+      setExporting(true)
+      setError(null)
+      const response = await fetch(`/api/admin/leagues/${league.id}/export`)
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Nie udało się wyeksportować danych')
+      }
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${league.name}_${league.season}_Export_${new Date().toISOString().split('T')[0]}.xlsx`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Nie udało się wyeksportować danych')
+    } finally {
+      setExporting(false)
     }
   }
 
@@ -231,6 +258,26 @@ export default function LeagueSettingsPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Export */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Eksport do Excel</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-600 mb-3">
+              Eksportuj wszystkie dane ligi i pucharu do pliku Excel.
+            </p>
+            <Button
+              onClick={exportToExcel}
+              loading={exporting}
+              variant="secondary"
+              icon={<Download size={16} />}
+            >
+              {exporting ? 'Eksportowanie...' : 'Pobierz Excel'}
+            </Button>
+          </CardContent>
+        </Card>
 
         {/* Archive Season */}
         <Card>

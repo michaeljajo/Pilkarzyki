@@ -376,7 +376,7 @@ export function LeagueNavigation({
               {/* Admin: Manage League */}
               {isAdmin && (
                 <Link
-                  href={`/dashboard/admin/leagues/${leagueId}/results`}
+                  href={`/dashboard/admin/leagues/${leagueId}`}
                   onClick={() => setMobileMenuOpen(false)}
                   style={mobileCardStyle(false)}
                 >
@@ -496,7 +496,7 @@ export function LeagueNavigation({
               {/* Squads (Składy) - for admins */}
               {isAdmin && (
                 <Link
-                  href={`/dashboard/admin/leagues/${leagueId}/lineups`}
+                  href={`/dashboard/admin/leagues/${leagueId}/kolejka`}
                   onClick={() => setMobileMenuOpen(false)}
                   style={mobileCardStyle(false)}
                 >
