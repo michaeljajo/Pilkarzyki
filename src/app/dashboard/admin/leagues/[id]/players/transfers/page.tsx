@@ -7,6 +7,7 @@ import toast from 'react-hot-toast'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { ArrowLeftRight, ArrowRight, FileSpreadsheet, Clock } from 'lucide-react'
+import MidseasonDraftAdminPanel from './MidseasonDraftAdminPanel'
 
 interface Manager {
   databaseId: string
@@ -232,14 +233,8 @@ export default function TransfersPage() {
             Draft w trakcie sezonu
           </CardTitle>
         </CardHeader>
-        <CardContent className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <p className="text-sm text-gray-600">
-            Menedżerowie zwalniają zawodników, a następnie wybierają nowych w kolejności ustalonej
-            przez administratora. Otwórz i prowadź draft na dedykowanym ekranie.
-          </p>
-          <Link href={`/dashboard/leagues/${leagueId}/midseason-draft`}>
-            <Button>Otwórz draft</Button>
-          </Link>
+        <CardContent>
+          <MidseasonDraftAdminPanel leagueId={leagueId} />
         </CardContent>
       </Card>
 

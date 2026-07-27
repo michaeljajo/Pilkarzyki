@@ -3,8 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import toast from 'react-hot-toast'
-import { ConfirmModal } from '@/components/ui/ConfirmModal'
-import { ArrowUp, ArrowDown, Check, Clock, Play, RotateCcw, SkipForward, Trophy } from 'lucide-react'
+import { Check, Clock, RotateCcw, SkipForward, Trophy } from 'lucide-react'
 
 interface DraftRow {
   id: string
@@ -58,10 +57,7 @@ export default function MidseasonDraftClient({ leagueId }: { leagueId: string })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
-  const [order, setOrder] = useState<string[]>([])
   const [selectedPoolPlayer, setSelectedPoolPlayer] = useState('')
-  const [confirmClose, setConfirmClose] = useState(false)
-  const [confirmStart, setConfirmStart] = useState(false)
 
   const supabase = useMemo(
     () =>
@@ -109,21 +105,6 @@ export default function MidseasonDraftClient({ leagueId }: { leagueId: string })
     }
   }, [supabase, leagueId, draftId, fetchSnapshot])
 
-  // Keep the setup order seeded with the participant squads.
-  const participants = useMemo(() => {
-    const q = snap?.draft?.pick_quotas || {}
-    return Object.entries(q).filter(([, n]) => (n as number) > 0).map(([sid]) => sid)
-  }, [snap])
-
-  useEffect(() => {
-    if (snap?.draft?.status === 'setup') {
-      setOrder((prev) => {
-        const valid = prev.filter((sid) => participants.includes(sid))
-        const missing = participants.filter((sid) => !prev.includes(sid))
-        return [...valid, ...missing]
-      })
-    }
-  }, [snap?.draft?.status, participants])
 
   // Dedicated drop toggle: does NOT flip the global busy flag (so other rows stay
   // interactive) and returns success so the row can show its own saved/failed cue.
@@ -197,9 +178,9 @@ export default function MidseasonDraftClient({ leagueId }: { leagueId: string })
         <p className="text-sm text-gray-600 mt-1">{snap.league.name}</p>
       </div>
 
-      {/* No draft / finished → admin can open a new one */}
+      {/* No draft / finished — admin opens & manages the draft from the admin panel */}
       {(!draft || status === 'finished') && (
-        <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
+        <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-2">
           {status === 'finished' && (
             <div className="flex items-center gap-2 text-green-700">
               <Trophy size={20} />
@@ -207,21 +188,16 @@ export default function MidseasonDraftClient({ leagueId }: { leagueId: string })
             </div>
           )}
           {!draft && <p className="text-gray-600">Brak aktywnego draftu w trakcie sezonu.</p>}
-          {access.isAdmin ? (
-            <button
-              onClick={() => post('/create')}
-              disabled={busy}
-              className="px-4 py-2 rounded-lg bg-[#29544D] text-white font-semibold hover:bg-[#1f3d37] disabled:opacity-50"
-            >
-              Rozpocznij nowy draft (okno zwolnień)
-            </button>
-          ) : (
-            <p className="text-sm text-gray-500">Poczekaj, aż administrator rozpocznie draft.</p>
-          )}
+          <p className="text-sm text-gray-500">
+            {access.isAdmin
+              ? 'Rozpocznij i prowadź draft z panelu administratora: Zawodnicy → Transfery.'
+              : 'Poczekaj, aż administrator rozpocznie draft.'}
+          </p>
         </div>
       )}
 
-      {/* DROPS phase */}
+      {/* DROPS phase — managers tick their releases here; the admin closes the
+          window from the admin panel (Zawodnicy → Transfery). */}
       {status === 'drops' && (
         <DropsPhase
           players={players}
@@ -229,32 +205,15 @@ export default function MidseasonDraftClient({ leagueId }: { leagueId: string })
           managers={managers}
           myManagerId={myManagerId}
           isManager={access.isManager}
-          isAdmin={access.isAdmin}
-          busy={busy}
           onToggle={toggleDrop}
-          onCloseDrops={() => setConfirmClose(true)}
         />
       )}
 
-      {/* SETUP phase (ordering) */}
+      {/* SETUP phase — ordering happens in the admin panel. */}
       {status === 'setup' && (
-        <SetupPhase
-          order={order}
-          managers={managers}
-          quotas={draft!.pick_quotas}
-          isAdmin={access.isAdmin}
-          busy={busy}
-          onMove={(idx, dir) => {
-            setOrder((prev) => {
-              const next = [...prev]
-              const j = dir === 'up' ? idx - 1 : idx + 1
-              if (j < 0 || j >= next.length) return prev
-              ;[next[idx], next[j]] = [next[j], next[idx]]
-              return next
-            })
-          }}
-          onStart={() => setConfirmStart(true)}
-        />
+        <div className="bg-white border border-gray-200 rounded-xl p-6 text-sm text-gray-600">
+          Zwolnienia zamknięte. Administrator ustala kolejność draftu — za chwilę ruszy wybieranie.
+        </div>
       )}
 
       {/* LIVE phase */}
@@ -272,32 +231,6 @@ export default function MidseasonDraftClient({ leagueId }: { leagueId: string })
           onUndo={() => post('/action', { action: 'undo' })}
         />
       )}
-
-      <ConfirmModal
-        isOpen={confirmClose}
-        onClose={() => setConfirmClose(false)}
-        onConfirm={async () => {
-          setConfirmClose(false)
-          await post('/close-drops')
-        }}
-        title="Zamknij okno zwolnień"
-        message="Zwolnieni zawodnicy trafią do puli, a każdy menedżer otrzyma tyle wyborów, ilu zawodników zwolnił. Tej operacji nie można cofnąć."
-        confirmText="Zamknij okno"
-        loading={busy}
-      />
-      <ConfirmModal
-        isOpen={confirmStart}
-        onClose={() => setConfirmStart(false)}
-        onConfirm={async () => {
-          setConfirmStart(false)
-          await post('/start', { order })
-        }}
-        title="Rozpocznij draft"
-        message="Draft ruszy w ustalonej kolejności. Menedżerowie będą wybierać zawodników z puli."
-        confirmText="Rozpocznij"
-        variant="info"
-        loading={busy}
-      />
     </div>
   )
 }
@@ -310,17 +243,14 @@ function playerLabel(p: PlayerRow) {
 }
 
 function DropsPhase({
-  players, drops, managers, myManagerId, isManager, isAdmin, busy, onToggle, onCloseDrops,
+  players, drops, managers, myManagerId, isManager, onToggle,
 }: {
   players: PlayerRow[]
   drops: DropRow[]
   managers: ManagerRow[]
   myManagerId: string | null
   isManager: boolean
-  isAdmin: boolean
-  busy: boolean
   onToggle: (playerId: string, wasDropped: boolean) => Promise<boolean>
-  onCloseDrops: () => void
 }) {
   const serverMyDrops = new Set(drops.filter((d) => d.manager_id === myManagerId).map((d) => d.player_id))
   const mySquad = players.filter((p) => p.manager_id === myManagerId)
@@ -413,72 +343,7 @@ function DropsPhase({
             </li>
           ))}
         </ul>
-        {isAdmin && (
-          <button
-            onClick={onCloseDrops}
-            disabled={busy || drops.length === 0}
-            className="mt-4 px-4 py-2 rounded-lg bg-[#29544D] text-white font-semibold hover:bg-[#1f3d37] disabled:opacity-50"
-          >
-            Zamknij okno zwolnień
-          </button>
-        )}
       </div>
-    </div>
-  )
-}
-
-function SetupPhase({
-  order, managers, quotas, isAdmin, busy, onMove, onStart,
-}: {
-  order: string[]
-  managers: ManagerRow[]
-  quotas: Record<string, number>
-  isAdmin: boolean
-  busy: boolean
-  onMove: (idx: number, dir: 'up' | 'down') => void
-  onStart: () => void
-}) {
-  const byId = new Map(managers.map((m) => [m.squadId, m]))
-  return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-4">
-      <div>
-        <h2 className="font-semibold text-gray-900">Kolejność draftu</h2>
-        <p className="text-sm text-gray-600">
-          Ułóż kolejność wybierania (domyślnie wg zwolnień; użyj strzałek dla dogrywek/remisów).
-        </p>
-      </div>
-      <ol className="space-y-2">
-        {order.map((sid, idx) => (
-          <li key={sid} className="flex items-center justify-between gap-3 p-2 rounded-lg border border-gray-200">
-            <span className="text-sm text-gray-800">
-              <span className="font-semibold text-gray-500 mr-2">{idx + 1}.</span>
-              {managerName(byId.get(sid))}
-              <span className="text-gray-500"> — {quotas[sid] || 0} wyborów</span>
-            </span>
-            {isAdmin && (
-              <div className="flex gap-1">
-                <button onClick={() => onMove(idx, 'up')} disabled={busy || idx === 0} className="p-1.5 rounded border border-gray-300 disabled:opacity-40 hover:bg-gray-50">
-                  <ArrowUp size={14} />
-                </button>
-                <button onClick={() => onMove(idx, 'down')} disabled={busy || idx === order.length - 1} className="p-1.5 rounded border border-gray-300 disabled:opacity-40 hover:bg-gray-50">
-                  <ArrowDown size={14} />
-                </button>
-              </div>
-            )}
-          </li>
-        ))}
-      </ol>
-      {isAdmin ? (
-        <button
-          onClick={onStart}
-          disabled={busy || order.length < 2}
-          className="px-4 py-2 rounded-lg bg-[#29544D] text-white font-semibold hover:bg-[#1f3d37] disabled:opacity-50 inline-flex items-center gap-2"
-        >
-          <Play size={16} /> Rozpocznij draft
-        </button>
-      ) : (
-        <p className="text-sm text-gray-500">Poczekaj, aż administrator rozpocznie draft.</p>
-      )}
     </div>
   )
 }
