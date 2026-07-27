@@ -136,7 +136,7 @@ export default function LeaguePlayersPage() {
           <Button onClick={fetchPlayers} variant="secondary" size="lg" className="w-full sm:w-auto">
             Odśwież
           </Button>
-          <Link href={`/dashboard/admin/leagues/${params.id}/players/draft`} className="w-full sm:w-auto">
+          <Link href={`/dashboard/admin/leagues/${params.id}/players/transfers`} className="w-full sm:w-auto">
             <Button variant="outline" size="lg" className="w-full">Transfery</Button>
           </Link>
           <Link href={`/dashboard/admin/leagues/${params.id}/players/import`} className="w-full sm:w-auto">
