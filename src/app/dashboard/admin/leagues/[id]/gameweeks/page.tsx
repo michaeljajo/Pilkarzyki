@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import { ConfirmModal } from '@/components/ui/ConfirmModal'
 
 interface Gameweek {
   id: string
@@ -35,6 +36,8 @@ export default function LeagueGameweeksPage() {
   const [scheduleBusy, setScheduleBusy] = useState(false)
   const [managersCount, setManagersCount] = useState(0)
   const [success, setSuccess] = useState<string | null>(null)
+  const [leagueName, setLeagueName] = useState('')
+  const [showDeleteSchedule, setShowDeleteSchedule] = useState(false)
 
   useEffect(() => {
     if (params.id) {
@@ -45,9 +48,10 @@ export default function LeagueGameweeksPage() {
   async function fetchGameweeks() {
     try {
       setLoading(true)
-      const [gwRes, managersRes] = await Promise.all([
+      const [gwRes, managersRes, leagueRes] = await Promise.all([
         fetch(`/api/leagues/${params.id}/gameweeks`),
         fetch(`/api/leagues/${params.id}/managers`),
+        fetch(`/api/leagues/${params.id}`),
       ])
       const data = await gwRes.json()
 
@@ -59,6 +63,10 @@ export default function LeagueGameweeksPage() {
       if (managersRes.ok) {
         const managersData = await managersRes.json()
         setManagersCount((managersData.managers || []).length)
+      }
+      if (leagueRes.ok) {
+        const leagueData = await leagueRes.json()
+        setLeagueName(leagueData.league?.name || '')
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
@@ -91,9 +99,6 @@ export default function LeagueGameweeksPage() {
   }
 
   async function deleteSchedule() {
-    if (!confirm('Czy na pewno usunąć cały terminarz? Tej operacji nie można cofnąć.')) {
-      return
-    }
     try {
       setScheduleBusy(true)
       setError(null)
@@ -104,9 +109,11 @@ export default function LeagueGameweeksPage() {
         throw new Error(data.error || 'Nie udało się usunąć terminarza')
       }
       setSuccess('Terminarz usunięty.')
+      setShowDeleteSchedule(false)
       await fetchGameweeks()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Nie udało się usunąć terminarza')
+      setShowDeleteSchedule(false)
     } finally {
       setScheduleBusy(false)
     }
@@ -260,9 +267,9 @@ export default function LeagueGameweeksPage() {
     <div className="space-y-6 sm:space-y-8 lg:space-y-12">
       <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
         <div>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--foreground)]">Kolejki Ligi</h1>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--foreground)]">Terminarz</h1>
           <p className="mt-2 sm:mt-3 text-base sm:text-lg lg:text-xl text-[var(--foreground-secondary)]">
-            Zobacz i zarządzaj kolejkami tej ligi
+            {leagueName ? `${leagueName} — kolejki i terminy blokady składów` : 'Kolejki i terminy blokady składów'}
           </p>
         </div>
         <Button onClick={fetchGameweeks} variant="secondary" size="lg" className="w-full sm:w-auto">
@@ -310,7 +317,7 @@ export default function LeagueGameweeksPage() {
                 Terminarz istnieje ({gameweeks.length} kolejek). Aby wygenerować nowy, najpierw usuń obecny.
               </p>
               <Button
-                onClick={deleteSchedule}
+                onClick={() => setShowDeleteSchedule(true)}
                 loading={scheduleBusy}
                 variant="danger"
                 className="w-full sm:w-auto"
@@ -487,6 +494,19 @@ export default function LeagueGameweeksPage() {
           )}
         </CardContent>
       </Card>
+
+      <ConfirmModal
+        isOpen={showDeleteSchedule}
+        onClose={() => setShowDeleteSchedule(false)}
+        onConfirm={deleteSchedule}
+        title="Usuń terminarz"
+        message={`Czy na pewno usunąć cały terminarz${leagueName ? ` ligi „${leagueName}”` : ''}? Wszystkie kolejki, mecze i powiązane składy zostaną trwale usunięte. Tej operacji nie można cofnąć.`}
+        confirmText="Usuń terminarz"
+        cancelText="Anuluj"
+        loading={scheduleBusy}
+        variant="danger"
+        requireConfirmationText={leagueName || undefined}
+      />
     </div>
   )
 }

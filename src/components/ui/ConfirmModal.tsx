@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { AlertTriangle } from 'lucide-react'
@@ -14,6 +15,12 @@ interface ConfirmModalProps {
   cancelText?: string
   loading?: boolean
   variant?: 'danger' | 'warning' | 'info'
+  /**
+   * When set, the confirm button stays disabled until the user types this exact
+   * phrase (e.g. the league name). Use for irreversible, high-blast-radius
+   * actions — deleting a league, wiping a schedule, resetting a draft.
+   */
+  requireConfirmationText?: string
 }
 
 export function ConfirmModal({
@@ -26,8 +33,20 @@ export function ConfirmModal({
   cancelText = 'Anuluj',
   loading = false,
   variant = 'danger',
+  requireConfirmationText,
 }: ConfirmModalProps) {
+  const [typed, setTyped] = useState('')
+
+  // Clear the typed phrase whenever the modal opens or closes.
+  useEffect(() => {
+    if (!isOpen) setTyped('')
+  }, [isOpen])
+
+  const confirmationMet =
+    !requireConfirmationText || typed.trim() === requireConfirmationText.trim()
+
   const handleConfirm = () => {
+    if (!confirmationMet) return
     onConfirm()
   }
 
@@ -66,6 +85,24 @@ export function ConfirmModal({
           <p className="text-sm text-gray-600">{message}</p>
         </div>
 
+        {requireConfirmationText && (
+          <div className="w-full text-left space-y-1.5">
+            <label className="block text-sm text-gray-600">
+              Aby potwierdzić, wpisz{' '}
+              <span className="font-semibold text-gray-900">{requireConfirmationText}</span>:
+            </label>
+            <input
+              type="text"
+              value={typed}
+              onChange={(e) => setTyped(e.target.value)}
+              disabled={loading}
+              autoFocus
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-100"
+              placeholder={requireConfirmationText}
+            />
+          </div>
+        )}
+
         <div className="flex gap-3 w-full pt-2">
           <Button
             onClick={onClose}
@@ -78,6 +115,7 @@ export function ConfirmModal({
           <Button
             onClick={handleConfirm}
             loading={loading}
+            disabled={!confirmationMet}
             className={`flex-1 ${style.buttonClass}`}
           >
             {confirmText}

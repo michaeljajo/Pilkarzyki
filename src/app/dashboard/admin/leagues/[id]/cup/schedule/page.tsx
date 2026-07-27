@@ -194,7 +194,7 @@ export default function CupSchedulePage() {
   }
 
   async function deleteSchedule() {
-    if (!cup || !confirm('Are you sure you want to delete the cup schedule? This action cannot be undone.')) {
+    if (!cup || !confirm('Czy na pewno usunąć terminarz pucharu? Tej operacji nie można cofnąć.')) {
       return
     }
 
@@ -219,7 +219,7 @@ export default function CupSchedulePage() {
   }
 
   async function advanceCup() {
-    if (!cup || !confirm('Advance cup to knockout stage? This will generate semi-final matches based on group standings.')) {
+    if (!cup || !confirm('Przejść do fazy pucharowej? Na podstawie tabel grupowych zostaną wygenerowane mecze półfinałowe.')) {
       return
     }
 

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { Archive, ArchiveRestore, Download } from 'lucide-react'
+import toast from 'react-hot-toast'
 import { League } from '@/types'
 
 export default function LeagueSettingsPage() {
@@ -74,9 +75,8 @@ export default function LeagueSettingsPage() {
       }
 
       setLeague(data.league)
-      // Show success message
       setError(null)
-      alert('League settings updated successfully!')
+      toast.success('Ustawienia ligi zapisane')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update league')
     } finally {
@@ -155,7 +155,7 @@ export default function LeagueSettingsPage() {
 
       // Close modal and redirect to admin dashboard
       setShowDeleteModal(false)
-      alert('Liga została pomyślnie usunięta')
+      toast.success('Liga została pomyślnie usunięta')
       router.push('/dashboard/admin')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete league')
@@ -358,6 +358,7 @@ export default function LeagueSettingsPage() {
           cancelText="Anuluj"
           loading={deleting}
           variant="danger"
+          requireConfirmationText={league?.name}
         />
 
         {/* Archive Confirmation Modal */}

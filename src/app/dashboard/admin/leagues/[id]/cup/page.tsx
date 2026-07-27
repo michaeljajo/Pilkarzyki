@@ -143,7 +143,7 @@ export default function CupOverviewPage() {
   }
 
   async function deleteCup() {
-    if (!cup || !confirm(`Are you sure you want to delete "${cup.name}"? This will delete all cup data including groups, matches, and lineups.`)) {
+    if (!cup || !confirm(`Czy na pewno usunąć puchar „${cup.name}”? Usunięte zostaną wszystkie dane pucharu: grupy, mecze i składy. Tej operacji nie można cofnąć.`)) {
       return
     }
 
