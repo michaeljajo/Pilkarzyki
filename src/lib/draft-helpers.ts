@@ -80,6 +80,7 @@ export function draftErrorToResponse(error: { message?: string; code?: string })
     INVALID_ORDER: { status: 400, message: 'Nieprawidłowa kolejność draftu.' },
     PLAYER_NOT_FOUND: { status: 404, message: 'Nie znaleziono zawodnika.' },
     PLAYER_WRONG_LEAGUE: { status: 400, message: 'Ten zawodnik nie należy do tej ligi.' },
+    PLAYER_NOT_AVAILABLE: { status: 409, message: 'Ten zawodnik nie jest dostępny (ma już menedżera).' },
     CANNOT_SKIP_LAST: {
       status: 409,
       message: 'Nie można pominąć ostatniego menedżera w rundzie — wybierz za niego.',

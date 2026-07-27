@@ -224,19 +224,22 @@ export default function TransfersPage() {
         </CardContent>
       </Card>
 
-      {/* Mid-season draft — coming soon */}
+      {/* Mid-season draft */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Clock size={20} className="text-gray-400" />
+            <Clock size={20} className="text-[#29544D]" />
             Draft w trakcie sezonu
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <p className="text-sm text-gray-600">
-            Draft w trakcie sezonu (menedżerowie zwalniają zawodników, a następnie wybierają nowych
-            w kolejności według zdobytych goli) pojawi się tutaj wkrótce.
+            Menedżerowie zwalniają zawodników, a następnie wybierają nowych w kolejności ustalonej
+            przez administratora. Otwórz i prowadź draft na dedykowanym ekranie.
           </p>
+          <Link href={`/dashboard/leagues/${leagueId}/midseason-draft`}>
+            <Button>Otwórz draft</Button>
+          </Link>
         </CardContent>
       </Card>
 
