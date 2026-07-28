@@ -11,7 +11,7 @@ import * as XLSX from 'xlsx'
 import { Position, PlayerImport } from '@/types'
 import { validateTeamName, formatTeamName } from '@/utils/team-name-resolver'
 import { createPlayerTransfer, validateTransferDate, getNextTransferDate } from '@/utils/transfer-resolver'
-import { assertLeagueMutable } from '@/lib/auth-helpers'
+import { assertLeagueMutable, verifyLeagueAdmin } from '@/lib/auth-helpers'
 
 interface DraftResult {
   success: boolean
@@ -44,17 +44,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check if user is admin
-    const { data: adminUser, error: userError } = await supabaseAdmin
-      .from('users')
-      .select('is_admin, id')
-      .eq('clerk_id', userId)
-      .single()
-
-    if (userError || !adminUser?.is_admin) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
-    }
-
     const formData = await request.formData()
     const file = formData.get('file') as File
     const leagueId = formData.get('leagueId') as string
@@ -67,6 +56,15 @@ export async function POST(request: NextRequest) {
     if (!leagueId) {
       return NextResponse.json({ error: 'League ID required' }, { status: 400 })
     }
+
+    // Authorize by LEAGUE ownership, not a global admin flag: a user who
+    // administers this league may manage its players even if they are not a
+    // global admin.
+    const { isAdmin, userInternalId } = await verifyLeagueAdmin(userId, leagueId)
+    if (!isAdmin || !userInternalId) {
+      return NextResponse.json({ error: 'Brak uprawnień administratora tej ligi' }, { status: 403 })
+    }
+    const adminUser = { id: userInternalId }
 
     const mutable = await assertLeagueMutable(leagueId)
     if (!mutable.ok) {
