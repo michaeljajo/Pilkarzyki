@@ -70,7 +70,7 @@ export default function SetupAdminPage() {
         {user.publicMetadata?.isAdmin === true && (
           <div className="mt-4">
             <a
-              href="/dashboard/admin"
+              href="/leagues"
               className="block text-center bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700"
             >
               Go to Admin Dashboard

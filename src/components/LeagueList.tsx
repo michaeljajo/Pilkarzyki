@@ -97,7 +97,7 @@ export default function LeagueList({ isAdmin }: LeagueListProps) {
           </div>
         )}
         {isAdmin && (
-          <Link href="/dashboard/admin/leagues/new">
+          <Link href="/leagues/new">
             <Button size="lg" icon={<Plus size={20} />}>
               Create Your First League
             </Button>
@@ -142,8 +142,8 @@ export default function LeagueList({ isAdmin }: LeagueListProps) {
           <CardContent>
             <Link href={
               isAdmin
-                ? `/dashboard/admin/leagues/${league.id}`
-                : `/dashboard/leagues/${league.id}`
+                ? `/leagues/${league.id}/manage`
+                : `/leagues/${league.id}`
             }>
               <Button
                 size="sm"

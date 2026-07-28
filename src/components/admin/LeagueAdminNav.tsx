@@ -32,13 +32,13 @@ interface NavItem {
 // rarely-touched setup grouped under "Konfiguracja".
 const getPrimaryNavItems = (leagueId: string): NavItem[] => [
   {
-    href: `/dashboard/admin/leagues/${leagueId}`,
+    href: `/leagues/${leagueId}/manage`,
     label: 'Panel',
     icon: LayoutDashboard,
     exactMatch: true,
   },
   {
-    href: `/dashboard/admin/leagues/${leagueId}/kolejka`,
+    href: `/leagues/${leagueId}/manage/results`,
     label: 'Kolejka',
     icon: ClipboardList,
   },
@@ -46,27 +46,27 @@ const getPrimaryNavItems = (leagueId: string): NavItem[] => [
 
 const getConfigNavItems = (leagueId: string): NavItem[] => [
   {
-    href: `/dashboard/admin/leagues/${leagueId}/managers`,
+    href: `/leagues/${leagueId}/manage/managers`,
     label: 'Menedżerowie',
     icon: Users,
   },
   {
-    href: `/dashboard/admin/leagues/${leagueId}/players`,
+    href: `/leagues/${leagueId}/manage/players`,
     label: 'Zawodnicy',
     icon: Shirt,
   },
   {
-    href: `/dashboard/admin/leagues/${leagueId}/gameweeks`,
+    href: `/leagues/${leagueId}/manage/gameweeks`,
     label: 'Terminarz',
     icon: Calendar,
   },
   {
-    href: `/dashboard/admin/leagues/${leagueId}/cup`,
+    href: `/leagues/${leagueId}/manage/cup`,
     label: 'Puchar',
     icon: Award,
   },
   {
-    href: `/dashboard/admin/leagues/${leagueId}/settings`,
+    href: `/leagues/${leagueId}/manage/settings`,
     label: 'Ustawienia',
     icon: Settings,
   },
@@ -128,7 +128,7 @@ export function LeagueAdminNav({ leagueId, onNavigate }: LeagueAdminNavProps) {
       {/* Back to Game — single, consistent destination */}
       <div style={{ marginTop: '32px' }}>
         <Link
-          href={`/dashboard/leagues/${leagueId}`}
+          href={`/leagues/${leagueId}`}
           onClick={onNavigate}
           className="group flex items-center text-sm font-medium rounded-xl transition-all duration-200 hover:scale-[1.02] text-gray-700 hover:bg-gray-100 hover:text-[#29544D]"
           style={{

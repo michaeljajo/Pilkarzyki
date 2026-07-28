@@ -245,7 +245,7 @@ export async function POST(
     // Bust the cached dashboard league lists so the newly-added manager sees
     // the league immediately (getUserLeagues is cached under this tag).
     revalidateTag('user-leagues', 'max')
-    revalidatePath('/dashboard')
+    revalidatePath('/leagues')
 
     return NextResponse.json({
       success: true,
@@ -325,7 +325,7 @@ export async function DELETE(
     // Bust the cached dashboard league lists so the removed manager stops
     // seeing the league immediately.
     revalidateTag('user-leagues', 'max')
-    revalidatePath('/dashboard')
+    revalidatePath('/leagues')
 
     return NextResponse.json({
       success: true,

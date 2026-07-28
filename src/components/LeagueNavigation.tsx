@@ -23,13 +23,13 @@ const COLORS = {
 }
 
 const navigationTabs = [
-  { id: 'squad', label: 'Skład', href: (leagueId: string) => `/dashboard/leagues/${leagueId}/squad`, isCup: false },
-  { id: 'results', label: 'Wyniki', href: (leagueId: string) => `/dashboard/leagues/${leagueId}/results`, isCup: false },
-  { id: 'standings', label: 'Tabela', href: (leagueId: string) => `/dashboard/leagues/${leagueId}/standings`, isCup: false },
-  { id: 'schedule', label: 'Terminarz', href: (leagueId: string) => `/dashboard/leagues/${leagueId}/schedule`, isCup: false },
-  { id: 'top-scorers', label: 'Strzelcy', href: (leagueId: string) => `/dashboard/leagues/${leagueId}/top-scorers`, isCup: false },
-  { id: 'cup-results', label: 'Wyniki Pucharu', href: (leagueId: string) => `/dashboard/leagues/${leagueId}/cup/results`, isCup: true },
-  { id: 'cup-standings', label: 'Tabela Pucharu', href: (leagueId: string) => `/dashboard/leagues/${leagueId}/cup/standings`, isCup: true },
+  { id: 'squad', label: 'Skład', href: (leagueId: string) => `/leagues/${leagueId}/squad`, isCup: false },
+  { id: 'results', label: 'Wyniki', href: (leagueId: string) => `/leagues/${leagueId}/league/results`, isCup: false },
+  { id: 'standings', label: 'Tabela', href: (leagueId: string) => `/leagues/${leagueId}/league/table`, isCup: false },
+  { id: 'schedule', label: 'Terminarz', href: (leagueId: string) => `/leagues/${leagueId}/fixtures`, isCup: false },
+  { id: 'top-scorers', label: 'Strzelcy', href: (leagueId: string) => `/leagues/${leagueId}/league/scorers`, isCup: false },
+  { id: 'cup-results', label: 'Wyniki Pucharu', href: (leagueId: string) => `/leagues/${leagueId}/cup/results`, isCup: true },
+  { id: 'cup-standings', label: 'Tabela Pucharu', href: (leagueId: string) => `/leagues/${leagueId}/cup/bracket`, isCup: true },
 ] as const
 
 // Mobile menu card styles (inline to avoid Tailwind issues)
@@ -176,7 +176,7 @@ export function LeagueNavigation({
           <div className="flex justify-between items-center h-16">
             {/* Left: Logo */}
             <div className="flex items-center">
-              <Link href="/dashboard" className="hover:opacity-80 transition-opacity">
+              <Link href="/leagues" className="hover:opacity-80 transition-opacity">
                 <Image
                   src="/pilkarzyki-logo.png"
                   alt="Pilkarzyki"
@@ -192,7 +192,7 @@ export function LeagueNavigation({
               {/* Skład */}
               {showSquadTab && (
                 <Link
-                  href={`/dashboard/leagues/${leagueId}/squad`}
+                  href={`/leagues/${leagueId}/squad`}
                   className={`min-h-[44px] py-3 text-sm font-medium rounded-xl transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 whitespace-nowrap inline-flex items-center justify-center ${
                     currentPage === 'squad'
                       ? 'bg-[#061852] text-white shadow-sm hover:bg-[#0a2475] hover:shadow-md focus:ring-[#061852]'
@@ -223,13 +223,13 @@ export function LeagueNavigation({
                 </button>
                 <div className="absolute left-0 mt-1 w-full bg-white rounded-xl shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                   <Link
-                    href={`/dashboard/leagues/${leagueId}/results`}
+                    href={`/leagues/${leagueId}/league/results`}
                     className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 first:rounded-t-xl transition-colors text-center"
                   >
                     Wyniki
                   </Link>
                   <Link
-                    href={`/dashboard/leagues/${leagueId}/standings`}
+                    href={`/leagues/${leagueId}/league/table`}
                     className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 last:rounded-b-xl transition-colors text-center"
                   >
                     Tabela
@@ -239,7 +239,7 @@ export function LeagueNavigation({
 
               {/* Terminarz */}
               <Link
-                href={`/dashboard/leagues/${leagueId}/schedule`}
+                href={`/leagues/${leagueId}/fixtures`}
                 className={`min-h-[44px] py-3 text-sm font-medium rounded-xl transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 whitespace-nowrap inline-flex items-center justify-center ${
                   currentPage === 'schedule'
                     ? 'bg-[#061852] text-white shadow-sm hover:bg-[#0a2475] hover:shadow-md focus:ring-[#061852]'
@@ -270,13 +270,13 @@ export function LeagueNavigation({
                   </button>
                   <div className="absolute left-0 mt-1 w-full bg-white rounded-xl shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                     <Link
-                      href={`/dashboard/leagues/${leagueId}/cup/results`}
+                      href={`/leagues/${leagueId}/cup/results`}
                       className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 first:rounded-t-xl transition-colors text-center"
                     >
                       Wyniki
                     </Link>
                     <Link
-                      href={`/dashboard/leagues/${leagueId}/cup/standings`}
+                      href={`/leagues/${leagueId}/cup/bracket`}
                       className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 last:rounded-b-xl transition-colors text-center"
                     >
                       Tabela
@@ -287,7 +287,7 @@ export function LeagueNavigation({
 
               {/* Strzelcy */}
               <Link
-                href={`/dashboard/leagues/${leagueId}/top-scorers`}
+                href={`/leagues/${leagueId}/league/scorers`}
                 className={`min-h-[44px] py-3 text-sm font-medium rounded-xl transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 whitespace-nowrap inline-flex items-center justify-center ${
                   currentPage === 'top-scorers'
                     ? 'bg-[#061852] text-white shadow-sm hover:bg-[#0a2475] hover:shadow-md focus:ring-[#061852]'
@@ -300,7 +300,7 @@ export function LeagueNavigation({
 
               {/* Back Button */}
               <Link
-                href={`/dashboard/leagues/${leagueId}`}
+                href={`/leagues/${leagueId}`}
                 className="min-h-[44px] py-3 text-sm font-medium rounded-xl transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 whitespace-nowrap inline-flex items-center justify-center bg-transparent text-[#29544D] hover:bg-gray-100 focus:ring-gray-300"
                 style={{ paddingLeft: '2em', paddingRight: '2em' }}
               >
@@ -376,7 +376,7 @@ export function LeagueNavigation({
               {/* Admin: Manage League */}
               {isAdmin && (
                 <Link
-                  href={`/dashboard/admin/leagues/${leagueId}`}
+                  href={`/leagues/${leagueId}/manage`}
                   onClick={() => setMobileMenuOpen(false)}
                   style={mobileCardStyle(false)}
                 >
@@ -392,7 +392,7 @@ export function LeagueNavigation({
               {/* Squad */}
               {showSquadTab && (
                 <Link
-                  href={`/dashboard/leagues/${leagueId}/squad`}
+                  href={`/leagues/${leagueId}/squad`}
                   onClick={() => setMobileMenuOpen(false)}
                   style={mobileCardStyle(false)}
                 >
@@ -407,7 +407,7 @@ export function LeagueNavigation({
 
               {/* Results */}
               <Link
-                href={`/dashboard/leagues/${leagueId}/results`}
+                href={`/leagues/${leagueId}/league/results`}
                 onClick={() => setMobileMenuOpen(false)}
                 style={mobileCardStyle(false)}
               >
@@ -421,7 +421,7 @@ export function LeagueNavigation({
 
               {/* Standings */}
               <Link
-                href={`/dashboard/leagues/${leagueId}/standings`}
+                href={`/leagues/${leagueId}/league/table`}
                 onClick={() => setMobileMenuOpen(false)}
                 style={mobileCardStyle(false)}
               >
@@ -435,7 +435,7 @@ export function LeagueNavigation({
 
               {/* Schedule */}
               <Link
-                href={`/dashboard/leagues/${leagueId}/schedule`}
+                href={`/leagues/${leagueId}/fixtures`}
                 onClick={() => setMobileMenuOpen(false)}
                 style={mobileCardStyle(false)}
               >
@@ -450,7 +450,7 @@ export function LeagueNavigation({
               {/* Cup Results */}
               {hasCup && (
                 <Link
-                  href={`/dashboard/leagues/${leagueId}/cup/results`}
+                  href={`/leagues/${leagueId}/cup/results`}
                   onClick={() => setMobileMenuOpen(false)}
                   style={mobileCardStyle(true)}
                 >
@@ -466,7 +466,7 @@ export function LeagueNavigation({
               {/* Cup Standings */}
               {hasCup && (
                 <Link
-                  href={`/dashboard/leagues/${leagueId}/cup/standings`}
+                  href={`/leagues/${leagueId}/cup/bracket`}
                   onClick={() => setMobileMenuOpen(false)}
                   style={mobileCardStyle(true)}
                 >
@@ -481,7 +481,7 @@ export function LeagueNavigation({
 
               {/* Top Scorers */}
               <Link
-                href={`/dashboard/leagues/${leagueId}/top-scorers`}
+                href={`/leagues/${leagueId}/league/scorers`}
                 onClick={() => setMobileMenuOpen(false)}
                 style={mobileCardStyle(false)}
               >
@@ -496,7 +496,7 @@ export function LeagueNavigation({
               {/* Squads (Składy) - for admins */}
               {isAdmin && (
                 <Link
-                  href={`/dashboard/admin/leagues/${leagueId}/kolejka`}
+                  href={`/leagues/${leagueId}/manage/results`}
                   onClick={() => setMobileMenuOpen(false)}
                   style={mobileCardStyle(false)}
                 >
@@ -514,7 +514,7 @@ export function LeagueNavigation({
 
               {/* Back Button */}
               <Link
-                href={`/dashboard/leagues/${leagueId}`}
+                href={`/leagues/${leagueId}`}
                 onClick={() => setMobileMenuOpen(false)}
                 style={mobileCardStyle(false)}
               >

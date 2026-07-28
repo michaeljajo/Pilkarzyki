@@ -783,7 +783,7 @@ export default function SquadSelection({ leagueId, isDefaultMode = false, defaul
               {/* "Ustaw żelazo" button - only in regular mode */}
               {!isDefaultMode && (
                 <Button
-                  onClick={() => window.location.href = `/dashboard/leagues/${leagueId}/default-lineup`}
+                  onClick={() => window.location.href = `/leagues/${leagueId}/default-lineup`}
                   variant="secondary"
                   className="w-full"
                 >
@@ -1361,7 +1361,7 @@ export default function SquadSelection({ leagueId, isDefaultMode = false, defaul
                 {/* "Ustaw żelazo" button - only in regular mode */}
                 {!isDefaultMode && (
                   <Button
-                    onClick={() => window.location.href = `/dashboard/leagues/${leagueId}/default-lineup`}
+                    onClick={() => window.location.href = `/leagues/${leagueId}/default-lineup`}
                     variant="secondary"
                     className="text-[11px] py-1.5"
                     style={{ width: '100%' }}

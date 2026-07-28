@@ -176,7 +176,7 @@ export async function POST(request: NextRequest) {
 
     // Bust the cached dashboard league lists so the new league appears immediately.
     revalidateTag('user-leagues', 'max')
-    revalidatePath('/dashboard')
+    revalidatePath('/leagues')
 
     return NextResponse.json({
       league,

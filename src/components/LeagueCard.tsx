@@ -23,7 +23,7 @@ export function LeagueCard({ league, index }: LeagueCardProps) {
 
   return (
     <Link
-      href={`/dashboard/leagues/${league.id}`}
+      href={`/leagues/${league.id}`}
       className="animate-fade-in-up block"
       style={{ animationDelay: `${index * 50}ms` }}
     >

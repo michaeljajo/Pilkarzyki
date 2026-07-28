@@ -81,7 +81,7 @@ export default function DefaultLineupGateScreen({
         leagueId={leagueId}
         isDefaultMode={true}
         defaultVariant={isCupWeek ? 'cup-week' : 'regular'}
-        redirectAfterSave={`/dashboard/leagues/${leagueId}`}
+        redirectAfterSave={`/leagues/${leagueId}`}
       />
     </div>
   )

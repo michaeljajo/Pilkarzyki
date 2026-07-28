@@ -169,19 +169,18 @@ export function LeagueNavigationCards({ leagueId, isManager, isAdmin, hasCup, is
   // settings so they can un-archive if needed; the archive toggle itself
   // is the only mutation the settings page still accepts when archived.
   const navItems = [
-    { id: 'squad', href: `/dashboard/leagues/${leagueId}/squad`, icon: Target, label: 'Wybierz drużynę', isCup: false, showIf: isManager && !isArchived },
-    { id: 'draft', href: `/dashboard/leagues/${leagueId}/draft`, icon: ListOrdered, label: 'Draft', isCup: false, showIf: (isAdmin || isManager) && !isArchived },
-    { id: 'midseason-draft', href: `/dashboard/leagues/${leagueId}/midseason-draft`, icon: ArrowLeftRight, label: 'Transfery', isCup: false, showIf: (isAdmin || isManager) && !isArchived },
-    { id: 'results', href: `/dashboard/leagues/${leagueId}/results`, icon: BarChart3, label: 'Wyniki', isCup: false, showIf: true },
-    { id: 'standings', href: `/dashboard/leagues/${leagueId}/standings`, icon: Table, label: 'Tabela', isCup: false, showIf: true },
-    { id: 'schedule', href: `/dashboard/leagues/${leagueId}/schedule`, icon: Calendar, label: 'Terminarz', isCup: false, showIf: true },
-    { id: 'scorers', href: `/dashboard/leagues/${leagueId}/top-scorers`, icon: Crosshair, label: 'Strzelcy', isCup: false, showIf: true },
-    { id: 'squads', href: `/dashboard/leagues/${leagueId}/squads`, icon: Users, label: 'Składy', isCup: false, showIf: true },
-    { id: 'cup-results', href: `/dashboard/leagues/${leagueId}/cup/results`, icon: Trophy, label: 'Wyniki Pucharu', isCup: true, showIf: hasCup },
-    { id: 'cup-standings', href: `/dashboard/leagues/${leagueId}/cup/standings`, icon: Crown, label: 'Tabela Pucharu', isCup: true, showIf: hasCup },
-    { id: 'tablica', href: `/dashboard/leagues/${leagueId}/tablica`, icon: MessageSquare, label: 'Tablica', isCup: false, showIf: true },
-    { id: 'settings', href: `/dashboard/leagues/${leagueId}/settings`, icon: Settings, label: 'Ustawienia', isCup: false, showIf: isManager && !isArchived },
-    { id: 'admin', href: isArchived ? `/dashboard/admin/leagues/${leagueId}/settings` : `/dashboard/admin/leagues/${leagueId}`, icon: Wrench, label: isArchived ? 'Ustawienia sezonu' : 'Zarządzaj Ligą', isCup: false, showIf: isAdmin },
+    { id: 'squad', href: `/leagues/${leagueId}/squad`, icon: Target, label: 'Wybierz drużynę', isCup: false, showIf: isManager && !isArchived },
+    { id: 'draft', href: `/leagues/${leagueId}/draft`, icon: ListOrdered, label: 'Draft', isCup: false, showIf: (isAdmin || isManager) && !isArchived },
+    { id: 'midseason-draft', href: `/leagues/${leagueId}/midseason-draft`, icon: ArrowLeftRight, label: 'Transfery', isCup: false, showIf: (isAdmin || isManager) && !isArchived },
+    { id: 'results', href: `/leagues/${leagueId}/league/results`, icon: BarChart3, label: 'Wyniki', isCup: false, showIf: true },
+    { id: 'standings', href: `/leagues/${leagueId}/league/table`, icon: Table, label: 'Tabela', isCup: false, showIf: true },
+    { id: 'schedule', href: `/leagues/${leagueId}/fixtures`, icon: Calendar, label: 'Terminarz', isCup: false, showIf: true },
+    { id: 'scorers', href: `/leagues/${leagueId}/league/scorers`, icon: Crosshair, label: 'Strzelcy', isCup: false, showIf: true },
+    { id: 'squads', href: `/leagues/${leagueId}/league/lineups`, icon: Users, label: 'Składy', isCup: false, showIf: true },
+    { id: 'cup-results', href: `/leagues/${leagueId}/cup/results`, icon: Trophy, label: 'Wyniki Pucharu', isCup: true, showIf: hasCup },
+    { id: 'cup-standings', href: `/leagues/${leagueId}/cup/bracket`, icon: Crown, label: 'Tabela Pucharu', isCup: true, showIf: hasCup },
+    { id: 'settings', href: `/leagues/${leagueId}/settings`, icon: Settings, label: 'Ustawienia', isCup: false, showIf: isManager && !isArchived },
+    { id: 'admin', href: isArchived ? `/leagues/${leagueId}/manage/settings` : `/leagues/${leagueId}/manage`, icon: Wrench, label: isArchived ? 'Ustawienia sezonu' : 'Zarządzaj Ligą', isCup: false, showIf: isAdmin },
   ]
 
   const visibleItems = navItems.filter(item => item.showIf)

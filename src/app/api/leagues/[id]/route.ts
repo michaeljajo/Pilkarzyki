@@ -9,7 +9,7 @@ import { LEAGUE_LIMITS, VALIDATION_MESSAGES } from '@/config/constants'
 // deletes/archives are reflected immediately instead of after the cache TTL.
 function revalidateLeagueLists() {
   revalidateTag('user-leagues', 'max')
-  revalidatePath('/dashboard')
+  revalidatePath('/leagues')
 }
 
 // Map a raw leagues row (snake_case) to the League shape the client expects
