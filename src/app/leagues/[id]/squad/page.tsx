@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { Suspense } from 'react'
 import SquadSelection from '@/components/SquadSelection'
 import { SkladStatusHeader } from '@/components/sklad/SkladStatusHeader'
+import { TakeoverBanner } from '@/components/sklad/TakeoverBanner'
 
 interface SquadPageProps {
   params: Promise<{ id: string }>
@@ -21,6 +22,7 @@ export default async function SquadPage({ params }: SquadPageProps) {
       {/* Status header above the pitch: live deadline countdown, lineup status
           for both competitions, next fixture, and the competition switcher.
           The lineup picker below is unchanged. */}
+      <TakeoverBanner leagueId={leagueId} />
       <Suspense fallback={null}>
         <SkladStatusHeader leagueId={leagueId} />
       </Suspense>

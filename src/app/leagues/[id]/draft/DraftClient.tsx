@@ -547,6 +547,7 @@ function SetupPanel({
               <button
                 onClick={() => onMove(i, -1)}
                 disabled={i === 0}
+                aria-label={`Przesuń ${managerName(m)} w górę`}
                 className="px-2 py-1 rounded bg-white border border-gray-300 text-gray-600 disabled:opacity-30"
               >
                 ↑
@@ -554,6 +555,7 @@ function SetupPanel({
               <button
                 onClick={() => onMove(i, 1)}
                 disabled={i === order.length - 1}
+                aria-label={`Przesuń ${managerName(m)} w dół`}
                 className="px-2 py-1 rounded bg-white border border-gray-300 text-gray-600 disabled:opacity-30"
               >
                 ↓

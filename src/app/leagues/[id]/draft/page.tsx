@@ -1,8 +1,8 @@
-import { UserButton } from '@clerk/nextjs'
 import { currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
+import { ArrowLeft } from 'lucide-react'
 import { supabaseAdmin } from '@/lib/supabase'
 import { verifyLeagueAdmin } from '@/lib/auth-helpers'
 import { DraftClient } from './DraftClient'
@@ -63,26 +63,25 @@ export default async function DraftPage({ params }: DraftPageProps) {
 
   return (
     <div className="min-h-screen bg-white">
-      <nav className="bg-white sticky top-0 z-50 border-b border-gray-200">
-        <div className="max-w-[1400px] mx-auto" style={{ paddingLeft: '48px', paddingRight: '48px' }}>
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-3">
-              <Link href="/leagues" className="hover:opacity-80 transition-opacity">
-                <Image src="/pilkarzyki-logo.png" alt="Pilkarzyki" width={200} height={50} priority />
-              </Link>
-              <span className="text-gray-400">/</span>
-              <Link href={`/leagues/${leagueId}`} className="text-gray-600 hover:text-gray-900">
-                {league.name}
-              </Link>
-              <span className="text-gray-400">/</span>
-              <span className="text-gray-900 font-medium">Draft</span>
-            </div>
-            <UserButton afterSignOutUrl="/" />
+      {/* Takeover header: full-screen, no tab bar, with a single explicit exit. */}
+      <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
+        <div className="max-w-[1100px] mx-auto h-16 px-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <Image src="/pilkarzyki-logo.png" alt="Piłkarzyki" width={120} height={30} priority />
+            <span className="text-gray-400">/</span>
+            <span className="font-semibold text-gray-900 truncate">Draft — {league.name}</span>
           </div>
+          <Link
+            href={`/leagues/${leagueId}/squad`}
+            className="inline-flex items-center gap-1.5 shrink-0 min-h-[44px] px-3 rounded-xl text-sm font-medium text-[#29544D] hover:bg-gray-100 transition-colors"
+          >
+            <ArrowLeft size={18} />
+            Wróć do składu
+          </Link>
         </div>
-      </nav>
+      </header>
 
-      <main className="max-w-[1400px] mx-auto px-4 md:px-12 py-8">
+      <main className="max-w-[1100px] mx-auto px-4 py-8">
         <DraftClient leagueId={leagueId} />
       </main>
     </div>
