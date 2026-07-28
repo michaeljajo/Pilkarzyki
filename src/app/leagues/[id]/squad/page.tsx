@@ -1,7 +1,8 @@
 import { currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
-import { supabaseAdmin } from '@/lib/supabase'
+import { Suspense } from 'react'
 import SquadSelection from '@/components/SquadSelection'
+import { SkladStatusHeader } from '@/components/sklad/SkladStatusHeader'
 
 interface SquadPageProps {
   params: Promise<{ id: string }>
@@ -9,27 +10,21 @@ interface SquadPageProps {
 
 export default async function SquadPage({ params }: SquadPageProps) {
   const user = await currentUser()
-  const resolvedParams = await params
+  const { id: leagueId } = await params
 
   if (!user) {
     redirect('/sign-in')
   }
 
-  // Fetch league name
-  const { data: league } = await supabaseAdmin
-    .from('leagues')
-    .select('name')
-    .eq('id', resolvedParams.id)
-    .single()
-
-  const leagueName = league?.name || 'League'
-
   return (
-    <div className="min-h-screen bg-white">
-
-      <main className="max-w-[1400px] mx-auto" style={{ paddingLeft: '48px', paddingRight: '48px', paddingTop: '8px', paddingBottom: '16px' }}>
-        <SquadSelection leagueId={resolvedParams.id} />
-      </main>
+    <div>
+      {/* Status header above the pitch: live deadline countdown, lineup status
+          for both competitions, next fixture, and the competition switcher.
+          The lineup picker below is unchanged. */}
+      <Suspense fallback={null}>
+        <SkladStatusHeader leagueId={leagueId} />
+      </Suspense>
+      <SquadSelection leagueId={leagueId} />
     </div>
   )
 }
