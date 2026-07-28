@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, use } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import { ScheduleMatchCard } from '@/components/ScheduleMatchCard'
@@ -10,9 +10,7 @@ interface Manager {
   first_name?: string
   last_name?: string
   email: string
-  squad?: {
-    team_name?: string
-  }
+  squad?: { team_name?: string }
 }
 
 interface ScheduleMatch {
@@ -34,246 +32,277 @@ interface ScheduleMatch {
   groupName?: string
 }
 
+interface Group {
+  key: string
+  type: 'league' | 'cup'
+  gameweekNumber: number
+  stage?: string
+  startDate: string
+  endDate: string
+  matches: ScheduleMatch[]
+}
+
+const STAGE_LABELS: Record<string, string> = {
+  group_stage: 'Faza grupowa',
+  round_of_32: '1/16 finału',
+  round_of_16: '1/8 finału',
+  quarter_final: 'Ćwierćfinał',
+  semi_final: 'Półfinał',
+  final: 'Finał',
+}
+
+function formatDateRange(startISO: string, endISO: string): string {
+  const start = new Date(startISO)
+  const end = new Date(endISO)
+  const opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long' }
+  const s = start.toLocaleDateString('pl-PL', opts)
+  const e = end.toLocaleDateString('pl-PL', opts)
+  if (s === e) return s
+  return `${s} – ${e}`
+}
+
 interface SchedulePageProps {
   params: Promise<{ id: string }>
 }
 
 export default function SchedulePage({ params }: SchedulePageProps) {
+  const { id: leagueId } = use(params)
   const { user } = useUser()
   const router = useRouter()
-  const [leagueId, setLeagueId] = useState<string>('')
-  const [leagueName, setLeagueName] = useState<string>('')
   const [matches, setMatches] = useState<ScheduleMatch[]>([])
   const [managers, setManagers] = useState<Manager[]>([])
   const [selectedManager, setSelectedManager] = useState<string>('')
-  const [hidePastGameweeks, setHidePastGameweeks] = useState(false)
+  const [hidePast, setHidePast] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set())
+  const [expanded, setExpanded] = useState<Set<string>>(new Set())
+  const [autoExpandedKey, setAutoExpandedKey] = useState<string | null>(null)
 
   useEffect(() => {
-    async function resolveParams() {
-      const resolvedParams = await params
-      setLeagueId(resolvedParams.id)
+    if (!user) router.push('/sign-in')
+  }, [user, router])
 
-      // Fetch league name
+  useEffect(() => {
+    if (!leagueId) return
+    let cancelled = false
+    async function fetchSchedule() {
       try {
-        const response = await fetch(`/api/manager/leagues/${resolvedParams.id}`)
-        if (response.ok) {
-          const data = await response.json()
-          setLeagueName(data.league?.name || 'League')
+        setLoading(true)
+        const url = selectedManager
+          ? `/api/leagues/${leagueId}/combined-schedule?managerId=${selectedManager}`
+          : `/api/leagues/${leagueId}/combined-schedule`
+        const res = await fetch(url)
+        if (res.ok && !cancelled) {
+          const data = await res.json()
+          setMatches(data.matches || [])
+          setManagers(data.managers || [])
         }
-      } catch (error) {
-        console.error('Failed to fetch league name:', error)
+      } catch (err) {
+        console.error('Failed to fetch schedule:', err)
+      } finally {
+        if (!cancelled) setLoading(false)
       }
     }
-    resolveParams()
-  }, [params])
-
-  useEffect(() => {
-    if (leagueId) {
-      fetchSchedule()
+    fetchSchedule()
+    return () => {
+      cancelled = true
     }
   }, [leagueId, selectedManager])
 
+  const managerName = (m: Manager) =>
+    m.squad?.team_name ||
+    (m.first_name && m.last_name ? `${m.first_name} ${m.last_name}` : m.email.split('@')[0])
+
+  // The current user's internal manager id (to mark their own fixtures).
+  const myManagerId = useMemo(() => {
+    const email = user?.primaryEmailAddress?.emailAddress || user?.emailAddresses?.[0]?.emailAddress
+    if (!email) return null
+    const me = managers.find((m) => m.email?.toLowerCase() === email.toLowerCase())
+    return me?.id ?? null
+  }, [user, managers])
+
+  // Group by competition + gameweek, then sort chronologically so league and cup
+  // gameweeks interleave by date into one merged list.
+  const groups = useMemo<Group[]>(() => {
+    const map = new Map<string, Group>()
+    for (const m of matches) {
+      const key = `${m.type}-${m.gameweekNumber}`
+      const g = map.get(key)
+      if (!g) {
+        map.set(key, {
+          key,
+          type: m.type,
+          gameweekNumber: m.gameweekNumber,
+          stage: m.stage,
+          startDate: m.startDate,
+          endDate: m.endDate,
+          matches: [m],
+        })
+      } else {
+        g.matches.push(m)
+        if (new Date(m.startDate) < new Date(g.startDate)) g.startDate = m.startDate
+        if (new Date(m.endDate) > new Date(g.endDate)) g.endDate = m.endDate
+      }
+    }
+    return Array.from(map.values()).sort(
+      (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+    )
+  }, [matches])
+
+  // The current or next gameweek: the first group not fully in the past.
+  const currentKey = useMemo(() => {
+    const now = Date.now()
+    const current = groups.find((g) => new Date(g.endDate).getTime() >= now)
+    return current?.key ?? groups[groups.length - 1]?.key ?? null
+  }, [groups])
+
+  // Auto-expand the current group by default (once per current-key change),
+  // while still honouring the user's manual toggles.
   useEffect(() => {
-    if (!user) {
-      router.push('/sign-in')
+    if (currentKey && currentKey !== autoExpandedKey) {
+      setExpanded((prev) => {
+        const next = new Set(prev)
+        next.add(currentKey)
+        return next
+      })
+      setAutoExpandedKey(currentKey)
     }
-  }, [user, router])
+  }, [currentKey, autoExpandedKey])
 
-  const fetchSchedule = async () => {
-    try {
-      setLoading(true)
-      const url = selectedManager
-        ? `/api/leagues/${leagueId}/combined-schedule?managerId=${selectedManager}`
-        : `/api/leagues/${leagueId}/combined-schedule`
-
-      const response = await fetch(url)
-      if (response.ok) {
-        const data = await response.json()
-        setMatches(data.matches || [])
-        setManagers(data.managers || [])
-      } else {
-        console.error('Failed to fetch schedule')
-      }
-    } catch (error) {
-      console.error('Failed to fetch schedule:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const getManagerDisplayName = (manager: Manager) => {
-    if (manager.squad?.team_name) {
-      return manager.squad.team_name
-    }
-    if (manager.first_name && manager.last_name) {
-      return `${manager.first_name} ${manager.last_name}`
-    }
-    return manager.email.split('@')[0]
-  }
-
-  const toggleDate = (dateKey: string) => {
-    setExpandedDates(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(dateKey)) {
-        newSet.delete(dateKey)
-      } else {
-        newSet.add(dateKey)
-      }
-      return newSet
-    })
-  }
-
-  // Group matches by date
-  const groupedMatches = matches.reduce((groups, match) => {
-    const dateKey = new Date(match.startDate).toLocaleDateString('pl-PL', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+  const toggle = (key: string) =>
+    setExpanded((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
     })
 
-    if (!groups[dateKey]) {
-      groups[dateKey] = {
-        matches: [],
-        startDate: match.startDate
-      }
-    }
+  const visibleGroups = hidePast
+    ? groups.filter((g) => new Date(g.endDate).getTime() >= Date.now())
+    : groups
 
-    groups[dateKey].matches.push(match)
-    return groups
-  }, {} as Record<string, { matches: ScheduleMatch[], startDate: string }>)
-
-  // Filter out past gameweeks if checkbox is checked
-  const filteredGroups = Object.entries(groupedMatches).filter(([dateKey, group]) => {
-    if (!hidePastGameweeks) return true
-
-    const endDate = new Date(group.matches[0]?.endDate)
-    return endDate >= new Date()
-  })
-
-  // Sort by date
-  const sortedGroups = filteredGroups.sort((a, b) => {
-    return new Date(a[1].startDate).getTime() - new Date(b[1].startDate).getTime()
-  })
-
-  if (!user) {
-    return null
-  }
+  if (!user) return null
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="max-w-3xl mx-auto">
+      <h1 className="text-2xl font-bold text-gray-900 mb-5">Terminarz</h1>
 
-      <main className="w-full flex justify-center" style={{ paddingTop: '48px', paddingBottom: '64px' }}>
-        <div className="w-full max-w-4xl px-6">
-          {/* Header */}
-          <div className="mb-6 text-center">
-            <h1 className="text-2xl font-bold text-gray-900">Terminarz</h1>
-          </div>
+      {/* Filters */}
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center gap-3">
+        <label htmlFor="manager-filter" className="sr-only">
+          Filtruj według menedżera
+        </label>
+        <select
+          id="manager-filter"
+          value={selectedManager}
+          onChange={(e) => setSelectedManager(e.target.value)}
+          disabled={loading}
+          className="flex-1 min-h-[44px] rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:border-[#061852] focus:outline-none focus:ring-2 focus:ring-[#061852]/20 disabled:opacity-60"
+        >
+          <option value="">Wszyscy menedżerowie</option>
+          {[...managers]
+            .sort((a, b) => managerName(a).localeCompare(managerName(b)))
+            .map((m) => (
+              <option key={m.id} value={m.id}>
+                {managerName(m)}
+              </option>
+            ))}
+        </select>
 
-          {/* Filters */}
-          <div className="mb-6 space-y-4">
-            {/* Manager Filter */}
-            <div className="flex justify-center">
-              <select
-                value={selectedManager}
-                onChange={(e) => setSelectedManager(e.target.value)}
-                className="w-full max-w-md px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-gray-300 bg-white"
-                disabled={loading}
-              >
-                <option value="">Wszyscy managerowie</option>
-                {managers
-                  .sort((a, b) => getManagerDisplayName(a).localeCompare(getManagerDisplayName(b)))
-                  .map((manager) => (
-                    <option key={manager.id} value={manager.id}>
-                      {getManagerDisplayName(manager)}
-                    </option>
-                  ))}
-              </select>
-            </div>
+        <label className="inline-flex items-center gap-2 cursor-pointer select-none min-h-[44px]">
+          <input
+            type="checkbox"
+            checked={hidePast}
+            onChange={(e) => setHidePast(e.target.checked)}
+            className="w-4 h-4 rounded border-gray-300 text-[#061852] focus:ring-[#061852]"
+          />
+          <span className="text-sm text-gray-700">Ukryj przeszłe kolejki</span>
+        </label>
+      </div>
 
-            {/* Hide Past Gameweeks Checkbox */}
-            <div className="flex justify-center">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={hidePastGameweeks}
-                  onChange={(e) => setHidePastGameweeks(e.target.checked)}
-                  className="w-4 h-4 text-[#061852] border-gray-300 rounded focus:ring-[#061852] focus:ring-2"
-                />
-                <span className="text-sm text-gray-700">Ukryj przeszłe kolejki</span>
-              </label>
-            </div>
-          </div>
-
-          {/* Loading */}
-          {loading && (
-            <div className="flex items-center justify-center h-32">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            </div>
-          )}
-
-          {/* Schedule */}
-          {!loading && (
-            <div className="space-y-8">
-              {sortedGroups.length === 0 ? (
-                <div className="text-center py-16">
-                  <div className="text-gray-400">
-                    <div className="text-3xl mb-2">📅</div>
-                    <div className="text-sm">
-                      {hidePastGameweeks
-                        ? 'Brak nadchodzących meczów'
-                        : 'Brak meczów w terminarzu'}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                sortedGroups.map(([dateKey, group]) => {
-                  const isExpanded = expandedDates.has(dateKey)
-                  return (
-                    <div key={dateKey}>
-                      {/* Date Header - Clickable */}
-                      <div
-                        className="mb-4 cursor-pointer select-none"
-                        onClick={() => toggleDate(dateKey)}
-                      >
-                        <h2 className="text-sm font-bold text-[#061852] border-b-2 border-[#DECF99] pb-2 flex items-center justify-between hover:text-[#29544D] transition-colors">
-                          <span>{dateKey}</span>
-                          <svg
-                            className={`w-5 h-5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                          </svg>
-                        </h2>
-                      </div>
-
-                      {/* Matches for this date - Collapsible */}
-                      {isExpanded && (
-                        <div className="space-y-4">
-                          {group.matches
-                            .sort((a, b) => {
-                              // Sort by type (league first), then by gameweek number
-                              if (a.type !== b.type) {
-                                return a.type === 'league' ? -1 : 1
-                              }
-                              return a.gameweekNumber - b.gameweekNumber
-                            })
-                            .map((match) => (
-                              <ScheduleMatchCard key={match.id} match={match} />
-                            ))}
-                        </div>
-                      )}
-                    </div>
-                  )
-                })
-              )}
-            </div>
-          )}
+      {loading ? (
+        <div className="flex items-center justify-center h-32">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#061852]" />
         </div>
-      </main>
+      ) : visibleGroups.length === 0 ? (
+        <div className="text-center py-16 text-gray-400">
+          <div className="text-3xl mb-2">📅</div>
+          <div className="text-sm">
+            {hidePast ? 'Brak nadchodzących meczów' : 'Brak meczów w terminarzu'}
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {visibleGroups.map((g) => {
+            const isOpen = expanded.has(g.key)
+            const isCurrent = g.key === currentKey
+            const heading =
+              g.type === 'cup'
+                ? STAGE_LABELS[g.stage ?? ''] || `Kolejka ${g.gameweekNumber}`
+                : `Kolejka ${g.gameweekNumber}`
+            return (
+              <div key={g.key} className="rounded-2xl border border-gray-200 bg-white overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => toggle(g.key)}
+                  aria-expanded={isOpen}
+                  className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span
+                      className="rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide shrink-0"
+                      style={
+                        g.type === 'cup'
+                          ? { backgroundColor: '#DECF99', color: '#29544D' }
+                          : { backgroundColor: '#061852', color: '#fff' }
+                      }
+                    >
+                      {g.type === 'cup' ? 'Puchar' : 'Liga'}
+                    </span>
+                    <span className="font-semibold text-gray-900 truncate">{heading}</span>
+                    {isCurrent && (
+                      <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-semibold text-green-700 shrink-0">
+                        Teraz
+                      </span>
+                    )}
+                    <span className="text-sm text-gray-400 truncate">{formatDateRange(g.startDate, g.endDate)}</span>
+                  </div>
+                  <svg
+                    className={`w-5 h-5 text-gray-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {isOpen && (
+                  <div className="px-3 pb-3 space-y-3">
+                    {g.matches.map((match) => {
+                      const isMine =
+                        !!myManagerId &&
+                        (match.homeManager?.id === myManagerId || match.awayManager?.id === myManagerId)
+                      return (
+                        <div
+                          key={match.id}
+                          className={isMine ? 'rounded-2xl ring-2 ring-[#061852] ring-offset-2' : ''}
+                        >
+                          {isMine && (
+                            <span className="inline-block mb-1 ml-1 text-[11px] font-semibold text-[#061852]">
+                              Twój mecz
+                            </span>
+                          )}
+                          <ScheduleMatchCard match={match} />
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
