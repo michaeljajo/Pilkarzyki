@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useUser } from '@clerk/nextjs'
-import { LeagueNavigation } from '@/components/LeagueNavigation'
 import { Position } from '@/types'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 
@@ -146,11 +145,6 @@ export default function SquadsPage({ params }: SquadsPageProps) {
 
   return (
     <div className="min-h-screen bg-white">
-      <LeagueNavigation
-        leagueId={leagueId}
-        leagueName={leagueName}
-        currentPage="squad"
-      />
 
       <main
         className="w-full flex justify-center"

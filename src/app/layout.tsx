@@ -12,8 +12,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Pilkarzyki - Modern Fantasy Football",
-  description: "Experience the ultimate fantasy football management platform with real-time stats and immersive gameplay",
+  title: "Piłkarzyki",
+  description: "Piłkarzyki — menedżer ligi fantasy football: składy, wyniki, tabele i puchar w jednym miejscu.",
 };
 
 export default function RootLayout({

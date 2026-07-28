@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
-import { LeagueNavigation } from '@/components/LeagueNavigation'
 import { TopScorersTable } from '@/components/TopScorersTable'
 import { TopScorer } from '@/types'
 
@@ -107,11 +106,6 @@ export default function TopScorersPage({ params }: TopScorersPageProps) {
 
   return (
     <div className="min-h-screen bg-white">
-      <LeagueNavigation
-        leagueId={leagueId}
-        leagueName={leagueName}
-        currentPage="top-scorers"
-      />
 
       <main
         className="w-full flex justify-center"

@@ -1,7 +1,6 @@
 import { currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { supabaseAdmin } from '@/lib/supabase'
-import { LeagueNavigation } from '@/components/LeagueNavigation'
 import SquadSelection from '@/components/SquadSelection'
 
 interface SquadPageProps {
@@ -27,11 +26,6 @@ export default async function SquadPage({ params }: SquadPageProps) {
 
   return (
     <div className="min-h-screen bg-white">
-      <LeagueNavigation
-        leagueId={resolvedParams.id}
-        leagueName={leagueName}
-        currentPage="squad"
-      />
 
       <main className="max-w-[1400px] mx-auto" style={{ paddingLeft: '48px', paddingRight: '48px', paddingTop: '8px', paddingBottom: '16px' }}>
         <SquadSelection leagueId={resolvedParams.id} />

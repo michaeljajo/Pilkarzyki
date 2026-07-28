@@ -1,7 +1,6 @@
 import { ReactNode } from 'react'
 import { notFound } from 'next/navigation'
 import { supabaseAdmin } from '@/lib/supabase'
-import { LeagueAdminContextSetter } from '@/components/admin/LeagueAdminContextSetter'
 
 interface LeagueAdminLayoutProps {
   children: ReactNode
@@ -27,6 +26,12 @@ async function getLeague(id: string) {
   }
 }
 
+/**
+ * Layout for the per-league admin ("manage") area. The unified navigation
+ * (header + tab bar + the admin secondary nav and "Tryb administratora" banner)
+ * is provided by the AppShell in the parent /leagues/[id] layout, so this
+ * layout only validates that the league exists.
+ */
 export default async function LeagueAdminLayout({ children, params }: LeagueAdminLayoutProps) {
   const resolvedParams = await params
   const league = await getLeague(resolvedParams.id)
@@ -35,10 +40,5 @@ export default async function LeagueAdminLayout({ children, params }: LeagueAdmi
     notFound()
   }
 
-  return (
-    <>
-      <LeagueAdminContextSetter leagueId={league.id} leagueName={league.name} />
-      {children}
-    </>
-  )
+  return <>{children}</>
 }

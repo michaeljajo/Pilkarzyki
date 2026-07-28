@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { LeagueNavigation } from '@/components/LeagueNavigation'
 import LeagueTable from '@/components/LeagueTable'
 import { TeamNameModal } from '@/components/TeamNameModal'
 import { useTeamNameModal } from '@/hooks/useTeamNameModal'
@@ -44,12 +43,6 @@ export default function LeagueStandingsPage({ params }: LeagueStandingsPageProps
           onSuccess={handleSuccess}
         />
       )}
-
-      <LeagueNavigation
-        leagueId={leagueId}
-        leagueName={leagueName}
-        currentPage="standings"
-      />
 
       <div className="w-full flex justify-center" style={{ paddingTop: '48px', paddingBottom: '96px' }}>
         <main className="w-full max-w-5xl px-2 sm:px-6 md:px-12">

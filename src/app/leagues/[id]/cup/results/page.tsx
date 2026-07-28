@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
-import { LeagueNavigation } from '@/components/LeagueNavigation'
 import { CupGameweekSelector } from '@/components/CupGameweekSelector'
 import { CupMatchCard } from '@/components/CupMatchCard'
 
@@ -210,11 +209,6 @@ export default function CupResultsPage({ params }: CupResultsPageProps) {
 
   return (
     <div className="min-h-screen bg-white">
-      <LeagueNavigation
-        leagueId={leagueId}
-        leagueName={leagueName}
-        currentPage="cup-results"
-      />
 
       <main className="w-full flex justify-center" style={{ paddingTop: '48px', paddingBottom: '64px' }}>
         <div className="w-full max-w-4xl px-6">

@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
-import { LeagueNavigation } from '@/components/LeagueNavigation'
 import { CupGroupTable } from '@/components/CupGroupTable'
 import { KnockoutBracket } from '@/components/KnockoutBracket'
 
@@ -191,11 +190,6 @@ export default function CupStandingsPage({ params }: CupStandingsPageProps) {
 
   return (
     <div className="min-h-screen bg-white">
-      <LeagueNavigation
-        leagueId={leagueId}
-        leagueName={leagueName}
-        currentPage="cup-standings"
-      />
 
       <main className="w-full flex justify-center" style={{ paddingTop: '48px', paddingBottom: '64px' }}>
         <div className="w-full max-w-4xl px-6">

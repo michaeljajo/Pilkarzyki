@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
-import { LeagueNavigation } from '@/components/LeagueNavigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Icon } from 'lucide-react'
 import { soccerBall } from '@lucide/lab'
@@ -221,11 +220,6 @@ export default function LeagueResultsPage({ params }: LeagueResultsPageProps) {
 
   return (
     <div className="min-h-screen bg-white">
-      <LeagueNavigation
-        leagueId={leagueId}
-        leagueName={leagueName}
-        currentPage="results"
-      />
 
       <main className="w-full flex justify-center" style={{ paddingTop: '48px', paddingBottom: '64px' }}>
         <div className="w-full max-w-4xl px-6">
