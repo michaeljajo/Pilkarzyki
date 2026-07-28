@@ -183,7 +183,7 @@ export default function SchedulePage({ params }: SchedulePageProps) {
   if (!user) return null
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div>
       <h1 className="text-2xl font-bold text-gray-900 mb-5">Terminarz</h1>
 
       {/* Filters */}
@@ -239,6 +239,10 @@ export default function SchedulePage({ params }: SchedulePageProps) {
               g.type === 'cup'
                 ? STAGE_LABELS[g.stage ?? ''] || `Kolejka ${g.gameweekNumber}`
                 : `Kolejka ${g.gameweekNumber}`
+            // If every fixture in this accordion is the same competition, the
+            // header labels it with a chip and the cards drop their type badge.
+            // In a mixed accordion, invert: no header chip, keep per-card badges.
+            const homogeneous = g.matches.every((m) => m.type === g.type)
             return (
               <div key={g.key} className="rounded-2xl border border-gray-200 bg-white overflow-hidden">
                 <button
@@ -248,16 +252,18 @@ export default function SchedulePage({ params }: SchedulePageProps) {
                   className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-center gap-2 min-w-0">
-                    <span
-                      className="rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide shrink-0"
-                      style={
-                        g.type === 'cup'
-                          ? { backgroundColor: '#DECF99', color: '#29544D' }
-                          : { backgroundColor: '#061852', color: '#fff' }
-                      }
-                    >
-                      {g.type === 'cup' ? 'Puchar' : 'Liga'}
-                    </span>
+                    {homogeneous && (
+                      <span
+                        className="rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide shrink-0"
+                        style={
+                          g.type === 'cup'
+                            ? { backgroundColor: '#DECF99', color: '#29544D' }
+                            : { backgroundColor: '#061852', color: '#fff' }
+                        }
+                      >
+                        {g.type === 'cup' ? 'Puchar' : 'Liga'}
+                      </span>
+                    )}
                     <span className="font-semibold text-gray-900 truncate">{heading}</span>
                     {isCurrent && (
                       <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-semibold text-green-700 shrink-0">
@@ -283,17 +289,12 @@ export default function SchedulePage({ params }: SchedulePageProps) {
                         !!myManagerId &&
                         (match.homeManager?.id === myManagerId || match.awayManager?.id === myManagerId)
                       return (
-                        <div
+                        <ScheduleMatchCard
                           key={match.id}
-                          className={isMine ? 'rounded-2xl ring-2 ring-[#061852] ring-offset-2' : ''}
-                        >
-                          {isMine && (
-                            <span className="inline-block mb-1 ml-1 text-[11px] font-semibold text-[#061852]">
-                              Twój mecz
-                            </span>
-                          )}
-                          <ScheduleMatchCard match={match} />
-                        </div>
+                          match={match}
+                          highlight={isMine}
+                          hideTypeBadge={homogeneous}
+                        />
                       )
                     })}
                   </div>

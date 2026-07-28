@@ -30,9 +30,17 @@ interface ScheduleMatchCardProps {
     leg?: number
     groupName?: string
   }
+  /** Accent this card as the viewer's own fixture (adds a "Twój mecz" label). */
+  highlight?: boolean
+  /**
+   * Hide the Liga/Puchar type badge. Set when the surrounding accordion already
+   * labels the whole (homogeneous) gameweek with a competition chip, so the chip
+   * isn't shown twice.
+   */
+  hideTypeBadge?: boolean
 }
 
-export function ScheduleMatchCard({ match }: ScheduleMatchCardProps) {
+export function ScheduleMatchCard({ match, highlight = false, hideTypeBadge = false }: ScheduleMatchCardProps) {
   const getManagerDisplayName = (manager: Manager | null, teamSource?: string) => {
     if (!manager) {
       if (teamSource) {
@@ -88,19 +96,31 @@ export function ScheduleMatchCard({ match }: ScheduleMatchCardProps) {
 
   return (
     <div className={`bg-white border-2 rounded-2xl transition-all duration-200 ${
-      isPast ? 'border-gray-300 opacity-75' : 'border-[#29544D] hover:shadow-lg'
+      highlight
+        ? 'border-[#061852] shadow-sm'
+        : isPast
+          ? 'border-gray-300 opacity-75'
+          : 'border-[#29544D] hover:shadow-lg'
     }`} style={{ padding: '16px' }}>
       {/* Header with badges */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
         <div className="flex items-center gap-2 flex-wrap">
+          {highlight && (
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-[#061852] text-white text-xs font-semibold whitespace-nowrap">
+              Twój mecz
+            </span>
+          )}
+
           {/* Match Type Badge */}
-          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
-            match.type === 'league'
-              ? 'bg-[#061852] text-white'
-              : 'bg-[#DECF99] text-[#29544D]'
-          }`}>
-            {match.type === 'league' ? 'Liga' : 'Puchar'}
-          </span>
+          {!hideTypeBadge && (
+            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
+              match.type === 'league'
+                ? 'bg-[#061852] text-white'
+                : 'bg-[#DECF99] text-[#29544D]'
+            }`}>
+              {match.type === 'league' ? 'Liga' : 'Puchar'}
+            </span>
+          )}
 
           {/* Gameweek Badge */}
           <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-gray-100 text-gray-700 text-xs font-medium whitespace-nowrap">

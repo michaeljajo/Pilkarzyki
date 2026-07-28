@@ -17,8 +17,13 @@ interface AppShellProps {
 const COLORS = {
   richGreen: '#29544D',
   collegiateNavy: '#061852',
+  textSecondary: '#6b7280',
   white: '#FFFFFF',
 }
+
+// One source of truth for the horizontal container, shared by the header, the
+// desktop tab bar and the content region so their left edges line up.
+const CONTAINER = 'w-full max-w-[1100px] mx-auto px-4 md:px-6'
 
 type TabDef = {
   id: string
@@ -70,14 +75,18 @@ export function AppShell({ leagueId, leagueName, hasCup, children }: AppShellPro
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header
-        className="sticky top-0 z-50 bg-white border-b border-gray-200"
-        style={{ height: '64px' }}
-      >
-        <div className="max-w-[1100px] mx-auto h-full flex items-center justify-between px-4 gap-3">
+      {/* Header — sticky and in normal flow, so it reserves its own height and
+          content is never rendered underneath it. Height is content-driven
+          (logo row + desktop tab row) rather than a fixed clamp. */}
+      <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
+        {/* Logo row */}
+        <div className={`${CONTAINER} h-16 flex items-center justify-between gap-3`}>
           <div className="flex items-center gap-3 min-w-0">
-            <Link href="/leagues" className="shrink-0 hover:opacity-80 transition-opacity" aria-label="Piłkarzyki — moje ligi">
+            <Link
+              href="/leagues"
+              className="shrink-0 hover:opacity-80 transition-opacity"
+              aria-label="Piłkarzyki — moje ligi"
+            >
               <Image src="/pilkarzyki-logo.png" alt="Piłkarzyki" width={140} height={35} priority />
             </Link>
             <Link
@@ -94,23 +103,21 @@ export function AppShell({ leagueId, leagueName, hasCup, children }: AppShellPro
           </div>
         </div>
 
-        {/* Desktop tab bar: directly under header */}
-        <nav
-          className="hidden md:block border-t border-gray-100 bg-white"
-          aria-label="Nawigacja główna"
-        >
-          <div className="max-w-[1100px] mx-auto px-4 flex items-center gap-1 h-12">
+        {/* Desktop tab bar: horizontal row directly under the header, aligned to
+            the shared container so the first tab lines up with the content. */}
+        <nav className="hidden md:block border-t border-gray-100 bg-white" aria-label="Nawigacja główna">
+          <div className={`${CONTAINER} flex items-center gap-1 py-1.5`}>
             {tabs.map((tab) => (
-              <TabLink key={tab.id} tab={tab} href={tab.href(base)} active={isActive(tab)} variant="top" />
+              <DesktopTab key={tab.id} tab={tab} href={tab.href(base)} active={isActive(tab)} />
             ))}
           </div>
         </nav>
       </header>
 
-      {/* Content */}
-      <main className="max-w-[1100px] mx-auto w-full px-4 pt-4 pb-24 md:pb-8">{children}</main>
+      {/* Content — same container as the header/tab bar (one left edge). */}
+      <main className={`${CONTAINER} pt-6 pb-24 md:pb-8`}>{children}</main>
 
-      {/* Mobile tab bar: fixed bottom */}
+      {/* Mobile tab bar: fixed bottom, equal-width tabs, icon over label. */}
       <nav
         className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-white border-t border-gray-200"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
@@ -118,7 +125,7 @@ export function AppShell({ leagueId, leagueName, hasCup, children }: AppShellPro
       >
         <div className="flex items-stretch justify-around">
           {tabs.map((tab) => (
-            <TabLink key={tab.id} tab={tab} href={tab.href(base)} active={isActive(tab)} variant="bottom" />
+            <MobileTab key={tab.id} tab={tab} href={tab.href(base)} active={isActive(tab)} />
           ))}
         </div>
       </nav>
@@ -126,44 +133,42 @@ export function AppShell({ leagueId, leagueName, hasCup, children }: AppShellPro
   )
 }
 
-function TabLink({
-  tab,
-  href,
-  active,
-  variant,
-}: {
-  tab: TabDef
-  href: string
-  active: boolean
-  variant: 'top' | 'bottom'
-}) {
+// Desktop: comfortable horizontal pill. Filled accent when active; transparent
+// with a subtle hover fill when inactive.
+function DesktopTab({ tab, href, active }: { tab: TabDef; href: string; active: boolean }) {
   const Icon = tab.icon
-  if (variant === 'bottom') {
-    return (
-      <Link
-        href={href}
-        aria-current={active ? 'page' : undefined}
-        className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2 min-h-[56px] text-[11px] font-medium transition-colors"
-        style={{ color: active ? COLORS.collegiateNavy : '#9ca3af' }}
-      >
-        <Icon size={22} strokeWidth={active ? 2.4 : 2} />
-        <span>{tab.label}</span>
-      </Link>
-    )
-  }
   return (
     <Link
       href={href}
       aria-current={active ? 'page' : undefined}
-      className="inline-flex items-center gap-2 px-4 min-h-[44px] rounded-xl text-sm font-medium transition-colors"
-      style={
-        active
-          ? { backgroundColor: COLORS.collegiateNavy, color: COLORS.white }
-          : { color: COLORS.richGreen }
-      }
+      className={`inline-flex items-center gap-2 rounded-xl text-[15px] transition-colors ${
+        active ? '' : 'hover:bg-gray-100'
+      }`}
+      style={{
+        padding: '8px 16px',
+        ...(active
+          ? { backgroundColor: COLORS.collegiateNavy, color: COLORS.white, fontWeight: 500 }
+          : { color: COLORS.textSecondary, fontWeight: 400 }),
+      }}
     >
-      <Icon size={18} strokeWidth={2} />
+      <Icon size={20} strokeWidth={2} />
       {tab.label}
+    </Link>
+  )
+}
+
+// Mobile: equal-width, bottom-fixed, icon above label. Unchanged.
+function MobileTab({ tab, href, active }: { tab: TabDef; href: string; active: boolean }) {
+  const Icon = tab.icon
+  return (
+    <Link
+      href={href}
+      aria-current={active ? 'page' : undefined}
+      className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2 min-h-[56px] text-[11px] font-medium transition-colors"
+      style={{ color: active ? COLORS.collegiateNavy : '#9ca3af' }}
+    >
+      <Icon size={22} strokeWidth={active ? 2.4 : 2} />
+      <span>{tab.label}</span>
     </Link>
   )
 }
