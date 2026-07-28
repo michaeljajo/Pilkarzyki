@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { assertLeagueMutable } from '@/lib/auth-helpers'
 import { resolveDraftAccess } from '@/lib/draft-helpers'
+import { splitFullName } from '@/lib/draft-players'
 
 const POSITIONS = ['Goalkeeper', 'Defender', 'Midfielder', 'Forward']
 
@@ -32,14 +33,15 @@ export async function POST(
 
     const body = await request.json()
     const playerId = String(body?.playerId ?? '')
-    const name = String(body?.name ?? '').trim()
-    const surname = String(body?.surname ?? '').trim()
+    const fullName = String(body?.fullName ?? '').trim()
     const club = String(body?.club ?? '').trim()
     const position = String(body?.position ?? '').trim()
     const footballLeague = body?.footballLeague ? String(body.footballLeague).trim() || null : null
 
+    const { name, surname } = splitFullName(fullName)
+
     if (!playerId || !name || !club || !position) {
-      return NextResponse.json({ error: 'Wymagane pola: Imię, Klub, Pozycja.' }, { status: 400 })
+      return NextResponse.json({ error: 'Wymagane pola: Imię i Nazwisko, Klub, Pozycja.' }, { status: 400 })
     }
     if (!POSITIONS.includes(position)) {
       return NextResponse.json({ error: 'Nieprawidłowa pozycja.' }, { status: 400 })

@@ -54,7 +54,7 @@ export function Modal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-black/60 z-50"
             onClick={handleOverlayClick}
             aria-hidden="true"
           />
@@ -71,7 +71,7 @@ export function Modal({
                 damping: 30,
               }}
               className={cn(
-                'relative w-full glass-light rounded-2xl shadow-2xl',
+                'relative w-full bg-white rounded-2xl shadow-2xl',
                 'border border-[var(--navy-border)]',
                 'pointer-events-auto',
                 'max-h-[90vh] flex flex-col',

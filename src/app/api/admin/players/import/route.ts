@@ -3,7 +3,7 @@ import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import * as XLSX from 'xlsx'
 import { DraftPoolImport } from '@/types'
-import { assertLeagueMutable } from '@/lib/auth-helpers'
+import { assertLeagueMutable, verifyLeagueAdmin, userAdminsAnyLeague } from '@/lib/auth-helpers'
 import { resolvePosition, splitFullName, ALLOWED_POSITIONS_PL } from '@/lib/draft-players'
 
 interface ImportResult {
@@ -28,17 +28,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check if user is admin
-    const { data: user, error: userError } = await supabaseAdmin
-      .from('users')
-      .select('is_admin')
-      .eq('clerk_id', userId)
-      .single()
-
-    if (userError || !user?.is_admin) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
-    }
-
     const formData = await request.formData()
     const file = formData.get('file') as File
     const leagueId = formData.get('leagueId') as string
@@ -49,6 +38,13 @@ export async function POST(request: NextRequest) {
 
     if (!leagueId) {
       return NextResponse.json({ error: 'League ID required' }, { status: 400 })
+    }
+
+    // Authorise per league: any admin of THIS league (not just a global admin)
+    // may import its player pool.
+    const { isAdmin } = await verifyLeagueAdmin(userId, leagueId)
+    if (!isAdmin) {
+      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
     const mutable = await assertLeagueMutable(leagueId)
@@ -206,14 +202,8 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check if user is admin
-    const { data: user, error: userError } = await supabaseAdmin
-      .from('users')
-      .select('is_admin')
-      .eq('clerk_id', userId)
-      .single()
-
-    if (userError || !user?.is_admin) {
+    // The template is generic (not league-scoped); allow any league admin.
+    if (!(await userAdminsAnyLeague(userId))) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 

@@ -175,7 +175,9 @@ export default function LeagueManagersPage() {
             />
           ) : (
             <div className="space-y-3 sm:space-y-5">
-              {managers.map((manager, index) => (
+              {managers.map((manager, index) => {
+                const label = manager.displayName || `${manager.firstName ?? ''} ${manager.lastName ?? ''}`.trim() || 'Użytkownik'
+                return (
                 <motion.div
                   key={manager.id}
                   initial={{ opacity: 0, x: -20 }}
@@ -184,12 +186,11 @@ export default function LeagueManagersPage() {
                   className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 sm:p-6 bg-[var(--background-tertiary)] rounded-2xl hover:bg-[var(--background-tertiary)]/90 transition-colors group"
                 >
                   <div className="flex items-center gap-3 sm:gap-5 w-full sm:w-auto">
-                    <Avatar fallback={`${manager.firstName} ${manager.lastName}`} size="lg" />
+                    <Avatar fallback={label} size="lg" />
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold text-base sm:text-lg text-[var(--foreground)] truncate">
-                        {manager.firstName} {manager.lastName}
+                        {label}
                       </div>
-                      <div className="text-sm sm:text-base text-[var(--foreground-secondary)] mt-1 truncate">{manager.email}</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto justify-between sm:justify-end">
@@ -198,7 +199,7 @@ export default function LeagueManagersPage() {
                       variant="ghost"
                       size="sm"
                       className="text-[var(--danger)] hover:bg-[var(--danger)]/10 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
-                      onClick={() => removeManager(manager.id, `${manager.firstName} ${manager.lastName}`)}
+                      onClick={() => removeManager(manager.id, label)}
                       disabled={saving}
                       icon={<Trash2 size={16} />}
                     >
@@ -206,7 +207,8 @@ export default function LeagueManagersPage() {
                     </Button>
                   </div>
                 </motion.div>
-              ))}
+                )
+              })}
             </div>
           )}
         </CardContent>
@@ -265,7 +267,7 @@ export default function LeagueManagersPage() {
             <option value="">Wybierz użytkownika...</option>
             {filteredUsers.map((user) => (
               <option key={user.id} value={user.id}>
-                {user.firstName} {user.lastName} ({user.email})
+                {user.displayName}
               </option>
             ))}
           </Select>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth, clerkClient } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { resolveUserNames } from '@/utils/name-resolver'
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,14 +19,26 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    // Sync the real Clerk profile into our mirror instead of fabricating a
+    // placeholder ("Admin User" / admin-<id>@temp.com), which used to clobber
+    // the user's real identity everywhere the DB mirror is read.
+    const clerkUser = await client.users.getUser(userId)
+    const email = clerkUser.emailAddresses[0]?.emailAddress || ''
+    const { firstName, lastName } = resolveUserNames({
+      email,
+      first_name: clerkUser.firstName,
+      last_name: clerkUser.lastName,
+      username: clerkUser.username,
+    })
+
     // Also create/update user record in database with admin privileges
     const { data, error } = await supabaseAdmin
       .from('users')
       .upsert({
         clerk_id: userId,
-        email: `admin-${userId}@temp.com`,
-        first_name: 'Admin',
-        last_name: 'User',
+        email,
+        first_name: firstName,
+        last_name: lastName,
         is_admin: true
       }, {
         onConflict: 'clerk_id'

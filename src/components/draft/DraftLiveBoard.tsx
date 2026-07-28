@@ -247,7 +247,7 @@ interface DraftLiveBoardProps {
   /** Admin: edit a player's details live (e.g. a last-minute transfer). Renders a row action when set. */
   onEditPlayer?: (
     playerId: string,
-    form: { name: string; surname: string; club: string; footballLeague: string; position: string }
+    form: { fullName: string; club: string; footballLeague: string; position: string }
   ) => Promise<boolean>
 }
 
@@ -291,7 +291,7 @@ export function DraftLiveBoard({
   const [addingPlayer, setAddingPlayer] = useState(false)
 
   const [editing, setEditing] = useState<BoardPlayer | null>(null)
-  const [editForm, setEditForm] = useState({ name: '', surname: '', club: '', footballLeague: '', position: 'Forward' })
+  const [editForm, setEditForm] = useState({ fullName: '', club: '', footballLeague: '', position: 'Forward' })
   const [savingEdit, setSavingEdit] = useState(false)
 
   const canEdit = isAdmin && !!onEditPlayer
@@ -299,8 +299,7 @@ export function DraftLiveBoard({
 
   const openEdit = (p: BoardPlayer) => {
     setEditForm({
-      name: p.name,
-      surname: p.surname,
+      fullName: `${p.name} ${p.surname}`.trim(),
       club: p.club || '',
       footballLeague: p.football_league || '',
       position: p.position,
@@ -555,33 +554,45 @@ export function DraftLiveBoard({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => !addingPlayer && setShowAdd(false)}>
           <div className="bg-white rounded-xl w-full max-w-md p-5 space-y-3" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-lg font-semibold text-gray-900">Dodaj zawodnika</h3>
-            <input
-              value={addForm.fullName}
-              onChange={(e) => setAddForm({ ...addForm, fullName: e.target.value })}
-              placeholder="Imię i nazwisko"
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md"
-            />
-            <input
-              value={addForm.club}
-              onChange={(e) => setAddForm({ ...addForm, club: e.target.value })}
-              placeholder="Klub"
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md"
-            />
-            <input
-              value={addForm.footballLeague}
-              onChange={(e) => setAddForm({ ...addForm, footballLeague: e.target.value })}
-              placeholder="Liga (opcjonalnie)"
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md"
-            />
-            <select
-              value={addForm.position}
-              onChange={(e) => setAddForm({ ...addForm, position: e.target.value })}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md"
-            >
-              {POSITION_OPTIONS_PL.map((pl) => (
-                <option key={pl} value={pl}>{pl}</option>
-              ))}
-            </select>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Imię i Nazwisko</label>
+              <input
+                value={addForm.fullName}
+                onChange={(e) => setAddForm({ ...addForm, fullName: e.target.value })}
+                placeholder="Imię i nazwisko"
+                className="w-full px-3 py-2 text-sm text-gray-900 bg-gray-50 border border-gray-400 rounded-md placeholder-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#29544D] focus:border-[#29544D]"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Klub</label>
+              <input
+                value={addForm.club}
+                onChange={(e) => setAddForm({ ...addForm, club: e.target.value })}
+                placeholder="Klub"
+                className="w-full px-3 py-2 text-sm text-gray-900 bg-gray-50 border border-gray-400 rounded-md placeholder-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#29544D] focus:border-[#29544D]"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Liga</label>
+              <input
+                value={addForm.footballLeague}
+                onChange={(e) => setAddForm({ ...addForm, footballLeague: e.target.value })}
+                placeholder="Liga (opcjonalnie)"
+                className="w-full px-3 py-2 text-sm text-gray-900 bg-gray-50 border border-gray-400 rounded-md placeholder-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#29544D] focus:border-[#29544D]"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Pozycja</label>
+              <select
+                value={addForm.position}
+                onChange={(e) => setAddForm({ ...addForm, position: e.target.value })}
+                className="w-full px-3 py-2 text-sm text-gray-900 bg-gray-50 border border-gray-400 rounded-md focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#29544D] focus:border-[#29544D]"
+              >
+                {POSITION_OPTIONS_PL.map((pl) => (
+                  <option key={pl} value={pl}>{pl}</option>
+                ))}
+              </select>
+            </div>
             <div className="flex justify-end gap-2 pt-1">
               <button onClick={() => setShowAdd(false)} disabled={addingPlayer} className="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50">
                 Anuluj
@@ -599,41 +610,45 @@ export function DraftLiveBoard({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => !savingEdit && setEditing(null)}>
           <div className="bg-white rounded-xl w-full max-w-md p-5 space-y-3" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-lg font-semibold text-gray-900">Edytuj dane zawodnika</h3>
-            <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Imię i Nazwisko</label>
               <input
-                value={editForm.name}
-                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                placeholder="Imię"
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md"
-              />
-              <input
-                value={editForm.surname}
-                onChange={(e) => setEditForm({ ...editForm, surname: e.target.value })}
-                placeholder="Nazwisko"
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md"
+                value={editForm.fullName}
+                onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
+                placeholder="Imię i nazwisko"
+                className="w-full px-3 py-2 text-sm text-gray-900 bg-gray-50 border border-gray-400 rounded-md placeholder-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#29544D] focus:border-[#29544D]"
               />
             </div>
-            <input
-              value={editForm.club}
-              onChange={(e) => setEditForm({ ...editForm, club: e.target.value })}
-              placeholder="Klub"
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md"
-            />
-            <input
-              value={editForm.footballLeague}
-              onChange={(e) => setEditForm({ ...editForm, footballLeague: e.target.value })}
-              placeholder="Liga (opcjonalnie)"
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md"
-            />
-            <select
-              value={editForm.position}
-              onChange={(e) => setEditForm({ ...editForm, position: e.target.value })}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md"
-            >
-              {POSITION_OPTIONS_PL.map((pl) => (
-                <option key={pl} value={POSITION_EN_BY_PL[pl]}>{pl}</option>
-              ))}
-            </select>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Klub</label>
+              <input
+                value={editForm.club}
+                onChange={(e) => setEditForm({ ...editForm, club: e.target.value })}
+                placeholder="Klub"
+                className="w-full px-3 py-2 text-sm text-gray-900 bg-gray-50 border border-gray-400 rounded-md placeholder-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#29544D] focus:border-[#29544D]"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Liga</label>
+              <input
+                value={editForm.footballLeague}
+                onChange={(e) => setEditForm({ ...editForm, footballLeague: e.target.value })}
+                placeholder="Liga (opcjonalnie)"
+                className="w-full px-3 py-2 text-sm text-gray-900 bg-gray-50 border border-gray-400 rounded-md placeholder-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#29544D] focus:border-[#29544D]"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Pozycja</label>
+              <select
+                value={editForm.position}
+                onChange={(e) => setEditForm({ ...editForm, position: e.target.value })}
+                className="w-full px-3 py-2 text-sm text-gray-900 bg-gray-50 border border-gray-400 rounded-md focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#29544D] focus:border-[#29544D]"
+              >
+                {POSITION_OPTIONS_PL.map((pl) => (
+                  <option key={pl} value={POSITION_EN_BY_PL[pl]}>{pl}</option>
+                ))}
+              </select>
+            </div>
             <div className="flex justify-end gap-2 pt-1">
               <button onClick={() => setEditing(null)} disabled={savingEdit} className="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50">
                 Anuluj

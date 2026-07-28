@@ -165,7 +165,7 @@ export default function MidseasonDraftClient({ leagueId }: { leagueId: string })
 
   const editPlayer = async (
     playerId: string,
-    form: { name: string; surname: string; club: string; footballLeague: string; position: string }
+    form: { fullName: string; club: string; footballLeague: string; position: string }
   ): Promise<boolean> => {
     try {
       const res = await fetch(`/api/leagues/${leagueId}/draft-edit-player`, {

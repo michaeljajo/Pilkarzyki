@@ -4,6 +4,10 @@ export interface User {
   email: string
   firstName?: string
   lastName?: string
+  username?: string
+  // Non-identifying label safe to expose to other users (username, or the
+  // local-part of the email). Never contains the full email address.
+  displayName?: string
   isAdmin: boolean
   createdAt: Date
   updatedAt: Date
@@ -341,13 +345,35 @@ export interface GameweekResultsUpdate {
 
 // Cup Tournament Types
 
-export type CupStage = 'group_stage' | 'round_of_16' | 'quarter_final' | 'semi_final' | 'final'
+export type CupStage = 'group_stage' | 'round_of_32' | 'round_of_16' | 'quarter_final' | 'semi_final' | 'final'
+
+// Configurable cup format (migration 027). The generator, qualification and
+// knockout logic all derive from this — nothing is hardcoded to a manager count.
+export type CupPreset = 'legacy_4x4' | 'two_groups_of_nine' | 'custom'
+
+export interface CupFormat {
+  preset: CupPreset
+  participantIds: string[] | 'all'
+  groups: {
+    count: number            // >= 1
+    sizes?: number[]         // optional explicit sizes; otherwise auto-balanced
+    legs: 1 | 2              // single or double round-robin inside groups
+    assignment: 'manual' | 'random'
+  }
+  qualification: {
+    topPerGroup: number
+    bestRemaining: number    // best Nth-placed teams across groups; 0 = none
+  }
+  knockout: { stage: CupStage; legs: 1 | 2 }[]
+  aggregateTieBreak: 'et_penalties'   // only supported value for now
+}
 
 export interface Cup {
   id: string
   leagueId: string
   name: string
   stage: CupStage
+  format: CupFormat
   isActive: boolean
   winnerId?: string
   createdAt: Date
@@ -475,6 +501,7 @@ export interface CupWithLeague {
   league_id: string
   name: string
   stage: CupStage
+  format: CupFormat
   is_active: boolean
   winner_id?: string
   created_at: string

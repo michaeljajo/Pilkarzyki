@@ -2,20 +2,22 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { verifyLeagueAdmin, assertLeagueMutableByCup } from '@/lib/auth-helpers'
-import {
-  generateKnockoutBracket,
-  getNextStage,
-  QualifiedTeam
-} from '@/utils/cup-scheduling'
+import { getNextStage } from '@/utils/cup-scheduling'
+import { recalculateCupGroupStandings } from '@/utils/standings-calculator'
+import { DEFAULT_CUP_FORMAT } from '@/lib/cup-format'
+import type { CupFormat } from '@/types'
 
 /**
  * POST /api/cups/[id]/advance
- * Advance cup from group stage to knockout stage (or from one knockout stage to the next)
+ * Advance the cup out of the group stage into the first knockout round.
  * This will:
- * 1. Verify group stage is completed
- * 2. Get qualified teams from standings
- * 3. Generate knockout bracket matches
- * 4. Update cup stage
+ * 1. Verify the group stage is completed
+ * 2. Recompute standings and mark qualifiers per the cup format
+ *    (positions 1..topPerGroup per group + best remaining)
+ * 3. Set the cup stage to the first knockout round
+ *
+ * It does NOT auto-generate the bracket: the admin performs the manual draw
+ * (which resolves the A1…B4 placeholders once qualification is settled).
  */
 export async function POST(
   request: NextRequest,
@@ -37,7 +39,7 @@ export async function POST(
     // Get cup details
     const { data: cup, error: cupError } = await supabaseAdmin
       .from('cups')
-      .select('id, league_id, stage')
+      .select('id, league_id, stage, format')
       .eq('id', cupId)
       .single()
 
@@ -76,7 +78,13 @@ export async function POST(
         )
       }
 
-      // Get qualified teams from standings (top 2 from each group)
+      const format = (cup.format as CupFormat | undefined) ?? DEFAULT_CUP_FORMAT
+
+      // Recompute standings so `qualified` reflects the current format
+      // (positions 1..topPerGroup per group + best remaining across groups).
+      await recalculateCupGroupStandings(cupId)
+
+      // Read the freshly-marked qualifiers.
       const { data: standings, error: standingsError } = await supabaseAdmin
         .from('cup_group_standings')
         .select('group_name, manager_id, position, qualified')
@@ -96,20 +104,16 @@ export async function POST(
         )
       }
 
-      // Convert to QualifiedTeam format
-      const qualifiedTeams: QualifiedTeam[] = standings.map(standing => ({
-        groupName: standing.group_name,
-        position: standing.position,
-        managerId: standing.manager_id
-      }))
+      const totalQualifiers = standings.length
 
-      // Determine next stage based on number of qualified teams
-      const nextStage = getNextStage('group_stage', qualifiedTeams.length)
+      // Determine the first knockout stage from the format, matched to the
+      // actual number of qualifiers.
+      const nextStage = getNextStage('group_stage', format, totalQualifiers)
       if (!nextStage) {
         return NextResponse.json({ error: 'Cannot determine next stage' }, { status: 400 })
       }
 
-      // Get the first cup gameweek for the next stage
+      // The knockout gameweeks must already exist (created with the schedule).
       const { data: nextStageGameweeks, error: gameweeksError } = await supabaseAdmin
         .from('cup_gameweeks')
         .select('id, cup_week, stage')
@@ -128,38 +132,9 @@ export async function POST(
         )
       }
 
-      // Generate knockout bracket
-      const startWeek = nextStageGameweeks[0].cup_week
-      const knockoutMatches = generateKnockoutBracket(qualifiedTeams, startWeek)
-
-      // Create mapping of cup_week to cup_gameweek_id
-      const cupGameweekMap: Record<number, string> = {}
-      nextStageGameweeks.forEach(gw => {
-        cupGameweekMap[gw.cup_week] = gw.id
-      })
-
-      // Insert knockout matches
-      const cupMatchesToInsert = knockoutMatches.map(match => ({
-        cup_id: cupId,
-        cup_gameweek_id: cupGameweekMap[match.cupWeek],
-        home_manager_id: match.homeManagerId,
-        away_manager_id: match.awayManagerId,
-        stage: match.stage,
-        leg: match.leg,
-        group_name: null,
-        is_completed: false
-      }))
-
-      const { data: insertedMatches, error: insertError } = await supabaseAdmin
-        .from('cup_matches')
-        .insert(cupMatchesToInsert)
-        .select()
-
-      if (insertError) {
-        return NextResponse.json({ error: insertError.message }, { status: 500 })
-      }
-
-      // Update cup stage
+      // Set the cup stage to the first knockout round. The bracket itself is
+      // NOT auto-generated — the admin performs the manual draw, which resolves
+      // the A1…B4 placeholders now that qualification is settled.
       const { error: updateError } = await supabaseAdmin
         .from('cups')
         .update({ stage: nextStage })
@@ -170,10 +145,10 @@ export async function POST(
       }
 
       return NextResponse.json({
-        message: `Cup advanced to ${nextStage}`,
+        message: `Cup advanced to ${nextStage}. Perform the knockout draw to create the ties.`,
         stage: nextStage,
-        matchesCreated: insertedMatches.length,
-        qualifiedTeams: qualifiedTeams.length
+        qualifiedTeams: totalQualifiers,
+        requiresManualDraw: true
       })
     } else if (cup.stage === 'final') {
       return NextResponse.json({ error: 'Cup is already in final stage' }, { status: 400 })

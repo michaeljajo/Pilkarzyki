@@ -1,4 +1,7 @@
 import { supabaseAdmin } from '@/lib/supabase'
+import { computeQualifiedManagerIds } from '@/utils/cup-scheduling'
+import { DEFAULT_CUP_FORMAT } from '@/lib/cup-format'
+import type { CupFormat } from '@/types'
 
 export interface MatchResult {
   id: string
@@ -389,6 +392,14 @@ export async function recalculateLeagueStandings(leagueId: string): Promise<Mana
  * Calculate and update cup group standings for a specific cup
  */
 export async function recalculateCupGroupStandings(cupId: string): Promise<void> {
+  // Load the cup format so qualification is driven by config, not hardcoded.
+  const { data: cupRow } = await supabaseAdmin
+    .from('cups')
+    .select('format')
+    .eq('id', cupId)
+    .single()
+  const format = (cupRow?.format as CupFormat | undefined) ?? DEFAULT_CUP_FORMAT
+
   // Get all cup matches for this cup that are completed
   const { data: cupMatches } = await supabaseAdmin
     .from('cup_matches')
@@ -545,7 +556,8 @@ export async function recalculateCupGroupStandings(cupId: string): Promise<void>
 
     const sorted = sortStandingsWithTiebreakers(Object.values(groupStats), groupMatches)
 
-    // Convert to cup standings format
+    // Convert to cup standings format (qualified is decided per format below,
+    // once every group has been ranked, so cross-group "best remaining" works).
     sorted.forEach((stats, index) => {
       allStandings.push({
         cup_id: cupId,
@@ -560,9 +572,26 @@ export async function recalculateCupGroupStandings(cupId: string): Promise<void>
         goal_difference: stats.goalDifference,
         points: stats.points,
         position: index + 1,
-        qualified: index < 2 // Top 2 qualify
+        qualified: false
       })
     })
+  }
+
+  // Mark qualifiers per the cup's format: positions 1..topPerGroup in each
+  // group, plus the best `bestRemaining` next-placed teams across groups.
+  const qualifiedIds = computeQualifiedManagerIds(
+    allStandings.map(s => ({
+      managerId: s.manager_id,
+      groupName: s.group_name,
+      position: s.position,
+      points: s.points,
+      goalsFor: s.goals_for,
+      goalsAgainst: s.goals_against,
+    })),
+    format.qualification
+  )
+  for (const standing of allStandings) {
+    standing.qualified = qualifiedIds.has(standing.manager_id)
   }
 
   // Update database

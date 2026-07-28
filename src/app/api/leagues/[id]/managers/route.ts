@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { supabaseAdmin } from '@/lib/supabase'
-import { auth } from '@clerk/nextjs/server'
+import { auth, clerkClient } from '@clerk/nextjs/server'
 import { resolveUserNames } from '@/utils/name-resolver'
 import { verifyLeagueAdmin, assertLeagueMutable } from '@/lib/auth-helpers'
 import { LEAGUE_LIMITS, VALIDATION_MESSAGES } from '@/config/constants'
@@ -48,19 +48,60 @@ export async function GET(
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    // Transform the data to match expected User interface
+    // Transform the data to match expected User interface.
+    // GDPR: we never send email addresses to the client here. The managers list
+    // renders `displayName` — a non-identifying handle (Clerk username, else the
+    // local-part of the email) — while firstName/lastName are kept for other
+    // consumers of this endpoint. We batch-load the Clerk profiles in one call
+    // so we always have the real username/email and never leak the "Admin User"
+    // / <prefix>-<clerkId>@temp.com placeholders left in legacy mirror rows.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const managers = (data || []).map((squad: any) => ({
-      id: squad.users.clerk_id || squad.users.id, // Use Clerk ID for API calls
-      clerkId: squad.users.clerk_id,
-      databaseId: squad.users.id, // Keep database ID for reference
-      email: squad.users.email,
-      firstName: squad.users.first_name,
-      lastName: squad.users.last_name,
-      isAdmin: squad.users.is_admin,
-      createdAt: new Date(squad.users.created_at),
-      updatedAt: new Date(squad.users.created_at) // Using created_at as fallback
-    }))
+    const rows: any[] = (data || []).map((squad: any) => squad.users).filter(Boolean)
+    const clerkIds = rows.map((u) => u.clerk_id).filter(Boolean)
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const clerkById = new Map<string, any>()
+    if (clerkIds.length > 0) {
+      try {
+        const client = await clerkClient()
+        const list = await client.users.getUserList({ userId: clerkIds, limit: clerkIds.length })
+        for (const cu of list.data) clerkById.set(cu.id, cu)
+      } catch (e) {
+        console.warn('Managers GET - Clerk batch lookup failed:', e)
+      }
+    }
+
+    const managers = rows.map((u) => {
+      const clerkUser = clerkById.get(u.clerk_id)
+
+      // Prefer the live Clerk profile; only fall back to the mirror row, and
+      // never trust a @temp.com placeholder email.
+      const realEmail = clerkUser?.emailAddresses?.[0]?.emailAddress || ''
+      const dbEmail = typeof u.email === 'string' && !u.email.endsWith('@temp.com') ? u.email : ''
+      const email = realEmail || dbEmail
+
+      const { firstName, lastName } = resolveUserNames({
+        email,
+        first_name: clerkUser ? clerkUser.firstName : u.first_name,
+        last_name: clerkUser ? clerkUser.lastName : u.last_name,
+        username: clerkUser?.username,
+      })
+
+      const displayName =
+        clerkUser?.username || email.split('@')[0] || firstName || 'Użytkownik'
+
+      return {
+        id: u.clerk_id || u.id, // Use Clerk ID for API calls
+        clerkId: u.clerk_id,
+        databaseId: u.id, // Keep database ID for reference
+        displayName,
+        firstName,
+        lastName,
+        isAdmin: u.is_admin,
+        createdAt: new Date(u.created_at),
+        updatedAt: new Date(u.created_at) // Using created_at as fallback
+      }
+    })
 
     return NextResponse.json({ managers })
   } catch (error) {

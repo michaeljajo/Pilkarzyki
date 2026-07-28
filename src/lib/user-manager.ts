@@ -1,4 +1,6 @@
 import { supabaseAdmin } from '@/lib/supabase'
+import { clerkClient } from '@clerk/nextjs/server'
+import { resolveUserNames } from '@/utils/name-resolver'
 
 interface GetOrCreateUserOptions {
   selectFields?: string
@@ -34,13 +36,39 @@ export async function getOrCreateUser(
     if (fetchError?.code === 'PGRST116') {
       console.log(`${context} - Creating new user for Clerk ID:`, clerkUserId)
 
+      // Pull the real Clerk profile so the mirror holds the user's actual
+      // identity instead of a placeholder ("User Account" / user-<id>@temp.com).
+      let email = ''
+      let firstName = ''
+      let lastName = ''
+      try {
+        const client = await clerkClient()
+        const clerkUser = await client.users.getUser(clerkUserId)
+        email = clerkUser.emailAddresses[0]?.emailAddress || ''
+        const resolved = resolveUserNames({
+          email,
+          first_name: clerkUser.firstName,
+          last_name: clerkUser.lastName,
+          username: clerkUser.username,
+        })
+        firstName = resolved.firstName
+        lastName = resolved.lastName
+      } catch (clerkError) {
+        // If Clerk is unreachable we still create the row, but with a resolved
+        // fallback name rather than a fake email address.
+        console.warn(`${context} - Could not fetch Clerk profile:`, clerkError)
+        const resolved = resolveUserNames({ email: '' })
+        firstName = resolved.firstName
+        lastName = resolved.lastName
+      }
+
       const { data: newUser, error: createError } = await supabaseAdmin
         .from('users')
         .insert({
           clerk_id: clerkUserId,
-          email: `user-${clerkUserId}@temp.com`,
-          first_name: 'User',
-          last_name: 'Account',
+          email,
+          first_name: firstName,
+          last_name: lastName,
         })
         .select(selectFields)
         .single()

@@ -188,6 +188,7 @@ export async function GET(
     let currentCupLineup = null
     let cup = null
     let isEliminatedFromCup = false
+    let isCupBye = false
     let isKnockoutDecider = false
     let currentCupEtLineup = null
     let currentCupPenaltyLineup = null
@@ -263,7 +264,25 @@ export async function GET(
               currentCupPenaltyLineup = penaltyResult.data
             }
           } else {
-            isEliminatedFromCup = true
+            // No cup match this cup gameweek. During the group stage a
+            // participant simply has a bye ("Pauza") this round — they are NOT
+            // eliminated. Outside the group stage, no match means eliminated.
+            if (cupGameweek.stage === 'group_stage') {
+              const { data: groupRow } = await supabaseAdmin
+                .from('cup_groups')
+                .select('id')
+                .eq('cup_id', cupData.id)
+                .eq('manager_id', targetUserId)
+                .limit(1)
+                .maybeSingle()
+              if (groupRow) {
+                isCupBye = true
+              } else {
+                isEliminatedFromCup = true
+              }
+            } else {
+              isEliminatedFromCup = true
+            }
           }
         }
       }
@@ -294,6 +313,7 @@ export async function GET(
       defaultCupLineup,
       isDualGameweek: !!(currentGameweek && currentCupGameweek),
       isEliminatedFromCup,
+      isCupBye,
       isKnockoutDecider,
       currentCupEtLineup,
       currentCupPenaltyLineup

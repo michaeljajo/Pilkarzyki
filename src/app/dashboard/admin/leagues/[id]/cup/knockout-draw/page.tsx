@@ -2,6 +2,9 @@
 
 import { use, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { qualifyingPlaceholders, stageLabelPl } from '@/lib/cup-format'
+import { stageBracketSize } from '@/utils/cup-scheduling'
+import type { CupFormat, CupStage } from '@/types'
 
 interface QualifiedTeam {
   managerId: string
@@ -46,6 +49,7 @@ export default function KnockoutDrawPage({ params }: { params: Promise<{ id: str
 
   // Cup and teams data
   const [cupId, setCupId] = useState<string | null>(null)
+  const [cupFormat, setCupFormat] = useState<CupFormat | null>(null)
   const [qualifiedTeams, setQualifiedTeams] = useState<QualifiedTeam[]>([])
   const [teamsByGroup, setTeamsByGroup] = useState<Record<string, QualifiedTeam[]>>({})
   const [cupGameweeks, setCupGameweeks] = useState<CupGameweek[]>([])
@@ -84,6 +88,7 @@ export default function KnockoutDrawPage({ params }: { params: Promise<{ id: str
 
       if (response.ok && data.cup) {
         setCupId(data.cup.id)
+        if (data.cup.format) setCupFormat(data.cup.format as CupFormat)
       } else {
         setError('No cup found for this league')
         setIsLoading(false)
@@ -353,6 +358,31 @@ export default function KnockoutDrawPage({ params }: { params: Promise<{ id: str
 
   const stageGameweeks = cupGameweeks.filter(gw => gw.stage === selectedStage)
 
+  // Placeholder options offered for the selected round, derived from the cup
+  // format. The first knockout round draws from group positions (A1…B4); later
+  // rounds draw from the previous round's tie winners (QF1…, SF1…). Labels are
+  // in Polish. The inputs stay free-text (a <datalist> just offers these).
+  const winnerPrefix: Partial<Record<CupStage, string>> = {
+    round_of_32: 'R32', round_of_16: 'R16', quarter_final: 'QF', semi_final: 'SF',
+  }
+  const placeholderOptions: { code: string; label: string }[] = (() => {
+    if (!cupFormat) return []
+    const stages = cupFormat.knockout.map(k => k.stage)
+    const idx = stages.indexOf(selectedStage as CupStage)
+    if (idx <= 0) {
+      // First knockout round → qualifying group positions.
+      return qualifyingPlaceholders(cupFormat)
+    }
+    // Subsequent round → winners of the previous round's ties.
+    const prevStage = stages[idx - 1]
+    const prefix = winnerPrefix[prevStage] ?? 'W'
+    const tieCount = stageBracketSize(prevStage) / 2
+    return Array.from({ length: tieCount }, (_, i) => ({
+      code: `${prefix}${i + 1}`,
+      label: `Zwycięzca: ${stageLabelPl(prevStage)} nr ${i + 1}`,
+    }))
+  })()
+
   return (
     <div className="container mx-auto py-8 px-4 max-w-6xl">
       <div className="mb-8">
@@ -548,34 +578,53 @@ export default function KnockoutDrawPage({ params }: { params: Promise<{ id: str
             </div>
           )}
 
+          {/* Offered placeholders for this round, derived from the cup format */}
+          {placeholderOptions.length > 0 && (
+            <div className="mb-4 text-sm bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded p-3">
+              <p className="font-semibold text-emerald-900 dark:text-emerald-100 mb-2">
+                Dostępne pozycje dla tej rundy:
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {placeholderOptions.map(opt => (
+                  <span key={opt.code} className="inline-flex items-center gap-1 bg-emerald-100 dark:bg-emerald-800 px-2 py-1 rounded">
+                    <code className="font-semibold">{opt.code}</code>
+                    <span className="text-emerald-700 dark:text-emerald-200">— {opt.label}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <datalist id="placeholder-options">
+            {placeholderOptions.map(opt => (
+              <option key={opt.code} value={opt.code}>{opt.label}</option>
+            ))}
+          </datalist>
+
           <div className="space-y-4 mb-6">
             {pairings.map((pairing, index) => (
               <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-900/50">
-                <h3 className="font-semibold mb-3">Match {index + 1}</h3>
+                <h3 className="font-semibold mb-3">Mecz {index + 1}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Home Team</label>
+                    <label className="block text-sm font-medium mb-2">Gospodarz</label>
                     <input
                       type="text"
+                      list="placeholder-options"
                       value={pairing.homeManager}
                       onChange={(e) => updatePairing(index, 'homeManager', e.target.value.toUpperCase())}
-                      placeholder={
-                        selectedStage === 'quarter_final' ? 'e.g., A1, B2, C1' :
-                        selectedStage === 'semi_final' ? 'e.g., QF1, QF2' : 'Enter team'
-                      }
+                      placeholder={placeholderOptions[0]?.code ?? 'np. A1'}
                       className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Away Team</label>
+                    <label className="block text-sm font-medium mb-2">Gość</label>
                     <input
                       type="text"
+                      list="placeholder-options"
                       value={pairing.awayManager}
                       onChange={(e) => updatePairing(index, 'awayManager', e.target.value.toUpperCase())}
-                      placeholder={
-                        selectedStage === 'quarter_final' ? 'e.g., D2, A2, B1' :
-                        selectedStage === 'semi_final' ? 'e.g., QF3, QF4' : 'Enter team'
-                      }
+                      placeholder={placeholderOptions[1]?.code ?? 'np. B1'}
                       className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500"
                     />
                   </div>

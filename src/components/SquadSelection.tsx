@@ -22,6 +22,7 @@ interface SquadData {
   defaultCupLineup?: DefaultCupLineup | null
   isDualGameweek: boolean
   isEliminatedFromCup?: boolean
+  isCupBye?: boolean
   isKnockoutDecider?: boolean
   currentCupEtLineup?: CupEtLineup | null
   currentCupPenaltyLineup?: CupPenaltyLineup | null
@@ -734,6 +735,18 @@ export default function SquadSelection({ leagueId, isDefaultMode = false, defaul
               </div>
             )}
 
+            {/* Cup bye notice */}
+            {squadData?.isCupBye && (
+              <div className="mx-4 p-3 rounded-lg border bg-blue-50 border-blue-300">
+                <div className="flex items-center gap-2">
+                  <Trophy size={16} className="text-blue-600" />
+                  <span className="text-sm text-blue-800 font-medium">
+                    Pauza w tej kolejce. Skład pucharowy nie jest wymagany.
+                  </span>
+                </div>
+              </div>
+            )}
+
             {/* Save Button */}
             <div className="px-4 space-y-2">
               <Button
@@ -1261,6 +1274,18 @@ export default function SquadSelection({ leagueId, isDefaultMode = false, defaul
                     <Trophy size={16} className="text-yellow-600" />
                     <span className="text-sm text-yellow-800 font-medium">
                       Zostałeś wyeliminowany z pucharu. Skład pucharowy nie jest wymagany.
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Cup bye notice */}
+              {squadData?.isCupBye && (
+                <div className="p-3 rounded-lg border bg-blue-50 border-blue-300">
+                  <div className="flex items-center gap-2">
+                    <Trophy size={16} className="text-blue-600" />
+                    <span className="text-sm text-blue-800 font-medium">
+                      Pauza w tej kolejce. Skład pucharowy nie jest wymagany.
                     </span>
                   </div>
                 </div>

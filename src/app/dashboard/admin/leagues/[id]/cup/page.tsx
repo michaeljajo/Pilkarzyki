@@ -5,12 +5,19 @@ import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Alert } from '@/components/ui/Alert'
-import { Modal } from '@/components/ui/Modal'
-import { Input } from '@/components/ui/Input'
-import { EmptyState } from '@/components/ui/EmptyState'
-import { Trophy, Plus, Trash2, Users, Calendar, Award, Edit3 } from 'lucide-react'
+import { Trophy, Trash2, Users, Calendar, Award, Edit3 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { CupWithLeague } from '@/types'
+import { stageLabelPl } from '@/lib/cup-format'
+import CupSetupWizard from './CupSetupWizard'
+
+interface WizardManager {
+  id: string
+  firstName?: string | null
+  lastName?: string | null
+  email: string
+}
+interface WizardGameweek { id: string; week: number }
 
 interface CupStats {
   totalManagers: number
@@ -29,8 +36,8 @@ export default function CupOverviewPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  const [showCreateModal, setShowCreateModal] = useState(false)
-  const [cupName, setCupName] = useState('')
+  const [managers, setManagers] = useState<WizardManager[]>([])
+  const [gameweeks, setGameweeks] = useState<WizardGameweek[]>([])
 
   useEffect(() => {
     if (params.id) {
@@ -63,6 +70,15 @@ export default function CupOverviewPage() {
       } else {
         setCup(null)
         setStats(null)
+        // No cup yet → load the data the setup wizard needs.
+        const [managersRes, gameweeksRes] = await Promise.all([
+          fetch(`/api/leagues/${params.id}/managers`),
+          fetch(`/api/leagues/${params.id}/gameweeks`),
+        ])
+        const managersData = await managersRes.json()
+        const gameweeksData = await gameweeksRes.json()
+        setManagers(managersData.managers || [])
+        setGameweeks(gameweeksData.gameweeks || [])
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load cup data')
@@ -93,8 +109,8 @@ export default function CupOverviewPage() {
         sum + (gw.matches?.filter((m) => m.stage === 'group_stage').length || 0), 0
       )
 
-      // Calculate expected number of groups (2 for 4-team cups, otherwise totalManagers / 4)
-      const totalGroups = totalManagers === 4 ? 2 : totalManagers / 4
+      // Expected number of groups comes from the cup's saved format.
+      const totalGroups = cup?.format?.groups?.count ?? Object.keys(groups).length
 
       setStats({
         totalManagers,
@@ -105,40 +121,6 @@ export default function CupOverviewPage() {
       })
     } catch (err) {
       console.error('Failed to fetch cup stats:', err)
-    }
-  }
-
-  async function createCup() {
-    if (!cupName.trim()) {
-      setError('Cup name is required')
-      return
-    }
-
-    try {
-      setSaving(true)
-      const response = await fetch('/api/cups', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          leagueId: params.id,
-          name: cupName
-        })
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to create cup')
-      }
-
-      setSuccess('Cup tournament created successfully!')
-      setShowCreateModal(false)
-      setCupName('')
-      await fetchCupData()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create cup')
-    } finally {
-      setSaving(false)
     }
   }
 
@@ -205,22 +187,14 @@ export default function CupOverviewPage() {
         </Alert>
       )}
 
-      {/* No Cup Created */}
+      {/* No Cup Created → setup wizard */}
       {!cup && (
-        <Card className="hover-lift">
-          <CardContent>
-            <EmptyState
-              icon={<Trophy size={56} />}
-              title="Nie utworzono turnieju pucharowego"
-              description="Utwórz turniej pucharowy, który będzie prowadzony równolegle z ligą. Wymaga dokładnie 4, 8, 16 lub 32 menedżerów."
-              action={{
-                label: 'Utwórz Turniej Pucharowy',
-                onClick: () => setShowCreateModal(true),
-                icon: <Plus size={18} />
-              }}
-            />
-          </CardContent>
-        </Card>
+        <CupSetupWizard
+          leagueId={params.id as string}
+          managers={managers}
+          gameweeks={gameweeks}
+          onCreated={fetchCupData}
+        />
       )}
 
       {/* Cup Overview */}
@@ -250,8 +224,8 @@ export default function CupOverviewPage() {
                 {/* Stage */}
                 <div className="p-6 bg-[var(--background-tertiary)] rounded-xl">
                   <div className="text-sm text-[var(--foreground-secondary)] mb-2">Obecny Etap</div>
-                  <div className="text-2xl font-bold text-[var(--foreground)] capitalize">
-                    {cup.stage.replace('_', ' ')}
+                  <div className="text-2xl font-bold text-[var(--foreground)]">
+                    {stageLabelPl(cup.stage)}
                   </div>
                 </div>
 
@@ -271,6 +245,38 @@ export default function CupOverviewPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Read-only format summary (locked once the schedule is generated) */}
+              {cup.format && (
+                <div className="mt-6 p-6 bg-[var(--background-tertiary)] rounded-xl">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="text-sm font-semibold text-[var(--foreground-secondary)]">Format Pucharu</div>
+                    {stats.scheduleGenerated && (
+                      <span className="text-xs px-2 py-1 rounded-full bg-[var(--navy-border)]/30 text-[var(--foreground-tertiary)]">
+                        Tylko do odczytu — zmiana wymaga usunięcia pucharu
+                      </span>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div>
+                      <div className="text-[var(--foreground-tertiary)]">Grupy</div>
+                      <div className="font-semibold">{cup.format.groups.count} × {cup.format.groups.legs === 2 ? 'dwumecz' : 'raz'}</div>
+                    </div>
+                    <div>
+                      <div className="text-[var(--foreground-tertiary)]">Awans z grupy</div>
+                      <div className="font-semibold">{cup.format.qualification.topPerGroup}{cup.format.qualification.bestRemaining > 0 ? ` + ${cup.format.qualification.bestRemaining} najlepszych` : ''}</div>
+                    </div>
+                    <div>
+                      <div className="text-[var(--foreground-tertiary)]">Losowanie grup</div>
+                      <div className="font-semibold">{cup.format.groups.assignment === 'random' ? 'Losowe' : 'Ręczne'}</div>
+                    </div>
+                    <div>
+                      <div className="text-[var(--foreground-tertiary)]">Faza pucharowa</div>
+                      <div className="font-semibold">{cup.format.knockout.map(k => `${stageLabelPl(k.stage)} (${k.legs})`).join(' → ')}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -304,7 +310,7 @@ export default function CupOverviewPage() {
                       <div className="text-sm text-[var(--foreground-secondary)]">
                         {stats.groupsAssigned === stats.totalGroups
                           ? 'Wszyscy menedżerowie przypisani do grup'
-                          : `Przypisz ${stats.totalManagers} menedżerów do ${stats.totalGroups} grup po ${stats.totalManagers === 4 ? '2' : '4'}`
+                          : `Przypisz menedżerów do ${stats.totalGroups} grup`
                         }
                       </div>
                     </div>
@@ -444,54 +450,6 @@ export default function CupOverviewPage() {
           </Card>
         </>
       )}
-
-      {/* Create Cup Modal */}
-      <Modal
-        isOpen={showCreateModal}
-        onClose={() => {
-          setShowCreateModal(false)
-          setCupName('')
-        }}
-        title="Utwórz Turniej Pucharowy"
-        description="Utwórz pucharowe rozgrywki eliminacyjne dla swojej ligi"
-        icon={<Trophy size={24} />}
-        footer={
-          <div className="flex gap-3 justify-end">
-            <Button
-              variant="secondary"
-              onClick={() => {
-                setShowCreateModal(false)
-                setCupName('')
-              }}
-              disabled={saving}
-            >
-              Anuluj
-            </Button>
-            <Button
-              onClick={createCup}
-              loading={saving}
-              disabled={!cupName.trim()}
-              icon={<Plus size={18} />}
-            >
-              Utwórz Puchar
-            </Button>
-          </div>
-        }
-      >
-        <div className="space-y-4">
-          <Input
-            label="Nazwa Pucharu"
-            value={cupName}
-            onChange={(e) => setCupName(e.target.value)}
-            placeholder="np. Puchar Ligi 2024/25"
-            fullWidth
-            required
-          />
-          <Alert variant="info">
-            <strong>Wymagania:</strong> Twoja liga musi mieć dokładnie 8, 16 lub 32 menedżerów, aby utworzyć turniej pucharowy.
-          </Alert>
-        </div>
-      </Modal>
     </div>
   )
 }

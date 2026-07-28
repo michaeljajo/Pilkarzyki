@@ -4,9 +4,11 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { verifyLeagueAdmin, assertLeagueMutableByCup } from '@/lib/auth-helpers'
 import {
   generateGroupStageSchedule,
+  validateCupFormat,
   GroupAssignment,
   CupScheduleMatch
 } from '@/utils/cup-scheduling'
+import type { CupFormat, CupStage } from '@/types'
 
 interface GameweekMapping {
   cupWeek: number
@@ -216,7 +218,7 @@ export async function POST(
     // Get cup and verify admin access
     const { data: cup, error: cupError } = await supabaseAdmin
       .from('cups')
-      .select('league_id, stage')
+      .select('league_id, stage, format')
       .eq('id', cupId)
       .single()
 
@@ -229,6 +231,8 @@ export async function POST(
     if (!isAdmin) {
       return NextResponse.json({ error: authError || 'Forbidden' }, { status: 403 })
     }
+
+    const format = cup.format as CupFormat
 
     // Check if schedule already exists
     const { data: existingGameweeks } = await supabaseAdmin
@@ -276,49 +280,58 @@ export async function POST(
       managerIds: ids
     }))
 
-    // Generate group stage schedule
-    const scheduleMatches = generateGroupStageSchedule(groupAssignments)
+    const totalManagers = groupAssignments.reduce((sum, g) => sum + g.managerIds.length, 0)
 
-    // Find max cup week from generated schedule
-    const maxCupWeek = Math.max(...scheduleMatches.map(m => m.cupWeek))
-
-    // Validate we have enough gameweek mappings
-    if (gameweekMappings.length < maxCupWeek) {
+    // Validate the saved format against the actual participant count before we
+    // commit any rows.
+    const validation = validateCupFormat(totalManagers, format)
+    if (!validation.valid) {
       return NextResponse.json(
-        { error: `Schedule requires ${maxCupWeek} gameweeks but only ${gameweekMappings.length} mappings provided` },
+        { error: validation.errors[0] || 'Nieprawidłowy format pucharu', errors: validation.errors },
         { status: 400 }
       )
     }
 
-    // Determine total managers for knockout structure
-    const totalManagers = groupAssignments.reduce((sum, g) => sum + g.managerIds.length, 0)
+    // Generate group stage schedule (single/double RR from the format).
+    const scheduleMatches = generateGroupStageSchedule(groupAssignments, format.groups.legs)
 
-    // Create cup gameweeks for ALL stages (group + knockout)
-    const cupGameweeksToInsert = gameweekMappings.map((mapping: GameweekMapping, index: number) => {
-      let stage = 'group_stage'
-      let leg = 1
+    // Derive the stage/leg layout for every cup week from the format:
+    // group-stage weeks first, then each knockout round occupies `legs` weeks.
+    const groupStageWeeks = validation.summary.groupStageWeeks
+    const weekLayout = new Map<number, { stage: CupStage; leg: number }>()
+    for (let week = 1; week <= groupStageWeeks; week++) {
+      weekLayout.set(week, { stage: 'group_stage', leg: 1 })
+    }
+    let cursor = groupStageWeeks
+    for (const round of format.knockout) {
+      for (let leg = 1; leg <= round.legs; leg++) {
+        cursor++
+        weekLayout.set(cursor, { stage: round.stage, leg })
+      }
+    }
+    const totalWeeks = cursor
 
-      if (totalManagers === 4) {
-        // 4-team cup: weeks 1-2 group, 3-4 semi, 5 final
-        if (mapping.cupWeek <= 2) {
-          stage = 'group_stage'
-        } else if (mapping.cupWeek <= 4) {
-          stage = 'semi_final'
-          leg = mapping.cupWeek - 2
-        } else {
-          stage = 'final'
+    // Validate we have a mapping for every cup week the format needs.
+    if (gameweekMappings.length < totalWeeks) {
+      return NextResponse.json(
+        { error: `Schedule requires ${totalWeeks} gameweeks but only ${gameweekMappings.length} mappings provided` },
+        { status: 400 }
+      )
+    }
+
+    // Create cup gameweeks for ALL stages (group + knockout), stage/leg from the layout.
+    const cupGameweeksToInsert = gameweekMappings
+      .filter((mapping: GameweekMapping) => weekLayout.has(mapping.cupWeek))
+      .map((mapping: GameweekMapping) => {
+        const layout = weekLayout.get(mapping.cupWeek)!
+        return {
+          cup_id: cupId,
+          league_gameweek_id: mapping.leagueGameweekId,
+          cup_week: mapping.cupWeek,
+          stage: layout.stage,
+          leg: layout.leg
         }
-      }
-      // Add logic for 8, 16, 32 teams later
-
-      return {
-        cup_id: cupId,
-        league_gameweek_id: mapping.leagueGameweekId,
-        cup_week: mapping.cupWeek,
-        stage,
-        leg
-      }
-    })
+      })
 
     const { data: insertedGameweeks, error: gameweeksInsertError } = await supabaseAdmin
       .from('cup_gameweeks')

@@ -246,15 +246,31 @@ export async function GET(
         email: user.email
       }))
 
-    // If cupGameweekId is provided, get lineups for that cup gameweek
+    // If cupGameweekId is provided, get lineups for that cup gameweek.
     if (cupGameweekId) {
+      // Only managers who actually have a cup match this cup gameweek need a
+      // lineup. Managers on a bye (no match row) are excluded so they are not
+      // counted as "missing" in the admin progress counters.
+      const { data: matchRows } = await supabaseAdmin
+        .from('cup_matches')
+        .select('home_manager_id, away_manager_id')
+        .eq('cup_gameweek_id', cupGameweekId)
+
+      const participantIds = new Set<string>()
+      for (const m of matchRows || []) {
+        if (m.home_manager_id) participantIds.add(m.home_manager_id)
+        if (m.away_manager_id) participantIds.add(m.away_manager_id)
+      }
+
+      const playingManagers = managers.filter(m => participantIds.has(m.id))
+
       const { data: lineups } = await supabaseAdmin
         .from('cup_lineups')
         .select('*')
         .eq('cup_gameweek_id', cupGameweekId)
-        .in('manager_id', managers.map(m => m.id))
+        .in('manager_id', playingManagers.map(m => m.id))
 
-      return NextResponse.json({ managers, lineups: lineups || [] })
+      return NextResponse.json({ managers: playingManagers, lineups: lineups || [] })
     }
 
     return NextResponse.json({ managers })

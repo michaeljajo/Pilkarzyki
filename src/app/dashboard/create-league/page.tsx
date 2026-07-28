@@ -196,7 +196,7 @@ export default function CreateLeaguePage() {
                 placeholder="18"
               />
               <p className="text-xs text-[var(--foreground-tertiary)] mt-2">
-                Maksymalna liczba menedżerów (drużyn) w lidze. Można ją później zmienić w ustawieniach.
+                Maksymalna liczba menedżerów (drużyn) w lidze.
               </p>
             </div>
 

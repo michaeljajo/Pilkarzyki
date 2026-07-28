@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import Link from 'next/link'
 import { Edit2 } from 'lucide-react'
+import { splitFullName } from '@/lib/draft-players'
 
 type Position = 'Goalkeeper' | 'Defender' | 'Midfielder' | 'Forward'
 
@@ -33,8 +34,7 @@ export default function LeaguePlayersPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [editError, setEditError] = useState<string | null>(null)
   const [editForm, setEditForm] = useState({
-    name: '',
-    surname: '',
+    fullName: '',
     club: '',
     footballLeague: '',
     position: 'Forward' as Position
@@ -67,8 +67,7 @@ export default function LeaguePlayersPage() {
   function handleEditClick(player: Player) {
     setEditingPlayer(player)
     setEditForm({
-      name: player.name,
-      surname: player.surname,
+      fullName: `${player.name} ${player.surname}`.trim(),
       club: player.club || '',
       footballLeague: player.football_league || '',
       position: player.position
@@ -84,10 +83,17 @@ export default function LeaguePlayersPage() {
       setIsSaving(true)
       setEditError(null)
 
+      const { name, surname } = splitFullName(editForm.fullName)
       const response = await fetch(`/api/players/${editingPlayer.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editForm)
+        body: JSON.stringify({
+          name,
+          surname,
+          club: editForm.club,
+          footballLeague: editForm.footballLeague,
+          position: editForm.position
+        })
       })
 
       const data = await response.json()
@@ -215,7 +221,7 @@ export default function LeaguePlayersPage() {
                       <thead className="bg-gray-50">
                         <tr>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Nazwisko
+                            Imię i Nazwisko
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Klub
@@ -299,29 +305,16 @@ export default function LeaguePlayersPage() {
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Imię
-              </label>
-              <input
-                type="text"
-                value={editForm.name}
-                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Nazwisko
-              </label>
-              <input
-                type="text"
-                value={editForm.surname}
-                onChange={(e) => setEditForm({ ...editForm, surname: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Imię i Nazwisko
+            </label>
+            <input
+              type="text"
+              value={editForm.fullName}
+              onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
+              className="w-full px-3 py-2 bg-white text-gray-900 border border-gray-400 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
           </div>
 
           <div>
@@ -333,7 +326,7 @@ export default function LeaguePlayersPage() {
               value={editForm.club}
               onChange={(e) => setEditForm({ ...editForm, club: e.target.value })}
               placeholder="np. Stade Rennais"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 bg-white text-gray-900 border border-gray-400 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             />
           </div>
 
@@ -346,7 +339,7 @@ export default function LeaguePlayersPage() {
               value={editForm.footballLeague}
               onChange={(e) => setEditForm({ ...editForm, footballLeague: e.target.value })}
               placeholder="np. Ligue 1"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 bg-white text-gray-900 border border-gray-400 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             />
           </div>
 
@@ -357,7 +350,7 @@ export default function LeaguePlayersPage() {
             <select
               value={editForm.position}
               onChange={(e) => setEditForm({ ...editForm, position: e.target.value as Position })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 bg-white text-gray-900 border border-gray-400 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             >
               <option value="Goalkeeper">Bramkarz</option>
               <option value="Defender">Obrońca</option>

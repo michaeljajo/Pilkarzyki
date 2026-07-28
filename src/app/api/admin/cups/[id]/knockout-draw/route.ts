@@ -6,7 +6,9 @@ import {
   resolvePlaceholder,
   type MatchPairing
 } from '@/utils/knockout-resolver'
-import { CupStage } from '@/types'
+import { legsForStage } from '@/utils/cup-scheduling'
+import { DEFAULT_CUP_FORMAT } from '@/lib/cup-format'
+import { CupStage, CupFormat } from '@/types'
 
 interface KnockoutDrawRequest {
   stage: CupStage
@@ -33,7 +35,7 @@ export async function POST(
     // Get cup and verify it exists
     const { data: cup, error: cupError } = await supabaseAdmin
       .from('cups')
-      .select('id, league_id, stage')
+      .select('id, league_id, stage, format')
       .eq('id', cupId)
       .single()
 
@@ -47,6 +49,8 @@ export async function POST(
       return NextResponse.json({ error: authError || 'Forbidden' }, { status: 403 })
     }
 
+    const format = (cup.format as CupFormat | undefined) ?? DEFAULT_CUP_FORMAT
+
     const body: KnockoutDrawRequest = await request.json()
 
     if (!body.stage || !body.matches || !Array.isArray(body.matches)) {
@@ -56,7 +60,7 @@ export async function POST(
     }
 
     // Validate stage
-    const validKnockoutStages: CupStage[] = ['round_of_16', 'quarter_final', 'semi_final', 'final']
+    const validKnockoutStages: CupStage[] = ['round_of_32', 'round_of_16', 'quarter_final', 'semi_final', 'final']
     if (!validKnockoutStages.includes(body.stage)) {
       return NextResponse.json({
         error: `Invalid knockout stage. Must be one of: ${validKnockoutStages.join(', ')}`
@@ -105,8 +109,9 @@ export async function POST(
       }, { status: 400 })
     }
 
-    // Determine if this stage has two legs (all stages except final)
-    const isTwoLegged = body.stage !== 'final'
+    // Number of legs for this round comes from the cup format, not from
+    // whether the stage is the final.
+    const isTwoLegged = legsForStage(format, body.stage) === 2
 
     // Get leg 1 and leg 2 gameweeks
     const leg1Gameweek = cupGameweeks.find(gw => gw.leg === 1)
@@ -124,7 +129,7 @@ export async function POST(
       }, { status: 400 })
     }
 
-    // Create matches for both legs (or just leg 1 for finals)
+    // Create matches for both legs (or just leg 1 for single-leg rounds)
     // Assign match numbers for knockout stages (QF1, QF2, SF1, SF2, etc.)
     const matchesWithResolution = await Promise.all(
       body.matches.flatMap(async (pairing, index) => {
@@ -200,10 +205,13 @@ export async function POST(
         .eq('id', cupId)
     }
 
-    // If this is semi-finals, automatically create the final match (SF1 vs SF2)
+    // If the round just drawn is the one before the final, auto-create the
+    // final tie (SF1 vs SF2), with as many legs as the format configures.
     let finalMatch = null
     if (body.stage === 'semi_final') {
-      // Get the final gameweek
+      const finalLegs = legsForStage(format, 'final')
+
+      // Get the final gameweeks
       const { data: finalGameweeks } = await supabaseAdmin
         .from('cup_gameweeks')
         .select('id, leg')
@@ -212,29 +220,46 @@ export async function POST(
         .order('leg', { ascending: true })
 
       if (finalGameweeks && finalGameweeks.length > 0) {
-        // Finals are single-leg, so just get leg 1
-        const finalGameweek = finalGameweeks.find(gw => gw.leg === 1)
+        const finalLeg1 = finalGameweeks.find(gw => gw.leg === 1)
+        const finalLeg2 = finalGameweeks.find(gw => gw.leg === 2)
 
-        if (finalGameweek) {
-          // Create the final match: SF1 vs SF2
+        const finalRows: Record<string, unknown>[] = []
+        if (finalLeg1) {
+          finalRows.push({
+            cup_id: cupId,
+            cup_gameweek_id: finalLeg1.id,
+            home_manager_id: null,
+            away_manager_id: null,
+            home_team_source: 'SF1',
+            away_team_source: 'SF2',
+            stage: 'final',
+            leg: 1,
+            match_number: 1,
+            group_name: null,
+            is_completed: false
+          })
+        }
+        if (finalLegs === 2 && finalLeg2) {
+          finalRows.push({
+            cup_id: cupId,
+            cup_gameweek_id: finalLeg2.id,
+            home_manager_id: null,
+            away_manager_id: null,
+            home_team_source: 'SF2',
+            away_team_source: 'SF1',
+            stage: 'final',
+            leg: 2,
+            match_number: 1,
+            group_name: null,
+            is_completed: false
+          })
+        }
+
+        if (finalRows.length > 0) {
           const { data: createdFinal } = await supabaseAdmin
             .from('cup_matches')
-            .insert({
-              cup_id: cupId,
-              cup_gameweek_id: finalGameweek.id,
-              home_manager_id: null,
-              away_manager_id: null,
-              home_team_source: 'SF1',
-              away_team_source: 'SF2',
-              stage: 'final',
-              leg: 1,
-              match_number: 1,
-              group_name: null,
-              is_completed: false
-            })
+            .insert(finalRows)
             .select()
-            .single()
-
           finalMatch = createdFinal
         }
       }
@@ -247,7 +272,7 @@ export async function POST(
       stats: {
         stage: body.stage,
         matchesCreated: createdMatches.length,
-        legsPerTie: body.stage === 'final' ? 1 : 2
+        legsPerTie: legsForStage(format, body.stage)
       }
     })
 
@@ -362,7 +387,7 @@ export async function PUT(
     // Get cup and verify access
     const { data: cup } = await supabaseAdmin
       .from('cups')
-      .select('id, league_id')
+      .select('id, league_id, format')
       .eq('id', cupId)
       .single()
 
@@ -374,6 +399,8 @@ export async function PUT(
     if (!isAdmin) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
+
+    const format = (cup.format as CupFormat | undefined) ?? DEFAULT_CUP_FORMAT
 
     const body: KnockoutDrawRequest = await request.json()
 
@@ -420,8 +447,8 @@ export async function PUT(
       }, { status: 400 })
     }
 
-    // Determine if this stage has two legs (all stages except final)
-    const isTwoLegged = body.stage !== 'final'
+    // Number of legs for this round comes from the cup format.
+    const isTwoLegged = legsForStage(format, body.stage) === 2
 
     // Get leg 1 and leg 2 gameweeks
     const leg1Gameweek = cupGameweeks.find(gw => gw.leg === 1)
@@ -521,29 +548,47 @@ export async function PUT(
         .order('leg', { ascending: true })
 
       if (finalGameweeks && finalGameweeks.length > 0) {
-        // Finals are single-leg, so just get leg 1
-        const finalGameweek = finalGameweeks.find(gw => gw.leg === 1)
+        const finalLegs = legsForStage(format, 'final')
+        const finalLeg1 = finalGameweeks.find(gw => gw.leg === 1)
+        const finalLeg2 = finalGameweeks.find(gw => gw.leg === 2)
 
-        if (finalGameweek) {
-          // Create the final match: SF1 vs SF2
+        const finalRows: Record<string, unknown>[] = []
+        if (finalLeg1) {
+          finalRows.push({
+            cup_id: cupId,
+            cup_gameweek_id: finalLeg1.id,
+            home_manager_id: null,
+            away_manager_id: null,
+            home_team_source: 'SF1',
+            away_team_source: 'SF2',
+            stage: 'final',
+            leg: 1,
+            match_number: 1,
+            group_name: null,
+            is_completed: false
+          })
+        }
+        if (finalLegs === 2 && finalLeg2) {
+          finalRows.push({
+            cup_id: cupId,
+            cup_gameweek_id: finalLeg2.id,
+            home_manager_id: null,
+            away_manager_id: null,
+            home_team_source: 'SF2',
+            away_team_source: 'SF1',
+            stage: 'final',
+            leg: 2,
+            match_number: 1,
+            group_name: null,
+            is_completed: false
+          })
+        }
+
+        if (finalRows.length > 0) {
           const { data: createdFinal } = await supabaseAdmin
             .from('cup_matches')
-            .insert({
-              cup_id: cupId,
-              cup_gameweek_id: finalGameweek.id,
-              home_manager_id: null,
-              away_manager_id: null,
-              home_team_source: 'SF1',
-              away_team_source: 'SF2',
-              stage: 'final',
-              leg: 1,
-              match_number: 1,
-              group_name: null,
-              is_completed: false
-            })
+            .insert(finalRows)
             .select()
-            .single()
-
           finalMatch = createdFinal
         }
       }

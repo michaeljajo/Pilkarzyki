@@ -13,16 +13,22 @@ interface Manager {
   id: string
   firstName?: string
   lastName?: string
-  email: string
+  displayName?: string
+  email?: string
 }
 
 interface GroupAssignment {
   [groupName: string]: Manager[]
 }
 
-// Helper function to display manager name
+// Helper function to display manager name. Never shows the full email address
+// (GDPR) — prefers the handle, then the name, then the email local-part.
 function getManagerDisplayName(manager: Manager): string {
-  return manager.email
+  if (manager.displayName) return manager.displayName
+  const full = `${manager.firstName ?? ''} ${manager.lastName ?? ''}`.trim()
+  if (full) return full
+  if (manager.email) return manager.email.split('@')[0]
+  return 'Menedżer'
 }
 
 export default function CupGroupsPage() {
@@ -103,7 +109,6 @@ export default function CupGroupsPage() {
           manager: {
             first_name: string | null
             last_name: string | null
-            email: string
           }
         }
 
@@ -113,7 +118,6 @@ export default function CupGroupsPage() {
             id: m.managerId,
             firstName: m.manager.first_name || undefined,
             lastName: m.manager.last_name || undefined,
-            email: m.manager.email
           }))
         })
 
@@ -478,9 +482,6 @@ export default function CupGroupsPage() {
                           <div>
                             <div className="font-semibold">
                               {getManagerDisplayName(manager)}
-                            </div>
-                            <div className="text-xs text-[var(--foreground-secondary)]">
-                              {manager.email}
                             </div>
                           </div>
                         </div>

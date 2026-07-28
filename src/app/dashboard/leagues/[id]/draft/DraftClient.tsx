@@ -320,7 +320,7 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
 
   const onEditPlayerBoard = async (
     playerId: string,
-    form: { name: string; surname: string; club: string; footballLeague: string; position: string }
+    form: { fullName: string; club: string; footballLeague: string; position: string }
   ): Promise<boolean> => {
     try {
       const res = await fetch(`/api/leagues/${leagueId}/draft-edit-player`, {
@@ -406,9 +406,10 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
           {status !== 'finished' && notifStatus !== 'granted' && notifStatus !== 'unsupported' && (
             <button
               onClick={requestNotifications}
-              className="text-sm px-3 py-2 rounded-md border border-[#29544D] text-[#29544D] hover:bg-[#29544D]/5"
+              title="Włącz powiadomienia, aby wiedzieć, kiedy nadejdzie Twoja kolej"
+              className="text-sm whitespace-nowrap px-3 py-2 rounded-md border border-[#29544D] text-[#29544D] hover:bg-[#29544D]/5"
             >
-              Włącz powiadomienia, aby wiedzieć, kiedy nadejdzie Twoja kolej
+              🔔 Włącz powiadomienia
             </button>
           )}
         </div>

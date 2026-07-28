@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { verifyLeagueAdmin, assertLeagueMutable, assertLeagueMutableByCup } from '@/lib/auth-helpers'
-import { canLeagueHaveCup } from '@/utils/cup-scheduling'
+import { validateCupFormat } from '@/utils/cup-scheduling'
+import { DEFAULT_CUP_FORMAT } from '@/lib/cup-format'
+import type { CupFormat } from '@/types'
 
 /**
  * GET /api/cups?leagueId=xxx
@@ -59,7 +61,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { leagueId, name } = await request.json()
+    const { leagueId, name, format: rawFormat } = await request.json()
 
     if (!leagueId || !name) {
       return NextResponse.json({ error: 'leagueId and name are required' }, { status: 400 })
@@ -87,7 +89,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Cup already exists for this league' }, { status: 400 })
     }
 
-    // Validate league has correct number of managers (8, 16, or 32)
+    // Resolve the format (falls back to the legacy preset for legacy callers).
+    const format: CupFormat = rawFormat ?? DEFAULT_CUP_FORMAT
+
+    // How many managers will actually take part.
     const { data: managers, error: managersError } = await supabaseAdmin
       .from('squads')
       .select('manager_id')
@@ -97,10 +102,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch managers' }, { status: 500 })
     }
 
-    const managerCount = managers?.length || 0
-    if (!canLeagueHaveCup(managerCount)) {
+    const leagueManagerCount = managers?.length || 0
+    const participantCount = format.participantIds === 'all'
+      ? leagueManagerCount
+      : format.participantIds.length
+
+    // Validate the format against the participant count.
+    const validation = validateCupFormat(participantCount, format)
+    if (!validation.valid) {
       return NextResponse.json(
-        { error: `Cup tournaments require exactly 4, 8, 16, or 32 managers. This league has ${managerCount}.` },
+        { error: validation.errors[0] || 'Nieprawidłowy format pucharu', errors: validation.errors },
         { status: 400 }
       )
     }
@@ -112,6 +123,7 @@ export async function POST(request: NextRequest) {
         league_id: leagueId,
         name,
         stage: 'group_stage',
+        format,
         is_active: true
       })
       .select()
@@ -121,7 +133,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: cupError.message }, { status: 500 })
     }
 
-    return NextResponse.json({ cup }, { status: 201 })
+    return NextResponse.json({ cup, summary: validation.summary, warnings: validation.warnings }, { status: 201 })
   } catch (error) {
     console.error('Error creating cup:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

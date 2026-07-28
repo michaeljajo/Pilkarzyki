@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { verifyLeagueAdmin, assertLeagueMutableByCup } from '@/lib/auth-helpers'
 import { validateGroupAssignments, GroupAssignment } from '@/utils/cup-scheduling'
+import type { CupFormat } from '@/types'
 
 interface GroupMember {
   id: string
@@ -11,7 +12,6 @@ interface GroupMember {
     id: string
     first_name: string | null
     last_name: string | null
-    email: string
   } | null
 }
 
@@ -38,9 +38,9 @@ export async function GET(
         *,
         users (
           id,
+          clerk_id,
           first_name,
-          last_name,
-          email
+          last_name
         )
       `)
       .eq('cup_id', cupId)
@@ -51,7 +51,9 @@ export async function GET(
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    // Group by group name
+    // Group by group name. Expose the Clerk ID as managerId: the frontend keys
+    // managers off the Clerk ID (the /managers endpoint returns it as `id`), so
+    // returning the raw UUID here would leave saved groups unmatchable on reload.
     const groupedData: Record<string, GroupMember[]> = {}
     groupAssignments?.forEach(assignment => {
       if (!groupedData[assignment.group_name]) {
@@ -59,7 +61,7 @@ export async function GET(
       }
       groupedData[assignment.group_name].push({
         id: assignment.id,
-        managerId: assignment.manager_id,
+        managerId: assignment.users?.clerk_id ?? assignment.manager_id,
         manager: assignment.users
       })
     })
@@ -101,7 +103,7 @@ export async function POST(
     // Get cup and verify admin access
     const { data: cup, error: cupError } = await supabaseAdmin
       .from('cups')
-      .select('league_id')
+      .select('league_id, format')
       .eq('id', cupId)
       .single()
 
@@ -115,26 +117,66 @@ export async function POST(
       return NextResponse.json({ error: authError || 'Forbidden' }, { status: 403 })
     }
 
-    // Get total manager count for this league
-    const { data: managers, error: managersError } = await supabaseAdmin
-      .from('squads')
-      .select('manager_id')
-      .eq('league_id', cup.league_id)
+    const format = cup.format as CupFormat
 
-    if (managersError) {
-      return NextResponse.json({ error: 'Failed to fetch managers' }, { status: 500 })
+    // The number of participants the assignment must cover: an explicit
+    // participant list when one is set, otherwise every manager in the league.
+    let totalManagers: number
+    if (format.participantIds === 'all') {
+      const { data: managers, error: managersError } = await supabaseAdmin
+        .from('squads')
+        .select('manager_id')
+        .eq('league_id', cup.league_id)
+      if (managersError) {
+        return NextResponse.json({ error: 'Failed to fetch managers' }, { status: 500 })
+      }
+      totalManagers = managers?.length || 0
+    } else {
+      totalManagers = format.participantIds.length
     }
 
-    const totalManagers = managers?.length || 0
-
-    // Validate group assignments
-    const validation = validateGroupAssignments(groups, totalManagers)
+    // Validate group assignments against the cup format
+    const validation = validateGroupAssignments(groups, totalManagers, format)
     if (!validation.isValid) {
       return NextResponse.json(
         { error: 'Invalid group assignments', errors: validation.errors },
         { status: 400 }
       )
     }
+
+    // The frontend sends Clerk IDs (the /managers endpoint returns clerk_id as
+    // the manager `id`), but cup_groups.manager_id is a UUID FK to users.id.
+    // Resolve Clerk IDs → users.id before inserting.
+    const incomingIds = Array.from(new Set(groups.flatMap(group => group.managerIds)))
+    const { data: userRows, error: usersError } = await supabaseAdmin
+      .from('users')
+      .select('id, clerk_id')
+      .in('clerk_id', incomingIds)
+
+    if (usersError) {
+      return NextResponse.json({ error: usersError.message }, { status: 500 })
+    }
+
+    const clerkToUuid = new Map((userRows || []).map(u => [u.clerk_id, u.id]))
+    // Fall back to the raw value for anything not matched by clerk_id (e.g. an
+    // ID that is already a UUID), so both identifier forms are tolerated.
+    const unresolved = incomingIds.filter(id => !clerkToUuid.has(id))
+    if (unresolved.length > 0) {
+      const { data: uuidRows } = await supabaseAdmin
+        .from('users')
+        .select('id')
+        .in('id', unresolved)
+      const knownUuids = new Set((uuidRows || []).map(u => u.id))
+      const stillMissing = unresolved.filter(id => !knownUuids.has(id))
+      if (stillMissing.length > 0) {
+        return NextResponse.json(
+          { error: `Unknown manager(s): ${stillMissing.join(', ')}` },
+          { status: 400 }
+        )
+      }
+    }
+
+    const resolveManagerId = (id: string) => clerkToUuid.get(id) ?? id
 
     // Delete existing group assignments
     await supabaseAdmin
@@ -147,7 +189,7 @@ export async function POST(
       group.managerIds.map(managerId => ({
         cup_id: cupId,
         group_name: group.groupName,
-        manager_id: managerId
+        manager_id: resolveManagerId(managerId)
       }))
     )
 

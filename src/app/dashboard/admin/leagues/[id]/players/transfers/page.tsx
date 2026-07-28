@@ -13,6 +13,7 @@ interface Manager {
   databaseId: string
   firstName?: string
   lastName?: string
+  displayName?: string
   email?: string
 }
 
@@ -24,8 +25,10 @@ interface SquadPlayer {
 }
 
 function managerLabel(m: Manager): string {
+  if (m.displayName) return m.displayName
   const full = `${m.firstName ?? ''} ${m.lastName ?? ''}`.trim()
-  return full || m.email || 'Menedżer'
+  // Fall back to the email local-part only — never the full address (GDPR).
+  return full || m.email?.split('@')[0] || 'Menedżer'
 }
 
 /**

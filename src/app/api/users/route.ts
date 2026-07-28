@@ -90,17 +90,23 @@ export async function GET() {
     }, [] as typeof users.data)
 
 
-    // Transform deduplicated users to match our expected format
-    const transformedUsers = deduplicatedUsers.map(user => ({
-      id: user.id,
-      clerkId: user.id,
-      email: user.emailAddresses[0]?.emailAddress || '',
-      firstName: user.firstName || '',
-      lastName: user.lastName || '',
-      isAdmin: user.publicMetadata?.isAdmin === true,
-      createdAt: new Date(user.createdAt),
-      updatedAt: new Date(user.updatedAt)
-    }))
+    // Transform deduplicated users to match our expected format.
+    // GDPR: this list is readable by any authenticated user (e.g. the league
+    // "add manager" picker), so it must never expose real email addresses or
+    // full names. We only ship a non-identifying display label: the user's
+    // username, or the local-part of their email if no username is set.
+    const transformedUsers = deduplicatedUsers.map(user => {
+      const email = user.emailAddresses[0]?.emailAddress || ''
+      const emailLocalPart = email.split('@')[0]
+      return {
+        id: user.id,
+        clerkId: user.id,
+        displayName: user.username || emailLocalPart || 'Użytkownik',
+        isAdmin: user.publicMetadata?.isAdmin === true,
+        createdAt: new Date(user.createdAt),
+        updatedAt: new Date(user.updatedAt)
+      }
+    })
 
 
     return NextResponse.json({ users: transformedUsers })
