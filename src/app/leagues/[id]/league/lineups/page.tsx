@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { Position } from '@/types'
-import { ChevronDown, ChevronRight } from 'lucide-react'
+import { LeagueFlag } from '@/components/ui/LeagueFlag'
 
 interface SquadsPageProps {
   params: Promise<{ id: string }>
@@ -15,6 +15,54 @@ interface Player {
   surname: string
   position: Position
   club?: string
+  football_league?: string
+}
+
+// Singular labels, as on the draft board — these now sit on individual player
+// rows rather than heading a group, so "Bramkarz" reads correctly, not "Bramkarze".
+const POSITION_PL: Record<string, string> = {
+  Goalkeeper: 'Bramkarz',
+  Defender: 'Obrońca',
+  Midfielder: 'Pomocnik',
+  Forward: 'Napastnik',
+}
+function getPositionLabel(position: Position): string {
+  return POSITION_PL[position] || position
+}
+
+/** One compact player row, matching the draft board's roster line. */
+function PlayerLine({ player }: { player: Player }) {
+  return (
+    // Sizes 11/13, weights 400/600, ink + muted only — the shared type system.
+    // height 10 renders a 13px flag: at the draft board's 11 it came out 14px,
+    // larger than the 12px name beside it and the loudest thing on the row.
+    <li className="text-[13px] text-[#6B7280] flex items-center gap-1.5 flex-wrap">
+      <span className="font-semibold text-[#111827]">
+        {player.name} {player.surname}
+      </span>
+      {player.club && <span>{player.club}</span>}
+      <LeagueFlag league={player.football_league} height={10} />
+      <span className="text-[11px]">{getPositionLabel(player.position)}</span>
+    </li>
+  )
+}
+
+/** A labelled sub-list (used for the two "żelazny skład" selections). */
+function PlayerLineList({ label, players }: { label: string; players: Player[] }) {
+  return (
+    <div>
+      <p className="text-[11px] font-semibold text-[#6B7280]">{label}</p>
+      {players.length === 0 ? (
+        <p className="mt-0.5 text-[11px] text-[#6B7280]">brak</p>
+      ) : (
+        <ul className="mt-0.5 space-y-0.5">
+          {players.map((p) => (
+            <PlayerLine key={p.id} player={p} />
+          ))}
+        </ul>
+      )}
+    </div>
+  )
 }
 
 interface Manager {
@@ -105,53 +153,13 @@ export default function SquadsPage({ params }: SquadsPageProps) {
     return manager.email.split('@')[0]
   }
 
-  const getPositionLabel = (position: Position): string => {
-    switch (position) {
-      case 'Goalkeeper':
-        return 'Bramkarze'
-      case 'Defender':
-        return 'Obrońcy'
-      case 'Midfielder':
-        return 'Pomocnicy'
-      case 'Forward':
-        return 'Napastnicy'
-      default:
-        return position
-    }
-  }
-
-  const groupPlayersByPosition = (players: Player[]) => {
-    const grouped: Record<Position, Player[]> = {
-      'Goalkeeper': [],
-      'Defender': [],
-      'Midfielder': [],
-      'Forward': []
-    }
-
-    players.forEach(player => {
-      grouped[player.position].push(player)
-    })
-
-    return grouped
-  }
-
-  const formatPlayerNames = (players: Player[]): string => {
-    if (players.length === 0) return 'brak'
-    return players.map(p => {
-      const fullName = `${p.name} ${p.surname}`
-      return p.club ? `${fullName} (${p.club})` : fullName
-    }).join(', ')
-  }
-
   return (
-    <div className="min-h-screen bg-white">
+    <div>
 
-      <main
-        className="w-full flex justify-center"
-        style={{ paddingTop: '48px', paddingBottom: '64px' }}
-      >
-        <div className="w-full max-w-4xl px-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">Składy</h1>
+      {/* No nested <main> and no own centring wrapper — the section layout caps
+          and centres this. Caption dropped: the sub-nav already names the page. */}
+      <div className="w-full pb-12">
+        <div className="w-full">
 
           {loading && (
             <div className="flex items-center justify-center h-32">
@@ -162,8 +170,8 @@ export default function SquadsPage({ params }: SquadsPageProps) {
           {error && !loading && (
             <div className="bg-white rounded-lg border border-red-200 p-8 text-center">
               <div className="text-red-600 text-4xl mb-3">⚠️</div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Błąd</h3>
-              <p className="text-gray-600">{error}</p>
+              <h3 className="text-[15px] font-semibold text-[#111827] mb-2">Błąd</h3>
+              <p className="text-[13px] text-[#6B7280]">{error}</p>
             </div>
           )}
 
@@ -171,89 +179,58 @@ export default function SquadsPage({ params }: SquadsPageProps) {
             <div className="space-y-2">
               {squadsData.squads.length === 0 ? (
                 <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-                  <p className="text-gray-600">Brak składów w tej lidze</p>
+                  <p className="text-[13px] text-[#6B7280]">Brak składów w tej lidze</p>
                 </div>
               ) : (
                 squadsData.squads.map((squad) => {
-                  const groupedPlayers = groupPlayersByPosition(squad.players)
                   const managerName = getManagerName(squad.manager)
                   const isExpanded = expandedSquads.has(squad.squadId)
 
                   return (
+                    // Same roster presentation as the draft board: a bordered
+                    // card per squad, a collapsible header carrying the name and
+                    // a squad-size count, and one line per player inside.
                     <div
                       key={squad.squadId}
-                      className="border border-gray-200 rounded-lg overflow-hidden"
+                      className="rounded-lg border border-gray-200 bg-white p-3"
                     >
-                      {/* Collapsible Header */}
                       <button
+                        type="button"
                         onClick={() => toggleSquad(squad.squadId)}
-                        className="w-full px-6 py-4 bg-gray-50 hover:bg-gray-100 transition-colors flex items-center justify-between text-left"
+                        className="w-full flex items-center justify-between gap-2 text-left"
                       >
-                        <div className="flex items-center gap-3">
-                          {isExpanded ? (
-                            <ChevronDown size={20} className="text-gray-600" />
-                          ) : (
-                            <ChevronRight size={20} className="text-gray-600" />
-                          )}
-                          <span className="font-semibold text-gray-900">
-                            {squad.teamName || 'Bez nazwy'}
+                        <span className="flex items-center gap-1.5 text-[15px] font-semibold text-[#111827]">
+                          <span
+                            className={`text-[#6B7280] transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                          >
+                            ▸
                           </span>
-                          <span className="text-sm text-gray-500">
-                            ({managerName})
-                          </span>
-                        </div>
+                          {squad.teamName || managerName}
+                        </span>
+                        <span className="text-[11px] text-[#6B7280]">{squad.players.length}</span>
                       </button>
 
-                      {/* Expanded Content */}
-                      {isExpanded && (
-                        <div className="px-6 py-4 space-y-3 bg-white">
-                          <div>
-                            <span className="font-semibold text-gray-700">Zespół: </span>
-                            <span className="text-gray-900">{squad.teamName || 'Bez nazwy'}</span>
-                          </div>
+                      {isExpanded && squad.players.length === 0 && (
+                        <p className="mt-2 text-[11px] text-[#6B7280]">Brak zawodników.</p>
+                      )}
 
-                          <div>
-                            <span className="font-semibold text-gray-700">Manager: </span>
-                            <span className="text-gray-900">{managerName}</span>
-                          </div>
+                      {isExpanded && squad.players.length > 0 && (
+                        <div className="mt-2 space-y-3">
+                          {/* Rendered in the API's order, which is draft pick
+                              sequence. Do not re-group by position here — that
+                              would discard the ordering the API just applied. */}
+                          <ul className="space-y-0.5">
+                            {squad.players.map((player) => (
+                              <PlayerLine key={player.id} player={player} />
+                            ))}
+                          </ul>
 
-                          {/* Players by Position */}
-                          {(['Forward', 'Midfielder', 'Defender', 'Goalkeeper'] as Position[]).map((position) => {
-                            const positionPlayers = groupedPlayers[position]
-                            if (positionPlayers.length === 0) return null
-
-                            return (
-                              <div key={position}>
-                                <span className="font-semibold text-gray-700">
-                                  {getPositionLabel(position)}:{' '}
-                                </span>
-                                <span className="text-gray-900">
-                                  {formatPlayerNames(positionPlayers)}
-                                </span>
-                              </div>
-                            )
-                          })}
-
-                          {/* Default League Lineup */}
-                          <div>
-                            <span className="font-semibold text-gray-700">
-                              Żelazny skład ligowy:{' '}
-                            </span>
-                            <span className="text-gray-900">
-                              {formatPlayerNames(squad.defaultLineup)}
-                            </span>
-                          </div>
-
-                          {/* Default Cup Lineup */}
+                          <PlayerLineList label="Żelazny skład ligowy" players={squad.defaultLineup} />
                           {squadsData.hasCup && (
-                            <div>
-                              <span className="font-semibold text-gray-700">
-                                Żelazny skład pucharowy:{' '}
-                              </span>
-                              <span className="text-gray-900">
-                                {formatPlayerNames(squad.defaultCupLineup)}
-                              </span>
-                            </div>
+                            <PlayerLineList
+                              label="Żelazny skład pucharowy"
+                              players={squad.defaultCupLineup}
+                            />
                           )}
                         </div>
                       )}
@@ -264,7 +241,7 @@ export default function SquadsPage({ params }: SquadsPageProps) {
             </div>
           )}
         </div>
-      </main>
+      </div>
     </div>
   )
 }

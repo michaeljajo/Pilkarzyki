@@ -170,12 +170,17 @@ export default function LeagueTable({ leagueId, showAdminControls = false }: Lea
   }
 
   return (
-    <div className="bg-white border-2 border-[#29544D] rounded-xl sm:rounded-2xl overflow-hidden shadow-sm">
-      {/* Table Header */}
+    // `overflow: clip`, not `hidden`. Both clip the table to the rounded corners,
+    // but `hidden` also makes this a scroll container, which would trap the
+    // sticky header row inside this box instead of pinning it to the viewport.
+    // `clip` clips without creating a scrollport, so we get both.
+    <div className="bg-white border-2 border-[#29544D] rounded-xl sm:rounded-2xl overflow-clip shadow-sm">
+      {/* Table header bar exists only to hold the admin controls. The "Tabela"
+          title was dropped: the section heading and sub-nav above already say so,
+          and without controls there is nothing else for the bar to carry. */}
       {showAdminControls ? (
         <div className="bg-[#29544D] py-3 sm:py-4 px-4 sm:px-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <h3 className="text-base sm:text-lg font-bold text-white">Tabela</h3>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-end gap-3">
             <div className="flex gap-2 w-full sm:w-auto">
               <Button
                 onClick={() => setShowTiebreakerModal(true)}
@@ -199,11 +204,7 @@ export default function LeagueTable({ leagueId, showAdminControls = false }: Lea
             </div>
           </div>
         </div>
-      ) : (
-        <div className="bg-[#29544D] py-3 sm:py-4 px-2 sm:px-6">
-          <h3 className="text-base sm:text-lg font-bold text-white">Tabela</h3>
-        </div>
-      )}
+      ) : null}
 
       {/* Table Content */}
       {standings.length === 0 ? (
@@ -215,20 +216,25 @@ export default function LeagueTable({ leagueId, showAdminControls = false }: Lea
           </p>
         </div>
       ) : (
-        <div className="overflow-x-auto">
+        // Same reasoning: horizontal scrolling below md (10 columns do not fit a
+        // phone), plain overflow from md up so the header row can stick.
+        <div className="overflow-x-auto md:overflow-visible">
           <table className="w-full">
+            {/* Header row stays put under the app header while rows scroll past.
+                The border sits on each th, not the tr — a sticky row's own border
+                does not paint reliably. */}
             <thead>
-              <tr className="border-b-2 border-[#DECF99]">
-                <th className="text-center py-2 sm:py-3 px-1 sm:px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider w-10 sm:w-16">#</th>
-                <th className="text-left py-2 sm:py-3 px-1 sm:px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider min-w-[120px] sm:min-w-[180px]">Menedżer</th>
-                <th className="text-center py-2 sm:py-3 px-0.5 sm:px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-9 sm:w-20">M</th>
-                <th className="text-center py-2 sm:py-3 px-0.5 sm:px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-9 sm:w-20">Z</th>
-                <th className="text-center py-2 sm:py-3 px-0.5 sm:px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-9 sm:w-20">R</th>
-                <th className="text-center py-2 sm:py-3 px-0.5 sm:px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-9 sm:w-20">P</th>
-                <th className="text-center py-2 sm:py-3 px-0.5 sm:px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-10 sm:w-24">B+</th>
-                <th className="text-center py-2 sm:py-3 px-0.5 sm:px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-10 sm:w-24">B-</th>
-                <th className="text-center py-2 sm:py-3 px-0.5 sm:px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-10 sm:w-24">B=</th>
-                <th className="text-center py-2 sm:py-3 px-0.5 sm:px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-12 sm:w-24">PKT</th>
+              <tr>
+                <th className="text-center py-2 sm:py-3 px-1 sm:px-6 md:sticky md:top-[var(--app-header-h,118px)] z-10 bg-white border-b-2 border-[#DECF99] text-xs font-semibold text-gray-500 uppercase tracking-wider w-10 sm:w-16">#</th>
+                <th className="text-left py-2 sm:py-3 px-1 sm:px-4 md:sticky md:top-[var(--app-header-h,118px)] z-10 bg-white border-b-2 border-[#DECF99] text-xs font-semibold text-gray-500 uppercase tracking-wider min-w-[120px] sm:min-w-[180px]">Menedżer</th>
+                <th className="text-center py-2 sm:py-3 px-0.5 sm:px-4 md:sticky md:top-[var(--app-header-h,118px)] z-10 bg-white border-b-2 border-[#DECF99] text-xs font-semibold text-gray-500 uppercase tracking-wider w-9 sm:w-20">M</th>
+                <th className="text-center py-2 sm:py-3 px-0.5 sm:px-4 md:sticky md:top-[var(--app-header-h,118px)] z-10 bg-white border-b-2 border-[#DECF99] text-xs font-semibold text-gray-500 uppercase tracking-wider w-9 sm:w-20">Z</th>
+                <th className="text-center py-2 sm:py-3 px-0.5 sm:px-4 md:sticky md:top-[var(--app-header-h,118px)] z-10 bg-white border-b-2 border-[#DECF99] text-xs font-semibold text-gray-500 uppercase tracking-wider w-9 sm:w-20">R</th>
+                <th className="text-center py-2 sm:py-3 px-0.5 sm:px-4 md:sticky md:top-[var(--app-header-h,118px)] z-10 bg-white border-b-2 border-[#DECF99] text-xs font-semibold text-gray-500 uppercase tracking-wider w-9 sm:w-20">P</th>
+                <th className="text-center py-2 sm:py-3 px-0.5 sm:px-4 md:sticky md:top-[var(--app-header-h,118px)] z-10 bg-white border-b-2 border-[#DECF99] text-xs font-semibold text-gray-500 uppercase tracking-wider w-10 sm:w-24">B+</th>
+                <th className="text-center py-2 sm:py-3 px-0.5 sm:px-4 md:sticky md:top-[var(--app-header-h,118px)] z-10 bg-white border-b-2 border-[#DECF99] text-xs font-semibold text-gray-500 uppercase tracking-wider w-10 sm:w-24">B-</th>
+                <th className="text-center py-2 sm:py-3 px-0.5 sm:px-4 md:sticky md:top-[var(--app-header-h,118px)] z-10 bg-white border-b-2 border-[#DECF99] text-xs font-semibold text-gray-500 uppercase tracking-wider w-10 sm:w-24">B=</th>
+                <th className="text-center py-2 sm:py-3 px-0.5 sm:px-4 md:sticky md:top-[var(--app-header-h,118px)] z-10 bg-white border-b-2 border-[#DECF99] text-xs font-semibold text-gray-500 uppercase tracking-wider w-12 sm:w-24">PKT</th>
               </tr>
             </thead>
             <tbody>
@@ -240,8 +246,12 @@ export default function LeagueTable({ leagueId, showAdminControls = false }: Lea
                   <td className="py-3 sm:py-4 px-1 sm:px-6 text-center">
                     <span className="text-xs sm:text-sm font-bold text-gray-900">{standing.position}</span>
                   </td>
-                  <td className="py-3 sm:py-4 px-1 sm:px-6 min-w-[120px] sm:min-w-[180px]">
-                    <span className="text-xs sm:text-base font-semibold text-gray-900">{getDisplayName(standing)}</span>
+                  <td className="py-3 sm:py-4 px-1 sm:px-4 min-w-[120px] sm:min-w-[180px]">
+                    {/* Names stay on one line. Narrowing the section left this
+                        column ~148px against a ~150px name, so it broke mid-name.
+                        The table sits in an overflow-x-auto wrapper, so an
+                        unusually long name scrolls rather than clipping. */}
+                    <span className="text-xs sm:text-base font-semibold text-gray-900 whitespace-nowrap">{getDisplayName(standing)}</span>
                   </td>
                   <td className="py-3 sm:py-4 px-0.5 sm:px-4 text-center text-xs sm:text-sm text-gray-700">{standing.played}</td>
                   <td className="py-3 sm:py-4 px-0.5 sm:px-4 text-center text-xs sm:text-sm text-gray-700">{standing.won}</td>

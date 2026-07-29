@@ -136,7 +136,7 @@ export default function LeaguePanelPage() {
     <div className="space-y-6 sm:space-y-8">
       {/* Header */}
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--foreground)]">Panel</h1>
+        <h1 className="text-2xl font-bold text-[var(--foreground)]">Panel</h1>
         <p className="text-base sm:text-lg text-[var(--foreground-secondary)]">
           {data?.league.name}
           {data && !data.league.isActive && ' — sezon zarchiwizowany'}

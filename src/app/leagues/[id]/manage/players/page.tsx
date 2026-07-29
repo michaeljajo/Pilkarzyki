@@ -133,7 +133,7 @@ export default function LeaguePlayersPage() {
     <div className="space-y-4 sm:space-y-6 lg:space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
         <div>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">Zawodnicy Ligi</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Zawodnicy Ligi</h1>
           <p className="mt-1 sm:mt-2 text-sm sm:text-base lg:text-lg text-gray-600">
             Przeglądaj i zarządzaj zawodnikami w tej lidze
           </p>

@@ -4,11 +4,11 @@ import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Select'
-import { PlayerJersey } from '@/components/ui/PlayerJersey'
+import { PlayerJersey, JERSEY_WIDTH, JERSEY_HEIGHT } from '@/components/ui/PlayerJersey'
 import { FootballField } from '@/components/ui/FootballField'
 import { Player, League, Gameweek, Lineup, Cup, CupGameweek, CupLineup, CupEtLineup, CupPenaltyLineup, DefaultLineup, DefaultCupLineup } from '@/types'
 import { validateLineup, validateDualLineups, validateEtLineup, validatePenaltyLineup } from '@/utils/validation'
-import { Clock, Lock, Save, Settings, Trophy, AlertCircle, CalendarX, Timer, CircleDot } from 'lucide-react'
+import { Lock, Save, Settings, Trophy, AlertCircle, CalendarX, Timer, CircleDot } from 'lucide-react'
 
 interface SquadData {
   league: League
@@ -70,7 +70,7 @@ function DropZone({ onDrop, onDragOver, onRemove, onDragStart, player, index, is
         ${!player && 'hover:scale-105 cursor-pointer'}
         ${className}
       `}
-      style={!player ? { width: '140px', height: '136px' } : undefined}
+      style={!player ? { width: JERSEY_WIDTH, height: JERSEY_HEIGHT } : undefined}
     >
       {player ? (
         <div className="relative group">
@@ -82,7 +82,7 @@ function DropZone({ onDrop, onDragOver, onRemove, onDragStart, player, index, is
           />
           <button
             onClick={() => onRemove(index)}
-            className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 text-white rounded-full text-sm opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center hover:bg-red-600 z-10"
+            className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 text-white rounded-full text-[13px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center hover:bg-red-600 z-10"
           >
             ×
           </button>
@@ -633,19 +633,6 @@ export default function SquadSelection({ leagueId, isDefaultMode = false, defaul
   const showCupInDefault = isDefaultMode && defaultVariant === 'cup-week' && !!squadData.cup
   const treatAsDual = squadData.isDualGameweek || showCupInDefault
 
-  // Format deadline information
-  const formatDeadline = (date: Date | null) => {
-    if (!date) return null
-    const options: Intl.DateTimeFormatOptions = {
-      weekday: 'short',
-      day: 'numeric',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit'
-    }
-    return date.toLocaleDateString('pl-PL', options)
-  }
-
   const isLeagueLineupValid = activePlayers.length >= 1 && activePlayers.length <= 3 && validationErrors.length === 0
   const isCupLineupValid = activeCupPlayers.length >= 1 && activeCupPlayers.length <= 3 && cupValidationErrors.length === 0
 
@@ -691,38 +678,6 @@ export default function SquadSelection({ leagueId, isDefaultMode = false, defaul
           </div>
         ) : (
           <div className="space-y-4 pb-4">
-            {/* Deadline Info */}
-            {!isDefaultMode && lockDate && (
-              <div className={`mx-4 p-3 rounded-lg border ${isGameweekLocked ? 'bg-red-50 border-red-300' : 'bg-blue-50 border-blue-300'}`}>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-xs font-semibold text-gray-700 flex items-center gap-1">
-                      {isGameweekLocked ? (
-                        <>
-                          <Lock size={14} />
-                          <span>Skład zablokowany</span>
-                        </>
-                      ) : (
-                        <>
-                          <Clock size={14} />
-                          <span>Termin składu</span>
-                        </>
-                      )}
-                    </div>
-                    <div className={`text-sm font-bold ${isGameweekLocked ? 'text-red-700' : 'text-blue-700'}`}>
-                      {formatDeadline(lockDate)}
-                    </div>
-                  </div>
-                  {squadData.currentGameweek && (
-                    <div className="text-right">
-                      <div className="text-xs text-gray-600">Kolejka</div>
-                      <div className="text-lg font-bold text-gray-900">{squadData.currentGameweek.week}</div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
             {/* Cup elimination notice */}
             {squadData?.isEliminatedFromCup && (
               <div className="mx-4 p-3 rounded-lg border bg-yellow-50 border-yellow-300">
@@ -784,7 +739,7 @@ export default function SquadSelection({ leagueId, isDefaultMode = false, defaul
               {!isDefaultMode && (
                 <Button
                   onClick={() => window.location.href = `/leagues/${leagueId}/default-lineup`}
-                  variant="secondary"
+                  variant="outline"
                   className="w-full"
                 >
                   <div className="flex items-center justify-center gap-2">
@@ -1234,39 +1189,27 @@ export default function SquadSelection({ leagueId, isDefaultMode = false, defaul
         <div className="grid xl:grid-cols-3 gap-2.5">
           {/* Squad Pool - Left Side (Sticky) */}
           <div className="xl:col-span-1" style={{ width: 'fit-content' }}>
-            <div style={{ position: 'sticky', top: '80px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {/* Deadline Info */}
-              {!isDefaultMode && lockDate && (
-                <div className={`p-3 rounded-lg border ${isGameweekLocked ? 'bg-red-50 border-red-300' : 'bg-blue-50 border-blue-300'}`}>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-xs font-semibold text-gray-700 flex items-center gap-1">
-                        {isGameweekLocked ? (
-                          <>
-                            <Lock size={14} />
-                            <span>Skład zablokowany</span>
-                          </>
-                        ) : (
-                          <>
-                            <Clock size={14} />
-                            <span>Termin składu</span>
-                          </>
-                        )}
-                      </div>
-                      <div className={`text-sm font-bold ${isGameweekLocked ? 'text-red-700' : 'text-blue-700'}`}>
-                        {formatDeadline(lockDate)}
-                      </div>
-                    </div>
-                    {squadData.currentGameweek && (
-                      <div className="text-right">
-                        <div className="text-xs text-gray-600">Kolejka</div>
-                        <div className="text-lg font-bold text-gray-900">{squadData.currentGameweek.week}</div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
+            {/* Bench stays put while the pitch scrolls. `top` clears the measured
+                header (it was a hardcoded 80px against a 118px header, so the
+                bench slid underneath). maxHeight + overflow keeps it fully on
+                screen for large squads, where the column would otherwise outgrow
+                the viewport and scroll its top away. The padding/negative-margin
+                pair gives the selection ticks room to overhang without being
+                clipped by the scroll container, at no cost to alignment. */}
+            <div
+              style={{
+                position: 'sticky',
+                top: 'calc(var(--app-header-h, 118px) + 12px)',
+                maxHeight: 'calc(100vh - var(--app-header-h, 118px) - 32px)',
+                overflowY: 'auto',
+                overflowX: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px',
+                padding: '8px',
+                margin: '-8px',
+              }}
+            >
               {/* Cup elimination notice */}
               {squadData?.isEliminatedFromCup && (
                 <div className="p-3 rounded-lg border bg-yellow-50 border-yellow-300">
@@ -1291,6 +1234,15 @@ export default function SquadSelection({ leagueId, isDefaultMode = false, defaul
                 </div>
               )}
 
+              {/* With no players yet (e.g. draft still running) this card used to
+                  render as an empty white pill. Show the reason instead. */}
+              {squadData.players.length === 0 ? (
+                <Card className="h-fit">
+                  <CardContent style={{ padding: '12px' }}>
+                    <p className="text-sm text-gray-500">Brak zawodników w kadrze.</p>
+                  </CardContent>
+                </Card>
+              ) : (
               <Card className="h-fit">
                 <CardContent style={{ padding: '10px' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -1323,6 +1275,7 @@ export default function SquadSelection({ leagueId, isDefaultMode = false, defaul
                   </div>
                 </CardContent>
               </Card>
+              )}
 
               {/* Save Button */}
               <div className="space-y-2">
@@ -1362,7 +1315,7 @@ export default function SquadSelection({ leagueId, isDefaultMode = false, defaul
                 {!isDefaultMode && (
                   <Button
                     onClick={() => window.location.href = `/leagues/${leagueId}/default-lineup`}
-                    variant="secondary"
+                    variant="outline"
                     className="text-[11px] py-1.5"
                     style={{ width: '100%' }}
                   >
@@ -1394,7 +1347,7 @@ export default function SquadSelection({ leagueId, isDefaultMode = false, defaul
                 </div>
               </CardHeader>
               <CardContent style={{ padding: '2px' }}>
-                <div className="relative" style={{ transform: 'scale(0.85)', transformOrigin: 'center' }}>
+                <div className="relative">
                   <FootballField className="mb-1.5 mx-0 max-w-none" />
                   <div className="absolute inset-0">
                     {[0, 1, 2].map((index) => (
@@ -1457,7 +1410,7 @@ export default function SquadSelection({ leagueId, isDefaultMode = false, defaul
                   </div>
                 </CardHeader>
                 <CardContent style={{ padding: '2px' }}>
-                  <div className="relative" style={{ transform: 'scale(0.85)', transformOrigin: 'center' }}>
+                  <div className="relative">
                     <FootballField className="mb-1.5 mx-0 max-w-none" />
                     <div className="absolute inset-0">
                       {[0, 1, 2].map((index) => (

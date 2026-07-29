@@ -34,7 +34,7 @@ export default function LeagueStandingsPage({ params }: LeagueStandingsPageProps
   }, [params])
 
   return (
-    <div className="min-h-screen bg-white">
+    <div>
       {/* Team Name Modal - shows if team name not set */}
       {showModal && squad && leagueName && (
         <TeamNameModal
@@ -44,13 +44,14 @@ export default function LeagueStandingsPage({ params }: LeagueStandingsPageProps
         />
       )}
 
-      <div className="w-full flex justify-center" style={{ paddingTop: '48px', paddingBottom: '96px' }}>
-        <main className="w-full max-w-5xl px-2 sm:px-6 md:px-12">
-          {/* League Table - without admin controls */}
-          {leagueId && (
-            <LeagueTable leagueId={leagueId} showAdminControls={false} />
-          )}
-        </main>
+      {/* No nested <main> (the AppShell already provides one) and no extra
+          centring wrapper — both pushed the table off the section's left edge,
+          out of line with the "Liga" heading and sub-nav above it. */}
+      <div className="w-full pb-12">
+        {/* League Table - without admin controls */}
+        {leagueId && (
+          <LeagueTable leagueId={leagueId} showAdminControls={false} />
+        )}
       </div>
     </div>
   )

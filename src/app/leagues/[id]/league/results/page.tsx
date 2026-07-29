@@ -219,14 +219,13 @@ export default function LeagueResultsPage({ params }: LeagueResultsPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div>
 
-      <main className="w-full flex justify-center" style={{ paddingTop: '48px', paddingBottom: '64px' }}>
-        <div className="w-full max-w-4xl px-6">
-          {/* Header */}
-          <div className="mb-6 text-center">
-            <h1 className="text-2xl font-bold text-gray-900">Wyniki</h1>
-          </div>
+      {/* No nested <main> (AppShell provides one) and no own centring wrapper —
+          the section layout now caps and centres this content. Caption dropped:
+          the active sub-nav tab already says which page this is. */}
+      <div className="w-full pb-12">
+        <div className="w-full">
 
           {/* Gameweek Selector */}
           <div className="mb-6 flex justify-center">
@@ -389,7 +388,7 @@ export default function LeagueResultsPage({ params }: LeagueResultsPageProps) {
             </div>
           )}
         </div>
-      </main>
+      </div>
     </div>
   )
 }

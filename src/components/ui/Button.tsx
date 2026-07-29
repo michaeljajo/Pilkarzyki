@@ -56,7 +56,9 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     const baseClasses = cn(
       'relative inline-flex items-center justify-center',
-      'font-medium overflow-hidden whitespace-nowrap',
+      // semibold keeps buttons on the two-weight ramp (400/600); 500 was a third
+      // weight doing the same job as 600 elsewhere on the same screens.
+      'font-semibold overflow-hidden whitespace-nowrap',
       'transition-all duration-200',
       'focus:outline-none focus:ring-2 focus:ring-offset-2',
       'disabled:opacity-30 disabled:cursor-not-allowed',

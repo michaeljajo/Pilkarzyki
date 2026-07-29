@@ -97,11 +97,16 @@ const CardTitle = forwardRef<HTMLHeadingElement, HTMLAttributes<HTMLHeadingEleme
   ({ className, style, ...props }, ref) => (
     <h3
       ref={ref}
+      // Size default lives in className, not `style`: an inline fontSize beats
+      // every class, so callers passing `text-lg`/`text-xl` were silently
+      // ignored. cn() is tailwind-merge, so a caller's text-* replaces this one.
       className={cn(
-        'font-bold text-gray-900',
+        // semibold, not bold: the type system uses two weights (400/600), so 700
+        // is reserved out of the ramp entirely.
+        'font-semibold text-[#111827] text-2xl leading-[1.3]',
         className
       )}
-      style={{ fontSize: '32px', lineHeight: '1.3', ...style }}
+      style={style}
       {...props}
     />
   )

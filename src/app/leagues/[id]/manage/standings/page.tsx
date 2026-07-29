@@ -18,7 +18,7 @@ export default function AdminStandingsPage() {
         animate={{ opacity: 1, y: 0 }}
         className="flex flex-col gap-2 sm:gap-3"
       >
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--foreground)]">
+        <h1 className="text-2xl font-bold text-[var(--foreground)]">
           Tabela i Rozstrzyganie
         </h1>
         <p className="text-base sm:text-lg lg:text-xl text-[var(--foreground-secondary)]">

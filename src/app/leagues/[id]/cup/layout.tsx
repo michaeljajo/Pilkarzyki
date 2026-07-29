@@ -10,7 +10,8 @@ export default async function CupSectionLayout({
   const { id } = await params
   const base = `/leagues/${id}/cup`
   return (
-    <div>
+    // Same treatment as the Liga section: full-width nav, centred content.
+    <div className="w-full">
       <SecondaryNav
         ariaLabel="Sekcje pucharu"
         items={[
@@ -18,7 +19,7 @@ export default async function CupSectionLayout({
           { label: 'Wyniki', href: `${base}/results` },
         ]}
       />
-      {children}
+      <div className="mx-auto w-full max-w-4xl">{children}</div>
     </div>
   )
 }

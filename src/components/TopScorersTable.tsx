@@ -76,8 +76,9 @@ export function TopScorersTable({
               onChange={(e) => setPositionFilter(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#061852] focus:border-transparent"
             >
+              {/* No Bramkarz option — goalkeepers are not part of the game, so
+                  the filter could only ever return an empty list. */}
               <option value="all">Wszystkie pozycje</option>
-              <option value="Goalkeeper">Bramkarz</option>
               <option value="Defender">Obrońca</option>
               <option value="Midfielder">Pomocnik</option>
               <option value="Forward">Napastnik</option>
@@ -153,7 +154,6 @@ export function TopScorersTable({
       {/* Table */}
       {filteredScorers.length === 0 ? (
         <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-          <div className="text-gray-400 text-4xl mb-3">⚽</div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
             Brak danych
           </h3>

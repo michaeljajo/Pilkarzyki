@@ -256,7 +256,7 @@ export default function MidseasonDraftClient({ leagueId }: { leagueId: string })
   return (
     <div className="max-w-5xl mx-auto p-4 sm:p-6 space-y-6">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Draft w trakcie sezonu</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Draft w trakcie sezonu</h1>
         <p className="text-sm text-gray-600 mt-1">{snap.league.name}</p>
       </div>
 

@@ -128,7 +128,7 @@ export default function LeagueManagersPage() {
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
         <div>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--foreground)]">Menedżerowie Ligi</h1>
+          <h1 className="text-2xl font-bold text-[var(--foreground)]">Menedżerowie Ligi</h1>
           <p className="mt-2 sm:mt-3 text-base sm:text-lg lg:text-xl text-[var(--foreground-secondary)]">
             Dodawaj, usuwaj i przeglądaj menedżerów tej ligi
           </p>

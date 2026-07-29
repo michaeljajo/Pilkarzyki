@@ -189,7 +189,7 @@ export default function CupStandingsPage({ params }: CupStandingsPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div>
 
       <main className="w-full flex justify-center" style={{ paddingTop: '48px', paddingBottom: '64px' }}>
         <div className="w-full max-w-4xl px-6">

@@ -3,6 +3,7 @@ import { headers } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { supabaseAdmin } from '@/lib/supabase'
 import { checkDefaultLineupGate } from '@/lib/default-lineup-gate'
+import { verifyLeagueAdmin } from '@/lib/auth-helpers'
 import DefaultLineupGateScreen from '@/components/DefaultLineupGateScreen'
 import { AppShell } from '@/components/nav/AppShell'
 
@@ -48,8 +49,11 @@ export default async function LeagueLayout({ children, params }: LeagueLayoutPro
 
   const { userId } = await auth()
 
+  let isAdmin = false
   let content = children
   if (userId) {
+    isAdmin = (await verifyLeagueAdmin(userId, leagueId)).isAdmin
+
     const pathname = (await headers()).get('x-pathname') ?? ''
     const subPath = pathname.replace(`/leagues/${leagueId}`, '')
     const exempt = GATE_EXEMPT.some((prefix) => subPath.startsWith(prefix))
@@ -68,7 +72,7 @@ export default async function LeagueLayout({ children, params }: LeagueLayoutPro
   }
 
   return (
-    <AppShell leagueId={leagueId} leagueName={shell.name} hasCup={shell.hasCup}>
+    <AppShell leagueId={leagueId} leagueName={shell.name} hasCup={shell.hasCup} isAdmin={isAdmin}>
       {content}
     </AppShell>
   )

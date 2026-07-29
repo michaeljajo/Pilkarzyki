@@ -105,7 +105,7 @@ export default function LeagueSettingsPage({ params }: LeagueSettingsPageProps) 
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white">
+      <div>
         <main className="max-w-[1400px] mx-auto" style={{ paddingLeft: '48px', paddingRight: '48px', paddingTop: '64px', paddingBottom: '96px' }}>
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
@@ -117,7 +117,7 @@ export default function LeagueSettingsPage({ params }: LeagueSettingsPageProps) 
 
   if (!squad) {
     return (
-      <div className="min-h-screen bg-white">
+      <div>
         <main className="max-w-[1400px] mx-auto" style={{ paddingLeft: '48px', paddingRight: '48px', paddingTop: '64px', paddingBottom: '96px' }}>
           <Card>
             <CardContent>
@@ -132,7 +132,7 @@ export default function LeagueSettingsPage({ params }: LeagueSettingsPageProps) 
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div>
 
       <main className="max-w-[1400px] mx-auto" style={{ paddingLeft: '48px', paddingRight: '48px', paddingTop: '64px', paddingBottom: '96px' }}>
         <Card>

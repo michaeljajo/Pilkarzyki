@@ -38,9 +38,14 @@ interface ScheduleMatchCardProps {
    * isn't shown twice.
    */
   hideTypeBadge?: boolean
+  /**
+   * Hide the "Kolejka N" badge. Set when the surrounding accordion header already
+   * shows the same gameweek, so it isn't repeated on every card inside it.
+   */
+  hideGameweekBadge?: boolean
 }
 
-export function ScheduleMatchCard({ match, highlight = false, hideTypeBadge = false }: ScheduleMatchCardProps) {
+export function ScheduleMatchCard({ match, highlight = false, hideTypeBadge = false, hideGameweekBadge = false }: ScheduleMatchCardProps) {
   const getManagerDisplayName = (manager: Manager | null, teamSource?: string) => {
     if (!manager) {
       if (teamSource) {
@@ -72,26 +77,6 @@ export function ScheduleMatchCard({ match, highlight = false, hideTypeBadge = fa
     return stageLabels[stage] || stage
   }
 
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr)
-    return date.toLocaleDateString('pl-PL', {
-      weekday: 'short',
-      day: 'numeric',
-      month: 'short'
-    })
-  }
-
-  const formatDateRange = (startStr: string, endStr: string) => {
-    const start = new Date(startStr)
-    const end = new Date(endStr)
-
-    const startDay = start.toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' })
-    const endDay = end.toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' })
-
-    return `${startDay} - ${endDay}`
-  }
-
-  const isUpcoming = !match.isCompleted && new Date(match.lockDate) > new Date()
   const isPast = match.isCompleted || new Date(match.endDate) < new Date()
 
   return (
@@ -105,11 +90,8 @@ export function ScheduleMatchCard({ match, highlight = false, hideTypeBadge = fa
       {/* Header with badges */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
         <div className="flex items-center gap-2 flex-wrap">
-          {highlight && (
-            <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-[#061852] text-white text-xs font-semibold whitespace-nowrap">
-              Twój mecz
-            </span>
-          )}
+          {/* No "Twój mecz" pill — the accent border already marks the viewer's
+              own fixture, and the extra label just added noise to every group. */}
 
           {/* Match Type Badge */}
           {!hideTypeBadge && (
@@ -123,9 +105,11 @@ export function ScheduleMatchCard({ match, highlight = false, hideTypeBadge = fa
           )}
 
           {/* Gameweek Badge */}
-          <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-gray-100 text-gray-700 text-xs font-medium whitespace-nowrap">
-            Kolejka {match.gameweekNumber}
-          </span>
+          {!hideGameweekBadge && (
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-gray-100 text-gray-700 text-xs font-medium whitespace-nowrap">
+              Kolejka {match.gameweekNumber}
+            </span>
+          )}
 
           {/* Stage Badge for Cup */}
           {match.type === 'cup' && match.stage && (
@@ -144,10 +128,8 @@ export function ScheduleMatchCard({ match, highlight = false, hideTypeBadge = fa
           )}
         </div>
 
-        {/* Date */}
-        <div className="text-sm text-gray-600 whitespace-nowrap">
-          {formatDateRange(match.startDate, match.endDate)}
-        </div>
+        {/* No date range here — it repeats the accordion header, which already
+            shows the gameweek's dates for every fixture inside it. */}
       </div>
 
       {/* Match Details */}
@@ -184,14 +166,8 @@ export function ScheduleMatchCard({ match, highlight = false, hideTypeBadge = fa
         </div>
       </div>
 
-      {/* Lock Date for Upcoming Matches */}
-      {isUpcoming && (
-        <div className="mt-2 pt-2 border-t border-gray-200">
-          <p className="text-xs text-gray-500 text-center">
-            Deadline składu: {formatDate(match.lockDate)}
-          </p>
-        </div>
-      )}
+      {/* Lineup deadline dropped: the Skład screen already leads with a live
+          countdown to it, which is where you act on it. */}
     </div>
   )
 }

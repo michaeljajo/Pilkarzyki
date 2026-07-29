@@ -435,7 +435,7 @@ export default function KolejkaPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Kolejka</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Kolejka</h1>
           {gw && (
             <p className="text-sm text-gray-600 mt-1">
               Kolejka {gw.week} • {STATE_LABEL[state]}

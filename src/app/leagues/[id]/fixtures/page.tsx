@@ -67,7 +67,7 @@ interface SchedulePageProps {
 
 export default function SchedulePage({ params }: SchedulePageProps) {
   const { id: leagueId } = use(params)
-  const { user } = useUser()
+  const { user, isLoaded } = useUser()
   const router = useRouter()
   const [matches, setMatches] = useState<ScheduleMatch[]>([])
   const [managers, setManagers] = useState<Manager[]>([])
@@ -78,8 +78,11 @@ export default function SchedulePage({ params }: SchedulePageProps) {
   const [autoExpandedKey, setAutoExpandedKey] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!user) router.push('/sign-in')
-  }, [user, router])
+    // Wait for Clerk to resolve: `user` is undefined while loading, so redirecting
+    // on !user alone bounced every hard load of this page to /sign-in (and from
+    // there, for a signed-in user, straight back out to the leagues list).
+    if (isLoaded && !user) router.push('/sign-in')
+  }, [isLoaded, user, router])
 
   useEffect(() => {
     if (!leagueId) return
@@ -183,8 +186,10 @@ export default function SchedulePage({ params }: SchedulePageProps) {
   if (!user) return null
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-5">Terminarz</h1>
+    // Narrow, centred column matching the Wyniki page: a fixture row is only
+    // "name vs name" plus a date, so a wide container just flings the two names
+    // to opposite edges with a void between them.
+    <div className="mx-auto w-full max-w-3xl">
 
       {/* Filters */}
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center gap-3">
@@ -196,7 +201,7 @@ export default function SchedulePage({ params }: SchedulePageProps) {
           value={selectedManager}
           onChange={(e) => setSelectedManager(e.target.value)}
           disabled={loading}
-          className="flex-1 min-h-[44px] rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:border-[#061852] focus:outline-none focus:ring-2 focus:ring-[#061852]/20 disabled:opacity-60"
+          className="w-full sm:w-auto sm:min-w-[220px] sm:max-w-[280px] min-h-[44px] rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:border-[#061852] focus:outline-none focus:ring-2 focus:ring-[#061852]/20 disabled:opacity-60"
         >
           <option value="">Wszyscy menedżerowie</option>
           {[...managers]
@@ -239,6 +244,9 @@ export default function SchedulePage({ params }: SchedulePageProps) {
               g.type === 'cup'
                 ? STAGE_LABELS[g.stage ?? ''] || `Kolejka ${g.gameweekNumber}`
                 : `Kolejka ${g.gameweekNumber}`
+            // The header already prints "Kolejka N" (league weeks, and cup weeks
+            // with no named stage), so the per-card gameweek badge just repeats it.
+            const headerShowsGameweek = heading === `Kolejka ${g.gameweekNumber}`
             // If every fixture in this accordion is the same competition, the
             // header labels it with a chip and the cards drop their type badge.
             // In a mixed accordion, invert: no header chip, keep per-card badges.
@@ -265,11 +273,8 @@ export default function SchedulePage({ params }: SchedulePageProps) {
                       </span>
                     )}
                     <span className="font-semibold text-gray-900 truncate">{heading}</span>
-                    {isCurrent && (
-                      <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-semibold text-green-700 shrink-0">
-                        Teraz
-                      </span>
-                    )}
+                    {/* No "Teraz" pill — the current gameweek is the one already
+                        expanded on load, so the badge only added noise. */}
                     <span className="text-sm text-gray-400 truncate">{formatDateRange(g.startDate, g.endDate)}</span>
                   </div>
                   <svg
@@ -294,6 +299,7 @@ export default function SchedulePage({ params }: SchedulePageProps) {
                           match={match}
                           highlight={isMine}
                           hideTypeBadge={homogeneous}
+                          hideGameweekBadge={headerShowsGameweek}
                         />
                       )
                     })}

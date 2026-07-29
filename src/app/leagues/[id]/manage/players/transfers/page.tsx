@@ -115,7 +115,7 @@ export default function TransfersPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Transfery</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Transfery</h1>
           <p className="mt-1 text-sm sm:text-base text-gray-600">
             Wymiana zawodników między menedżerami oraz draft w trakcie sezonu.
           </p>

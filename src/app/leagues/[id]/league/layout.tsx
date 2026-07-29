@@ -10,7 +10,11 @@ export default async function LeagueSectionLayout({
   const { id } = await params
   const base = `/leagues/${id}/league`
   return (
-    <div>
+    // Full-width wrapper so the sub-nav keeps the shell's left edge and lines up
+    // with the primary tabs above it. The page content below is capped and
+    // centred separately — left-aligned content under a full-width shell read as
+    // wasted screen. No section heading: the active tab already says where you are.
+    <div className="w-full">
       <SecondaryNav
         ariaLabel="Sekcje ligi"
         items={[
@@ -20,7 +24,7 @@ export default async function LeagueSectionLayout({
           { label: 'Strzelcy', href: `${base}/scorers` },
         ]}
       />
-      {children}
+      <div className="mx-auto w-full max-w-4xl">{children}</div>
     </div>
   )
 }

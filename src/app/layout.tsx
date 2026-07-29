@@ -24,7 +24,12 @@ export default function RootLayout({
   return (
     <ClerkProvider localization={plPL}>
       <html lang="pl" className="dark">
-        <body className={`${inter.variable} font-sans antialiased`}>
+        {/* No `font-sans` here: it is a utility, so it outranked
+            `body { font-family: var(--font-body) }` in @layer base and resolved to
+            Tailwind's ui-sans-serif system stack. Body copy then rendered in the
+            system font while headings (element rule, no competing utility) used
+            Inter — two typefaces on every screen. The token now applies. */}
+        <body className={`${inter.variable} antialiased`}>
           {children}
           <ToastProvider />
         </body>

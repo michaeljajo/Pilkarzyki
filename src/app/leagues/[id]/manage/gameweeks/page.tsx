@@ -267,7 +267,7 @@ export default function LeagueGameweeksPage() {
     <div className="space-y-6 sm:space-y-8 lg:space-y-12">
       <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
         <div>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--foreground)]">Terminarz</h1>
+          <h1 className="text-2xl font-bold text-[var(--foreground)]">Terminarz</h1>
           <p className="mt-2 sm:mt-3 text-base sm:text-lg lg:text-xl text-[var(--foreground-secondary)]">
             {leagueName ? `${leagueName} — kolejki i terminy blokady składów` : 'Kolejki i terminy blokady składów'}
           </p>

@@ -105,13 +105,12 @@ export default function TopScorersPage({ params }: TopScorersPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div>
 
-      <main
-        className="w-full flex justify-center"
-        style={{ paddingTop: '48px', paddingBottom: '64px' }}
-      >
-        <div className="w-full max-w-4xl px-6">
+      {/* No nested <main> and no own centring wrapper — the section layout caps
+          and centres this content. */}
+      <div className="w-full pb-12">
+        <div className="w-full">
           {/* Competition Type Toggle */}
           {!checkingCup && hasCup && (
             <div className="mb-8 inline-flex rounded-lg border border-gray-200 bg-white p-1.5 shadow-sm">
@@ -170,7 +169,7 @@ export default function TopScorersPage({ params }: TopScorersPageProps) {
             />
           )}
         </div>
-      </main>
+      </div>
     </div>
   )
 }

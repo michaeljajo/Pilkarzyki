@@ -21,12 +21,22 @@ interface SecondaryNavProps {
 export function SecondaryNav({ items, ariaLabel }: SecondaryNavProps) {
   const pathname = usePathname()
   return (
-    <nav aria-label={ariaLabel} className="mb-5 border-b border-gray-200 -mx-4 px-4 overflow-x-auto">
-      <ul className="flex items-center gap-1">
+    // overflow-y-hidden is required: setting only overflow-x to auto computes
+    // overflow-y to auto as well, which showed a stray vertical scrollbar here.
+    <nav
+      aria-label={ariaLabel}
+      className="mb-5 border-b border-gray-200 -mx-4 px-4 overflow-x-auto overflow-y-hidden"
+    >
+      {/* globals.css styles `ul`/`li` for prose (24px list indent, 8px bottom
+          margin, last-child 0). In a centred flex row that indent pushes the nav
+          off the content's left edge, and the uneven bottom margins drop the last
+          item 4px below its siblings. Reset all three here — this is a nav, not
+          prose. */}
+      <ul className="flex items-center gap-1 list-none p-0 m-0">
         {items.map((item) => {
           const active = pathname === item.href || pathname.startsWith(item.href + '/')
           return (
-            <li key={item.href}>
+            <li key={item.href} className="m-0">
               <Link
                 href={item.href}
                 aria-current={active ? 'page' : undefined}

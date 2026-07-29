@@ -22,6 +22,7 @@ const COLORS = {
   green: '#29544D',
   amber: '#B45309', // amber-700
   red: '#DC2626', // red-600
+  muted: '#6B7280', // gray-500 — shared "secondary text" ink
 }
 
 // --- Polish-ish pluralisation helpers -------------------------------------
@@ -65,8 +66,12 @@ function formatRemaining(r: Remaining): string {
   return '< 1 min'
 }
 
+// The countdown's colour is its urgency signal. An expired deadline used to
+// render green — identical to "over a day left" — so the one place the colour
+// actually had to say something said the opposite. Expired is now muted: the
+// deadline is gone, there is nothing left to act on.
 function colorFor(r: Remaining | null): string {
-  if (!r || r.ms <= 0) return COLORS.green
+  if (!r || r.ms <= 0) return COLORS.muted
   const hours = r.ms / 3600000
   if (hours < 2) return COLORS.red
   if (hours < 24) return COLORS.amber
@@ -223,31 +228,24 @@ export function SkladStatusHeader({ leagueId }: SkladStatusHeaderProps) {
             </div>
           )}
 
-          {/* Gameweek + competition chip */}
+          {/* Gameweek + competition as ONE muted line. Previously the competition
+              was a filled uppercase chip here AND a text label on the status row
+              below — the same word twice. The chip was also the only uppercase +
+              letter-spaced text on the screen, a typographic exception spent on
+              the least important element. */}
           {primary && (
-            <div className="mb-1 flex items-center gap-2">
-              <span className="text-sm font-semibold text-gray-500">
-                {primary.gameweekNumber != null ? `Kolejka ${primary.gameweekNumber}` : 'Kolejka'}
-              </span>
-              <span
-                className="rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide"
-                style={
-                  primary.competition === 'cup'
-                    ? { backgroundColor: 'rgba(184,160,80,0.18)', color: COLORS.amber }
-                    : { backgroundColor: 'rgba(41,84,77,0.10)', color: COLORS.green }
-                }
-              >
-                {primary.competition === 'cup' ? 'Puchar' : 'Liga'}
-              </span>
+            <div className="mb-1 text-[13px] text-[#6B7280]">
+              {primary.gameweekNumber != null ? `Kolejka ${primary.gameweekNumber}` : 'Kolejka'}
+              {' · '}
+              {primary.competition === 'cup' ? 'Puchar' : 'Liga'}
             </div>
           )}
 
-          {/* Deadline countdown — the primary element */}
-          <div className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-400">
-            Do zamknięcia składu
-          </div>
+          {/* Deadline countdown — the primary element. No caption above it: sitting
+              under the gameweek chip, a countdown already reads as the deadline.
+              inline-block so it shrink-wraps to the time string. */}
           <div
-            className="text-3xl font-extrabold sm:text-4xl"
+            className="inline-block text-[28px] font-semibold leading-none"
             style={{ color: colorFor(primaryRemaining) }}
             aria-live="polite"
           >
@@ -256,7 +254,7 @@ export function SkladStatusHeader({ leagueId }: SkladStatusHeaderProps) {
 
           {/* Secondary competition deadline (when both are open) */}
           {secondary && secondaryRemaining && (
-            <div className="mt-1 text-sm text-gray-500">
+            <div className="mt-1 text-[13px] text-[#6B7280]">
               {secondary.competition === 'cup' ? 'Puchar' : 'Liga'}: {formatRemaining(secondaryRemaining)}
             </div>
           )}
@@ -264,10 +262,14 @@ export function SkladStatusHeader({ leagueId }: SkladStatusHeaderProps) {
           {/* Lineup status per open competition */}
           <div className="mt-4 flex flex-col gap-2">
             {comps?.map((c) => (
-              <div key={c.competition} className="flex items-center gap-2 text-sm">
-                <span className="w-16 shrink-0 font-medium text-gray-500">
-                  {c.competition === 'cup' ? 'Puchar' : 'Liga'}
-                </span>
+              <div key={c.competition} className="flex items-center gap-2 text-[13px]">
+                {/* Name the competition only when there are two to tell apart.
+                    With one open it just repeats the line above the countdown. */}
+                {(comps?.length ?? 0) > 1 && (
+                  <span className="w-16 shrink-0 text-[#6B7280]">
+                    {c.competition === 'cup' ? 'Puchar' : 'Liga'}
+                  </span>
+                )}
                 {c.lineupSet ? (
                   <span className="font-semibold" style={{ color: COLORS.green }}>
                     Skład ustawiony ✓
@@ -278,8 +280,8 @@ export function SkladStatusHeader({ leagueId }: SkladStatusHeaderProps) {
                   </span>
                 )}
                 {c.opponent && (
-                  <span className="ml-auto text-gray-600">
-                    Ty vs <span className="font-semibold text-gray-900">{c.opponent}</span>
+                  <span className="ml-auto text-[#6B7280]">
+                    Ty vs <span className="font-semibold text-[#111827]">{c.opponent}</span>
                   </span>
                 )}
               </div>
