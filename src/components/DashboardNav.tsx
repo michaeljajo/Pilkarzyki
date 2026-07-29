@@ -1,39 +1,54 @@
 'use client'
 
-import { UserButton } from '@clerk/nextjs'
-import { Badge } from '@/components/ui/Badge'
-import { Settings } from 'lucide-react'
+import Link from 'next/link'
 import Image from 'next/image'
+import { UserButton } from '@clerk/nextjs'
+import { APP_CONTAINER } from '@/components/layout/appContainer'
 
 interface DashboardNavProps {
-  hasAdminAccess: boolean
+  /**
+   * Optional context label shown beside the logo. Occupies the same slot, and
+   * uses the same treatment, as the league name in the AppShell header — so a
+   * page outside a league (e.g. "Utwórz Ligę") reads as the same kind of place
+   * as a page inside one.
+   */
+  title?: string
 }
 
-export function DashboardNav({ hasAdminAccess }: DashboardNavProps) {
+/**
+ * Header for pages outside a league (the leagues list, league creation).
+ * Deliberately the same object as the AppShell header — same container, same
+ * 64px row, same logo size, same avatar menu on the right — minus the tab bar,
+ * which has nothing to point at until a league is chosen.
+ */
+export function DashboardNav({ title }: DashboardNavProps) {
   return (
-    <nav className="bg-white sticky top-0 z-50 border-b border-gray-200">
-      <div className="max-w-[1400px] mx-auto" style={{ paddingLeft: '48px', paddingRight: '48px' }}>
-        <div className="flex justify-between items-center h-16">
-          <div className="flex items-center gap-3">
+    <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
+      <div className={`${APP_CONTAINER} h-16 flex items-center justify-between gap-3`}>
+        <div className="flex items-center gap-3 min-w-0">
+          <Link
+            href="/leagues"
+            className="shrink-0 hover:opacity-80 transition-opacity"
+            aria-label="Piłkarzyki — moje ligi"
+          >
             <Image
               src="/pilkarzyki-logo.png"
-              alt="Pilkarzyki"
-              width={200}
-              height={50}
+              alt="Piłkarzyki"
+              width={140}
+              height={35}
               priority
             />
-          </div>
-          <div className="flex items-center gap-4">
-            {hasAdminAccess && (
-              <Badge variant="info" size="sm">
-                <Settings size={12} />
-                Admin
-              </Badge>
-            )}
-            <UserButton afterSignOutUrl="/" />
-          </div>
+          </Link>
+          {title && (
+            <span className="truncate text-sm font-semibold" style={{ color: '#061852' }}>
+              {title}
+            </span>
+          )}
+        </div>
+        <div className="shrink-0">
+          <UserButton afterSignOutUrl="/" />
         </div>
       </div>
-    </nav>
+    </header>
   )
 }

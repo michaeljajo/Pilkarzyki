@@ -1,6 +1,3 @@
-'use client'
-
-import { useState, useEffect } from 'react'
 import { LeagueCard } from '@/components/LeagueCard'
 
 export interface League {
@@ -17,46 +14,20 @@ interface LeaguesGridProps {
   leagues: League[]
 }
 
-// Hook to detect screen size and return appropriate column count
-function useGridColumns() {
-  const [columns, setColumns] = useState(3) // Default for SSR
-  
-  useEffect(() => {
-    const getColumns = () => {
-      const width = window.innerWidth
-      if (width >= 1280) return 3       // xl: 3 columns
-      if (width >= 768) return 2        // md: 2 columns
-      return 1                          // mobile: 1 column
-    }
-    
-    setColumns(getColumns())
-    
-    const handleResize = () => setColumns(getColumns())
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
-  
-  return columns
-}
-
+/**
+ * Responsive grid of league cards.
+ *
+ * Breakpoints are CSS, not a measured window width: the previous version
+ * defaulted to 3 columns during SSR and re-measured on mount, so narrow viewports
+ * flashed a 3-up layout before snapping to 1-up. It also carried a resize
+ * listener for something media queries do for free. Gaps match the league pages
+ * (16px / 24px) rather than the old 32px.
+ */
 export function LeaguesGrid({ leagues }: LeaguesGridProps) {
-  const columns = useGridColumns()
-  
   return (
-    <div 
-      style={{
-        display: 'grid',
-        gridTemplateColumns: `repeat(${columns}, 1fr)`,
-        gap: '32px',
-        padding: '8px',
-      }}
-    >
-      {leagues.map((league, index) => (
-        <LeagueCard
-          key={league.id}
-          league={league}
-          index={index}
-        />
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
+      {leagues.map((league) => (
+        <LeagueCard key={league.id} league={league} />
       ))}
     </div>
   )
