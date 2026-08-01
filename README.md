@@ -1,109 +1,108 @@
-# Fantasy Football Draft App
+# Piłkarzyki
 
-A modern fantasy football management system built with Next.js 14, Clerk authentication, Supabase backend, and deployed on Vercel.
+Fantasy football management for a private league: squads, weekly lineups,
+a league season and a cup competition running alongside it, plus a live draft.
 
-## Features
+## Stack
 
-- **User Authentication**: Secure authentication with Clerk
-- **League Management**: Create and manage fantasy football leagues
-- **Squad Management**: Excel-based squad assignment with Manager column
-- **Weekly Lineups**: Select 3 players per gameweek with validation rules
-- **Automated Scheduling**: Double round-robin scheduling for up to 16 managers
-- **Scoring System**: Goal-based scoring with league table standings
-- **Real-time Updates**: Live data sync with Supabase
+- **Next.js 16** (App Router, TypeScript, Turbopack in dev)
+- **Clerk** for authentication
+- **Supabase** (PostgreSQL + RLS) for data
+- **Tailwind CSS v4**
+- **Vercel** for hosting (Frankfurt, `fra1`)
 
-## Tech Stack
+Routing note: this project uses `src/proxy.ts` for middleware, not
+`middleware.ts` — that is the Next 16 convention.
 
-- **Frontend**: Next.js 14, TypeScript, Tailwind CSS
-- **Authentication**: Clerk
-- **Backend**: Supabase (PostgreSQL, Real-time, RLS)
-- **Deployment**: Vercel
-
-## Environment Variables
-
-Create a `.env.local` file with the following variables:
+## Local setup (macOS)
 
 ```bash
-# Clerk Authentication
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
-CLERK_SECRET_KEY=your_clerk_secret_key
+npm install
+```
 
-# Clerk redirect URLs
+Create `.env.local`:
+
+```bash
+# Clerk
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+CLERK_SECRET_KEY=
 NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
 NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
 NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL=/dashboard
 NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL=/dashboard
 
 # Supabase
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
-
-# Database
-DATABASE_URL=your_postgresql_connection_string
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+DATABASE_URL=
 ```
 
-## Getting Started
+Then:
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd fantasy-football
-   ```
+```bash
+npm run dev
+```
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+> The checkout currently lives inside iCloud Drive, which causes sync conflict
+> copies and phantom file changes in `node_modules`. Moving it somewhere local
+> (e.g. `~/Developer`) is recommended — see `docs/dev-server.md`.
 
-3. **Set up environment variables**
-   - Copy `.env.local.example` to `.env.local`
-   - Fill in your Clerk and Supabase credentials
+## Commands
 
-4. **Run the development server**
-   ```bash
-   npm run dev
-   ```
+| Command | Purpose |
+|---|---|
+| `npm run dev` | dev server on :3000 (cleans up stale state first) |
+| `npm run build` | production build — type-checks, and fails on type errors |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm run lint` | ESLint over `src` and `scripts` |
+| `npm run kill:dev` | free port 3000 |
+| `npm run dev:emergency` | last-resort cleanup for a wedged dev server |
 
-5. **Open [http://localhost:3000](http://localhost:3000)**
+Do not run `npm run build` while `npm run dev` is live — both write `.next`.
 
-## Deployment on Vercel
+## Deployment
 
-1. **Connect your repository to Vercel**
-2. **Set environment variables in Vercel dashboard**
-3. **Deploy automatically on push to main branch**
+Push to `main`; Vercel builds and deploys. Environment variables are set in the
+Vercel dashboard. `vercel.json` pins the region, sets a 30s function timeout for
+API routes, and registers two cron jobs (gameweek completion at 23:00, default
+lineups at 23:30).
 
-The app is configured for optimal performance on Vercel with:
-- Serverless functions for API routes
-- Static generation for public pages
-- Edge runtime for authentication middleware
+Test on the Vercel preview URL, not only locally — the build environment
+differs from macOS.
 
-## Project Structure
+## Layout
 
 ```
 src/
-├── app/
-│   ├── dashboard/         # Protected dashboard pages
-│   ├── sign-in/          # Authentication pages
-│   ├── sign-up/
-│   └── layout.tsx        # Root layout with ClerkProvider
-├── lib/
-│   ├── supabase.ts       # Supabase client configuration
-│   ├── supabase-client.ts # Client-side Supabase with Clerk
-│   └── supabase-server.ts # Server-side Supabase with Clerk
-└── middleware.ts         # Clerk authentication middleware
+├── app/                 # App Router pages and 90+ API routes
+│   ├── leagues/[id]/    # league, cup, squad, draft, and /manage admin mode
+│   └── api/
+├── components/
+├── lib/                 # supabase clients, auth-helpers, domain services
+├── utils/               # scheduling, standings, validation, parsers
+├── types/               # shared TypeScript interfaces
+└── proxy.ts             # Clerk middleware (Next 16 naming)
 ```
 
-## Admin Features
+Three Supabase clients, chosen by context: `lib/supabase.ts` (anon + admin),
+`lib/supabase-client.ts` (browser, Clerk-authed), `lib/supabase-server.ts`
+(server, Clerk-authed). The admin client bypasses RLS — every route using it
+must authorize explicitly via `lib/auth-helpers.ts`.
 
-- User management and role assignment
-- Excel squad import (Name, Surname, League, Position, Manager)
-- Gameweek calendar setup (30 gameweeks)
-- Results entry and scoring management
+## Docs
 
-## Manager Features
+| File | Contents |
+|---|---|
+| `docs/dev-server.md` | running and unwedging the dev server |
+| `docs/database-setup.md` | initial database setup |
+| `docs/database-triggers.md` | rules enforced in Postgres, not app code |
+| `docs/deployment.md` | deploy process |
+| `docs/cron-setup.md` | scheduled jobs |
+| `docs/webhooks.md` | Clerk webhook setup |
+| `docs/league-data-safeguards.md` | league data integrity |
+| `docs/league-isolation-safeguards.md` | cross-league isolation |
+| `docs/mid-season-draft.md` | mid-season draft feature |
+| `supabase/migrations/README.md` | migration order, collisions, conventions |
 
-- View assigned squad
-- Weekly lineup selection with validation
-- League standings and results
-- Real-time updates during gameweeks
+`CLAUDE.md` and `RULES.md` are instructions for AI coding agents.
