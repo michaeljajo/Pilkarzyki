@@ -1,4 +1,5 @@
 import { supabaseAdmin } from '@/lib/supabase'
+import { formatPlaceholder } from './placeholder-formatter'
 import type { ResolvedMatchTeam, CupMatchWithManagers } from '@/types'
 
 export type PlaceholderType =
@@ -250,9 +251,14 @@ export async function resolveMatchPairings(
 
 /**
  * Format placeholder for display
- * Re-exported from placeholder-formatter for backward compatibility
+ * Re-exported from placeholder-formatter for backward compatibility.
+ *
+ * NOTE: this must be an import + separate export, not `export { x } from`.
+ * The latter forwards the binding to importers without introducing the name
+ * into this module's scope, so the call sites below (resolveMatchTeam and
+ * friends) threw ReferenceError at runtime.
  */
-export { formatPlaceholder } from './placeholder-formatter'
+export { formatPlaceholder }
 
 /**
  * Resolve a match team (either from manager_id or placeholder)
