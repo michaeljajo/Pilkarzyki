@@ -39,7 +39,7 @@ export async function GET(
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const messages = (data || []).map((m: any) => ({
       id: m.id,
       body: m.body,

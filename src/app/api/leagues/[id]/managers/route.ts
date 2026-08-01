@@ -5,6 +5,7 @@ import { auth, clerkClient } from '@clerk/nextjs/server'
 import { resolveUserNames } from '@/utils/name-resolver'
 import { verifyLeagueAdmin, assertLeagueMutable } from '@/lib/auth-helpers'
 import { LEAGUE_LIMITS, VALIDATION_MESSAGES } from '@/config/constants'
+import { logger } from '@/lib/logger'
 
 export async function GET(
   request: NextRequest,
@@ -55,11 +56,11 @@ export async function GET(
     // consumers of this endpoint. We batch-load the Clerk profiles in one call
     // so we always have the real username/email and never leak the "Admin User"
     // / <prefix>-<clerkId>@temp.com placeholders left in legacy mirror rows.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const rows: any[] = (data || []).map((squad: any) => squad.users).filter(Boolean)
     const clerkIds = rows.map((u) => u.clerk_id).filter(Boolean)
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const clerkById = new Map<string, any>()
     if (clerkIds.length > 0) {
       try {
@@ -67,7 +68,7 @@ export async function GET(
         const list = await client.users.getUserList({ userId: clerkIds, limit: clerkIds.length })
         for (const cu of list.data) clerkById.set(cu.id, cu)
       } catch (e) {
-        console.warn('Managers GET - Clerk batch lookup failed:', e)
+        logger.warn('Managers GET - Clerk batch lookup failed:', e)
       }
     }
 

@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger'
 /**
  * Enhanced name resolution utility for consistent user name processing
  * Handles username, first/last name, and email fallbacks consistently
@@ -25,7 +26,7 @@ export function resolveUserNames(userData: ClerkUserData): ResolvedNames {
 
   if (userData.username) {
     // PRIORITY 1: Use username as primary source
-    console.log('✅ Using username:', userData.username)
+    logger.debug('name-resolver: using username')
     if (userData.username.includes(' ')) {
       // Split on space: "John Doe" → "John" "Doe"
       const nameParts = userData.username.split(' ')
@@ -43,12 +44,12 @@ export function resolveUserNames(userData: ClerkUserData): ResolvedNames {
     }
   } else if (userData.first_name || userData.last_name) {
     // PRIORITY 2: Use provided first/last names
-    console.log('✅ Using first/last names')
+    logger.debug('name-resolver: using clerk profile names')
     firstName = userData.first_name || ''
     lastName = userData.last_name || ''
   } else {
     // PRIORITY 3: Last resort - use email prefix
-    console.log(`⚠️ Falling back to email prefix${isGmail ? ' (Gmail user)' : ''}`)
+    logger.debug('name-resolver: falling back to email prefix')
     firstName = emailPrefix
     lastName = ''
   }
@@ -58,9 +59,9 @@ export function resolveUserNames(userData: ClerkUserData): ResolvedNames {
     firstName = emailPrefix
   }
 
-  console.log('💾 Resolved names:', {
-    firstName,
-    lastName,
+  // Log which strategy won, not the names themselves — the source is what you
+  // need when a name resolves oddly, and it carries no personal data.
+  logger.debug('name-resolver: resolved via', {
     source: userData.username ? 'username' : (userData.first_name || userData.last_name) ? 'clerk_profile' : 'email_prefix',
     isGmail
   })

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { requireGlobalAdmin } from '@/lib/auth-helpers'
+import { logger } from '@/lib/logger'
 
 export async function POST(request: NextRequest) {
   try {
@@ -71,7 +72,7 @@ export async function POST(request: NextRequest) {
         sql: 'CREATE INDEX IF NOT EXISTS idx_matches_league ON matches(league_id)'
       })
     } catch (indexError) {
-      console.warn('Index creation warning:', indexError)
+      logger.warn('Index creation warning:', indexError)
     }
 
 

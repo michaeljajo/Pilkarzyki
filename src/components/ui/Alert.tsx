@@ -1,6 +1,6 @@
 'use client'
 
-import { HTMLAttributes, forwardRef, useState, useEffect } from 'react'
+import { HTMLAttributes, forwardRef, useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle, AlertCircle, AlertTriangle, Info, X } from 'lucide-react'
 import { cn } from '@/utils/cn'
@@ -33,6 +33,16 @@ const Alert = forwardRef<HTMLDivElement, AlertProps>(
   }, ref) => {
     const [isVisible, setIsVisible] = useState(true)
 
+    // Declared before the effect that uses it. It was previously defined
+    // below, so the effect referenced it through the temporal dead zone —
+    // harmless only because the callback runs after render.
+    const handleDismiss = useCallback(() => {
+      setIsVisible(false)
+      setTimeout(() => {
+        onDismiss?.()
+      }, 300)
+    }, [onDismiss])
+
     useEffect(() => {
       if (autoDismiss && autoDismissDelay) {
         const timer = setTimeout(() => {
@@ -40,14 +50,7 @@ const Alert = forwardRef<HTMLDivElement, AlertProps>(
         }, autoDismissDelay)
         return () => clearTimeout(timer)
       }
-    }, [autoDismiss, autoDismissDelay])
-
-    const handleDismiss = () => {
-      setIsVisible(false)
-      setTimeout(() => {
-        onDismiss?.()
-      }, 300)
-    }
+    }, [autoDismiss, autoDismissDelay, handleDismiss])
 
     const variants = {
       success: {

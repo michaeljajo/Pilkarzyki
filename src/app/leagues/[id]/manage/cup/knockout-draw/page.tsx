@@ -670,7 +670,7 @@ export default function KnockoutDrawPage({ params }: { params: Promise<{ id: str
             <ul className="space-y-1">
               <li>• ✅ You can configure draws before matches complete - teams will resolve automatically</li>
               <li>• ✅ Edit anytime to change bracket structure</li>
-              <li>• ✅ Use "Refresh Resolution" button after completing a stage to update placeholders</li>
+              <li>• ✅ Use &quot;Refresh Resolution&quot; button after completing a stage to update placeholders</li>
             </ul>
           </div>
         </div>

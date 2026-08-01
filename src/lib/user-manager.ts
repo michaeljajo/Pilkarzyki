@@ -1,6 +1,7 @@
 import { supabaseAdmin } from '@/lib/supabase'
 import { clerkClient } from '@clerk/nextjs/server'
 import { resolveUserNames } from '@/utils/name-resolver'
+import { logger } from '@/lib/logger'
 
 interface GetOrCreateUserOptions {
   selectFields?: string
@@ -41,13 +42,13 @@ export async function getOrCreateUser(
     const existingUser = existingUserRow as UserRow | null
 
     if (existingUser) {
-      console.log(`${context} - Found existing user:`, existingUser.id)
+      logger.debug(`${context} - found existing user`)
       return existingUser
     }
 
     // If user doesn't exist (not an error, just not found), create them
     if (fetchError?.code === 'PGRST116') {
-      console.log(`${context} - Creating new user for Clerk ID:`, clerkUserId)
+      logger.debug(`${context} - creating new user`)
 
       // Pull the real Clerk profile so the mirror holds the user's actual
       // identity instead of a placeholder ("User Account" / user-<id>@temp.com).
@@ -69,7 +70,7 @@ export async function getOrCreateUser(
       } catch (clerkError) {
         // If Clerk is unreachable we still create the row, but with a resolved
         // fallback name rather than a fake email address.
-        console.warn(`${context} - Could not fetch Clerk profile:`, clerkError)
+        logger.warn(`${context} - Could not fetch Clerk profile:`, clerkError)
         const resolved = resolveUserNames({ email: '' })
         firstName = resolved.firstName
         lastName = resolved.lastName
@@ -87,18 +88,18 @@ export async function getOrCreateUser(
         .single()
 
       if (createError) {
-        console.error(`${context} - Error creating user:`, createError)
+        logger.error(`${context} - Error creating user:`, createError)
         throw new Error(`Failed to create user: ${createError.message}`)
       }
 
       const newUser = newUserRow as unknown as UserRow
-      console.log(`${context} - Created new user:`, newUser.id)
+      logger.debug(`${context} - created new user`)
       return newUser
     }
 
     // If it's a different error, throw it
     if (fetchError) {
-      console.error(`${context} - Error fetching user:`, fetchError)
+      logger.error(`${context} - Error fetching user:`, fetchError)
       throw new Error(`Failed to fetch user: ${fetchError.message}`)
     }
 

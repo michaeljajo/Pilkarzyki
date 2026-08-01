@@ -2,6 +2,7 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { computeQualifiedManagerIds } from '@/utils/cup-scheduling'
 import { DEFAULT_CUP_FORMAT } from '@/lib/cup-format'
 import type { CupFormat } from '@/types'
+import { logger } from '@/lib/logger'
 
 export interface MatchResult {
   id: string
@@ -368,7 +369,7 @@ export async function updateStandingsTable(leagueId: string, standings: ManagerS
       .insert(standingsData)
 
     if (insertError) {
-      console.log('Insert failed, trying upsert as fallback:', insertError.message)
+      logger.debug('Insert failed, trying upsert as fallback:', insertError.message)
 
       // Fallback to upsert if insert fails due to conflicts
       const { error: upsertError } = await supabaseAdmin
@@ -382,7 +383,7 @@ export async function updateStandingsTable(leagueId: string, standings: ManagerS
       }
     }
 
-    console.log(`Successfully updated standings for league ${leagueId}`)
+    logger.debug(`Successfully updated standings for league ${leagueId}`)
   } catch (error) {
     console.error('Error in updateStandingsTable:', error)
     throw error
@@ -429,7 +430,7 @@ export async function recalculateCupGroupStandings(cupId: string): Promise<void>
 
   // If there are no completed group stage matches, nothing to calculate
   if (!cupMatches || cupMatches.length === 0) {
-    console.log(`No completed group stage matches found for cup ${cupId}`)
+    logger.debug(`No completed group stage matches found for cup ${cupId}`)
     return
   }
 
@@ -452,7 +453,7 @@ export async function recalculateCupGroupStandings(cupId: string): Promise<void>
     })
   } else {
     // Infer groups from cup matches if cup_groups table is empty
-    console.log(`No cup_groups found, inferring from matches for cup ${cupId}`)
+    logger.debug(`No cup_groups found, inferring from matches for cup ${cupId}`)
     cupMatches.forEach(match => {
       if (match.group_name) {
         if (!groupsByName[match.group_name]) {
@@ -471,7 +472,7 @@ export async function recalculateCupGroupStandings(cupId: string): Promise<void>
 
   // If no groups were found, there's nothing to calculate
   if (Object.keys(groupsByName).length === 0) {
-    console.log(`No groups found for cup ${cupId}`)
+    logger.debug(`No groups found for cup ${cupId}`)
     return
   }
 
@@ -623,5 +624,5 @@ export async function recalculateCupGroupStandings(cupId: string): Promise<void>
     }
   }
 
-  console.log(`Successfully updated cup group standings for cup ${cupId}`)
+  logger.debug(`Successfully updated cup group standings for cup ${cupId}`)
 }

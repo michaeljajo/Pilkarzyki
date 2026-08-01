@@ -4,6 +4,7 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { auth } from '@clerk/nextjs/server'
 import { ARCHIVED_LEAGUE_ERROR_MESSAGE, assertLeagueMutable } from '@/lib/auth-helpers'
 import { LEAGUE_LIMITS, VALIDATION_MESSAGES } from '@/config/constants'
+import { logger } from '@/lib/logger'
 
 // Bust the cached league lists that power the dashboard ("Moje Ligi") so
 // deletes/archives are reflected immediately instead of after the cache TTL.
@@ -16,7 +17,7 @@ function revalidateLeagueLists() {
 // (camelCase). The admin pages read league.isActive / currentGameweek /
 // createdAt, so returning the raw row made isActive undefined -> the settings
 // page always showed the "archived" banner.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 function mapLeagueRow(data: any) {
   if (!data) return data
   return {
@@ -41,7 +42,7 @@ export async function GET(
   try {
     const { userId } = await auth()
     const { id } = await params
-    console.log('GET /api/leagues/[id] - userId:', userId, 'leagueId:', id)
+    logger.debug('GET /api/leagues/[id] - leagueId:', id)
 
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -64,7 +65,7 @@ export async function GET(
       .eq('id', id)
       .single()
 
-    console.log('League query result:', { data, error })
+    logger.debug('League query result:', { data, error })
 
     if (error) {
       console.error('Error fetching league:', error)
@@ -94,7 +95,7 @@ export async function PUT(
   try {
     const { userId } = await auth()
     const { id } = await params
-    console.log('PUT /api/leagues/[id] - userId:', userId, 'leagueId:', id)
+    logger.debug('PUT /api/leagues/[id] - leagueId:', id)
 
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -127,7 +128,7 @@ export async function PUT(
     }
 
     const requestBody = await request.json()
-    console.log('Update request body:', requestBody)
+    logger.debug('Update request body:', requestBody)
 
     const { name, isActive, maxManagers } = requestBody
 
@@ -185,7 +186,7 @@ export async function PUT(
       .select('*')
       .single()
 
-    console.log('League update result:', { data, error })
+    logger.debug('League update result:', { data, error })
 
     if (error) {
       console.error('Error updating league:', error)
@@ -212,7 +213,7 @@ export async function DELETE(
   try {
     const { userId } = await auth()
     const { id } = await params
-    console.log('DELETE /api/leagues/[id] - userId:', userId, 'leagueId:', id)
+    logger.debug('DELETE /api/leagues/[id] - leagueId:', id)
 
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -256,7 +257,7 @@ export async function DELETE(
       .select('*')
       .single()
 
-    console.log('League delete result:', { data, error })
+    logger.debug('League delete result:', { data, error })
 
     if (error) {
       console.error('Error deleting league:', error)

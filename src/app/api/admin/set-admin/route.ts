@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth, clerkClient } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { resolveUserNames } from '@/utils/name-resolver'
+import { logger } from '@/lib/logger'
 
 export async function POST(request: NextRequest) {
   try {
@@ -70,7 +71,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error) {
-      console.warn('Database update error (continuing anyway):', error)
+      logger.warn('Database update error (continuing anyway):', error)
     }
 
 

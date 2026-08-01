@@ -6,6 +6,7 @@
 
 import { supabaseAdmin } from '@/lib/supabase'
 import { PlayerTransferRow } from '@/types'
+import { logger } from '@/lib/logger'
 
 /**
  * Get the manager who owned a player during a specific gameweek
@@ -160,7 +161,7 @@ export async function createPlayerTransfer(
       }
     }
 
-    console.log('Transfer validation passed:', {
+    logger.debug('Transfer validation passed:', {
       playerId,
       playerLeague: player.league,
       leagueId,

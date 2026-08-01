@@ -1,6 +1,6 @@
 'use client'
 
-import { SelectHTMLAttributes, forwardRef } from 'react'
+import { SelectHTMLAttributes, forwardRef, useId } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { cn } from '@/utils/cn'
 
@@ -22,7 +22,10 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
     children,
     ...props
   }, ref) => {
-    const selectId = id || `select-${Math.random().toString(36).substr(2, 9)}`
+    // See Input.tsx: useId is stable across renders and SSR-safe, Math.random
+    // is neither.
+    const generatedId = useId()
+    const selectId = id || generatedId
 
     return (
       <div className={cn('space-y-2', fullWidth && 'w-full')}>

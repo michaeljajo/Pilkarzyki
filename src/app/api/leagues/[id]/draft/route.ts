@@ -69,7 +69,7 @@ export async function GET(
       .select('id, manager_id, team_name, users!squads_manager_id_fkey(id, first_name, last_name, email)')
       .eq('league_id', leagueId)
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const managers = (squadRows || []).map((s: any) => ({
       squadId: s.id,
       managerId: s.manager_id,

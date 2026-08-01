@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { AlertTriangle } from 'lucide-react'
@@ -38,9 +38,17 @@ export function ConfirmModal({
   const [typed, setTyped] = useState('')
 
   // Clear the typed phrase whenever the modal opens or closes.
-  useEffect(() => {
+  //
+  // React's "adjusting state when a prop changes" pattern rather than an
+  // effect: setting state synchronously in an effect renders the stale value
+  // first and then immediately re-renders. Setting it during render lets React
+  // discard the in-progress render and retry with the cleared value, so the
+  // previous phrase is never shown.
+  const [wasOpen, setWasOpen] = useState(isOpen)
+  if (wasOpen !== isOpen) {
+    setWasOpen(isOpen)
     if (!isOpen) setTyped('')
-  }, [isOpen])
+  }
 
   const confirmationMet =
     !requireConfirmationText || typed.trim() === requireConfirmationText.trim()

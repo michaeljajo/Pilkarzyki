@@ -223,7 +223,7 @@ export default function AdminCupStandingsPage() {
         <CardContent>
           <div className="space-y-3 text-amber-700">
             <p>
-              <strong>Rozstrzyganie:</strong> Każda grupa ma przycisk "Rozstrzyganie" do ręcznego ustawiania kolejności drużyn w przypadku remisu
+              <strong>Rozstrzyganie:</strong> Każda grupa ma przycisk &quot;Rozstrzyganie&quot; do ręcznego ustawiania kolejności drużyn w przypadku remisu
             </p>
             <p>
               <strong>Przelicz Wszystkie:</strong> Automatycznie przelicza tabele wszystkich grup na podstawie wyników meczów
