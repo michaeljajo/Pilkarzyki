@@ -110,14 +110,28 @@ export async function applyDefaultLineupsForGameweek(
     }
   }
 
+  // Fetch every manager's default in one query rather than one per manager.
+  // This runs from the nightly cron across all leagues, and vercel.json caps
+  // API routes at 30s.
+  const defaultLineupByManager = new Map<
+    string,
+    { player_ids?: string[]; cup_week_player_ids?: string[] }
+  >()
+  if (managersWithoutLineups.length > 0) {
+    const { data: defaultLineupRows } = await supabaseAdmin
+      .from('default_lineups')
+      .select('manager_id, player_ids, cup_week_player_ids')
+      .eq('league_id', gameweek.league_id)
+      .in('manager_id', managersWithoutLineups)
+
+    for (const row of defaultLineupRows ?? []) {
+      defaultLineupByManager.set(row.manager_id, row)
+    }
+  }
+
   // Apply default league lineups for managers without lineups
   for (const managerId of managersWithoutLineups) {
-    const { data: defaultLineup } = await supabaseAdmin
-      .from('default_lineups')
-      .select('player_ids, cup_week_player_ids')
-      .eq('manager_id', managerId)
-      .eq('league_id', gameweek.league_id)
-      .single()
+    const defaultLineup = defaultLineupByManager.get(managerId)
 
     // Dual week for this manager → use the cup-week league default.
     const isDualForManager = cupManagerIdsThisWeek.has(managerId)
@@ -181,13 +195,22 @@ export async function applyDefaultLineupsForGameweek(
         (id) => !managersWithCupLineups.has(id)
       )
 
-      for (const managerId of managersWithoutCupLineups) {
-        const { data: defaultCupLineup } = await supabaseAdmin
+      // One query for the whole cup gameweek instead of one per manager.
+      const defaultCupLineupByManager = new Map<string, { player_ids?: string[] }>()
+      if (managersWithoutCupLineups.length > 0) {
+        const { data: defaultCupRows } = await supabaseAdmin
           .from('default_cup_lineups')
-          .select('player_ids')
-          .eq('manager_id', managerId)
+          .select('manager_id, player_ids')
           .eq('cup_id', cupGameweek.cup_id)
-          .single()
+          .in('manager_id', managersWithoutCupLineups)
+
+        for (const row of defaultCupRows ?? []) {
+          defaultCupLineupByManager.set(row.manager_id, row)
+        }
+      }
+
+      for (const managerId of managersWithoutCupLineups) {
+        const defaultCupLineup = defaultCupLineupByManager.get(managerId)
 
         const cupValidity = evaluateDefaultLineup(
           defaultCupLineup?.player_ids,
