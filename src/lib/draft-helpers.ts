@@ -1,5 +1,7 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
-import { verifyLeagueAdmin } from '@/lib/auth-helpers'
+import { assertLeagueMutable, verifyLeagueAdmin } from '@/lib/auth-helpers'
 
 export interface DraftAccess {
   ok: boolean
@@ -93,4 +95,75 @@ export function draftErrorToResponse(error: { message?: string; code?: string })
   }
 
   return { status: 500, message: 'Błąd serwera podczas przetwarzania draftu.' }
+}
+
+/**
+ * Builds the POST handler for an admin-only draft action that delegates its
+ * work to a Postgres RPC.
+ *
+ * The skip and undo routes were 58 lines each and differed in exactly three
+ * places: the RPC name, the Polish 403 message and the log prefix. Everything
+ * else — auth, admin check, archived-league check, resolving the preseason
+ * draft, and mapping RPC errors to HTTP statuses — was duplicated verbatim.
+ *
+ * Ordering matters and is preserved: authenticate, then authorize, then reject
+ * archived leagues, then look up the draft. Changing that order would leak
+ * whether a draft exists to a non-admin.
+ */
+export function createDraftAdminAction(config: {
+  rpc: 'draft_skip' | 'draft_undo'
+  forbiddenMessage: string
+  logLabel: string
+}) {
+  return async function POST(
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+  ) {
+    try {
+      const { userId } = await auth()
+      const { id: leagueId } = await params
+
+      if (!userId) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
+
+      const access = await resolveDraftAccess(userId, leagueId)
+      if (!access.ok) {
+        return NextResponse.json({ error: access.error }, { status: access.status })
+      }
+      if (!access.isAdmin) {
+        return NextResponse.json({ error: config.forbiddenMessage }, { status: 403 })
+      }
+
+      const mutable = await assertLeagueMutable(leagueId)
+      if (!mutable.ok) {
+        return NextResponse.json({ error: mutable.error }, { status: mutable.status })
+      }
+
+      const { data: draft } = await supabaseAdmin
+        .from('drafts')
+        .select('id')
+        .eq('league_id', leagueId)
+        .eq('kind', 'preseason')
+        .maybeSingle()
+
+      if (!draft) {
+        return NextResponse.json({ error: 'Nie znaleziono draftu.' }, { status: 404 })
+      }
+
+      const { data: updated, error } = await supabaseAdmin.rpc(config.rpc, {
+        p_draft_id: draft.id,
+      })
+
+      if (error) {
+        const mapped = draftErrorToResponse(error)
+        return NextResponse.json({ error: mapped.message }, { status: mapped.status })
+      }
+
+      return NextResponse.json({ draft: updated })
+    } catch (error) {
+      console.error(`${config.logLabel} error:`, error)
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    }
+  }
 }
