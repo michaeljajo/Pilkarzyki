@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { currentUser } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
-import { assertLeagueMutableByCup } from '@/lib/auth-helpers'
+import { assertLeagueMutableByCup, requireLeagueAdminByCup } from '@/lib/auth-helpers'
 
 // POST /api/admin/cups/[id]/lineups - Create or update cup lineup for a manager
 export async function POST(
@@ -28,40 +28,14 @@ export async function POST(
       return NextResponse.json({ error: mutable.error }, { status: mutable.status })
     }
 
-    // Get admin's internal user ID
-    const { data: adminUser } = await supabaseAdmin
-      .from('users')
-      .select('id')
-      .eq('clerk_id', user.id)
-      .single()
-
-    if (!adminUser) {
-      return NextResponse.json({ error: 'Admin user not found' }, { status: 404 })
+    // Authorize against the league_admins table rather than the legacy
+    // leagues.admin_id column — that column only names the original creator,
+    // so co-admins were wrongly locked out of the lineup override.
+    const admin = await requireLeagueAdminByCup(user.id, cupId)
+    if (!admin.ok) {
+      return NextResponse.json({ error: admin.error }, { status: admin.status })
     }
-
-    // Verify user is admin of this cup's league
-    const { data: cup } = await supabaseAdmin
-      .from('cups')
-      .select('league_id, leagues!inner(admin_id)')
-      .eq('id', cupId)
-      .single()
-
-    if (!cup) {
-      return NextResponse.json({ error: 'Cup not found' }, { status: 404 })
-    }
-
-    // Type assertion for Supabase joined data
-    type CupWithLeague = {
-      league_id: string;
-      leagues: {
-        admin_id: string;
-      };
-    };
-
-    const cupWithLeague = cup as unknown as CupWithLeague
-    if (cupWithLeague.leagues.admin_id !== adminUser.id) {
-      return NextResponse.json({ error: 'Unauthorized - not league admin' }, { status: 403 })
-    }
+    const cupWithLeague = { league_id: admin.leagueId }
 
     // Validate player count (1-3 players)
     if (playerIds.length < 1 || playerIds.length > 3) {
@@ -170,39 +144,12 @@ export async function GET(
     const { searchParams } = new URL(request.url)
     const cupGameweekId = searchParams.get('cupGameweekId')
 
-    // Get admin's internal user ID
-    const { data: adminUser } = await supabaseAdmin
-      .from('users')
-      .select('id')
-      .eq('clerk_id', user.id)
-      .single()
-
-    if (!adminUser) {
-      return NextResponse.json({ error: 'Admin user not found' }, { status: 404 })
-    }
-
-    // Verify user is admin of this cup's league
-    const { data: cup } = await supabaseAdmin
-      .from('cups')
-      .select('league_id, leagues!inner(admin_id)')
-      .eq('id', cupId)
-      .single()
-
-    if (!cup) {
-      return NextResponse.json({ error: 'Cup not found' }, { status: 404 })
-    }
-
-    // Type assertion for Supabase joined data
-    type CupWithLeague = {
-      league_id: string;
-      leagues: {
-        admin_id: string;
-      };
-    };
-
-    const cupWithLeague = cup as unknown as CupWithLeague
-    if (cupWithLeague.leagues.admin_id !== adminUser.id) {
-      return NextResponse.json({ error: 'Unauthorized - not league admin' }, { status: 403 })
+    // Authorize against the league_admins table rather than the legacy
+    // leagues.admin_id column — that column only names the original creator,
+    // so co-admins were wrongly locked out of the lineup override.
+    const admin = await requireLeagueAdminByCup(user.id, cupId)
+    if (!admin.ok) {
+      return NextResponse.json({ error: admin.error }, { status: admin.status })
     }
 
     // Get all managers in the cup (those assigned to cup groups)

@@ -3,7 +3,7 @@ import { createClerkSupabaseClientSsr } from '@/lib/supabase-server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { auth } from '@clerk/nextjs/server'
 import { Position } from '@/types'
-import { assertLeagueMutableByName } from '@/lib/auth-helpers'
+import { assertLeagueMutableByName, requireLeagueAdminByName } from '@/lib/auth-helpers'
 
 async function assertPlayerLeagueMutable(playerId: string) {
   const { data } = await supabaseAdmin
@@ -15,6 +15,28 @@ async function assertPlayerLeagueMutable(playerId: string) {
     return { ok: true as const }
   }
   return assertLeagueMutableByName(data.league)
+}
+
+/**
+ * Admin guard for a player, resolved through the league *name* the player
+ * belongs to. Unlike assertPlayerLeagueMutable this fails closed when the
+ * player has no league — an unattributable player must not be editable by
+ * an arbitrary signed-in user.
+ */
+async function requirePlayerLeagueAdmin(clerkUserId: string, playerId: string) {
+  const { data } = await supabaseAdmin
+    .from('players')
+    .select('league')
+    .eq('id', playerId)
+    .maybeSingle()
+
+  if (!data) {
+    return { ok: false as const, status: 404, error: 'Nie znaleziono zawodnika.' }
+  }
+  if (!data.league) {
+    return { ok: false as const, status: 403, error: 'Zawodnik nie należy do żadnej ligi.' }
+  }
+  return requireLeagueAdminByName(clerkUserId, data.league)
 }
 
 export async function GET(
@@ -61,6 +83,18 @@ export async function PUT(
 
     const { id } = await params
     const updates = await request.json()
+
+    const admin = await requirePlayerLeagueAdmin(userId, id)
+    if (!admin.ok) {
+      return NextResponse.json({ error: admin.error }, { status: admin.status })
+    }
+    // Moving a player into another league requires admin rights there too.
+    if (updates.league) {
+      const targetAdmin = await requireLeagueAdminByName(userId, updates.league)
+      if (!targetAdmin.ok) {
+        return NextResponse.json({ error: targetAdmin.error }, { status: targetAdmin.status })
+      }
+    }
 
     const mutable = await assertPlayerLeagueMutable(id)
     if (!mutable.ok) {
@@ -132,6 +166,11 @@ export async function DELETE(
     }
 
     const { id } = await params
+
+    const admin = await requirePlayerLeagueAdmin(userId, id)
+    if (!admin.ok) {
+      return NextResponse.json({ error: admin.error }, { status: admin.status })
+    }
 
     const mutable = await assertPlayerLeagueMutable(id)
     if (!mutable.ok) {

@@ -4,7 +4,7 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { recalculateLeagueStandings, recalculateCupGroupStandings } from '@/utils/standings-calculator'
 import { calculateMatchScore, calculateLineupTotalGoals } from '@/utils/own-goal-calculator'
 import { resolveNextRoundPlaceholders } from '@/utils/knockout-winner'
-import { assertLeagueMutableByGameweek } from '@/lib/auth-helpers'
+import { assertLeagueMutableByGameweek, requireLeagueAdminByGameweek } from '@/lib/auth-helpers'
 
 export async function GET(
   request: NextRequest,
@@ -172,6 +172,13 @@ export async function PUT(
       return NextResponse.json({
         error: 'Results must be an array of { player_id, goals, has_played? } objects'
       }, { status: 400 })
+    }
+
+    // This bulk-writes results and recomputes match scores/standings for the
+    // whole gameweek, so it is admin-only.
+    const admin = await requireLeagueAdminByGameweek(userId, gameweekId)
+    if (!admin.ok) {
+      return NextResponse.json({ error: admin.error }, { status: admin.status })
     }
 
     const mutable = await assertLeagueMutableByGameweek(gameweekId)

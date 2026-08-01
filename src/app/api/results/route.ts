@@ -3,7 +3,7 @@ import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { recalculateLeagueStandings } from '@/utils/standings-calculator'
 import { calculateMatchScore } from '@/utils/own-goal-calculator'
-import { assertLeagueMutableByGameweek } from '@/lib/auth-helpers'
+import { assertLeagueMutableByGameweek, requireLeagueAdminByGameweek } from '@/lib/auth-helpers'
 
 export async function GET(request: NextRequest) {
   try {
@@ -65,6 +65,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         error: 'Missing required fields: gameweek_id, player_id, goals'
       }, { status: 400 })
+    }
+
+    // Writing goals rewrites match scores and league standings, so this is
+    // admin-only — not merely "signed in".
+    const admin = await requireLeagueAdminByGameweek(userId, gameweek_id)
+    if (!admin.ok) {
+      return NextResponse.json({ error: admin.error }, { status: admin.status })
     }
 
     const mutable = await assertLeagueMutableByGameweek(gameweek_id)

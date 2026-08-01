@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
-import { assertLeagueMutable } from '@/lib/auth-helpers'
+import { assertLeagueMutable, requireLeagueAdmin } from '@/lib/auth-helpers'
 
 interface RouteParams {
   params: Promise<{
@@ -54,6 +55,17 @@ export async function PUT(
 ) {
   try {
     const { id: leagueId } = await params
+
+    const { userId } = await auth()
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const admin = await requireLeagueAdmin(userId, leagueId)
+    if (!admin.ok) {
+      return NextResponse.json({ error: admin.error }, { status: admin.status })
+    }
+
     const body = await request.json()
     const { tiebreakers } = body
 
@@ -134,6 +146,16 @@ export async function DELETE(
 ) {
   try {
     const { id: leagueId } = await params
+
+    const { userId } = await auth()
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const admin = await requireLeagueAdmin(userId, leagueId)
+    if (!admin.ok) {
+      return NextResponse.json({ error: admin.error }, { status: admin.status })
+    }
 
     const mutable = await assertLeagueMutable(leagueId)
     if (!mutable.ok) {

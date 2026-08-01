@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
-import { assertLeagueMutable } from '@/lib/auth-helpers'
+import { assertLeagueMutable, requireLeagueAdmin } from '@/lib/auth-helpers'
 
 export async function GET(request: NextRequest) {
   try {
@@ -54,6 +54,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         error: 'Missing required fields: league_id, week, start_date, end_date'
       }, { status: 400 })
+    }
+
+    const admin = await requireLeagueAdmin(userId, league_id)
+    if (!admin.ok) {
+      return NextResponse.json({ error: admin.error }, { status: admin.status })
     }
 
     const mutable = await assertLeagueMutable(league_id)

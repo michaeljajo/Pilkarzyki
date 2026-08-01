@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { currentUser } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
-import { assertLeagueMutable } from '@/lib/auth-helpers'
+import { assertLeagueMutable, requireLeagueAdmin } from '@/lib/auth-helpers'
 
 // POST /api/admin/leagues/[id]/lineups - Create or update lineup for a manager
 export async function POST(
@@ -28,27 +28,14 @@ export async function POST(
       return NextResponse.json({ error: mutable.error }, { status: mutable.status })
     }
 
-    // Get admin's internal user ID
-    const { data: adminUser } = await supabaseAdmin
-      .from('users')
-      .select('id')
-      .eq('clerk_id', user.id)
-      .single()
-
-    if (!adminUser) {
-      return NextResponse.json({ error: 'Admin user not found' }, { status: 404 })
+    // Authorize against the league_admins table rather than the legacy
+    // leagues.admin_id column — that column only names the original creator,
+    // so co-admins were wrongly locked out of the lineup override.
+    const admin = await requireLeagueAdmin(user.id, leagueId)
+    if (!admin.ok) {
+      return NextResponse.json({ error: admin.error }, { status: admin.status })
     }
-
-    // Verify user is admin of this league
-    const { data: league } = await supabaseAdmin
-      .from('leagues')
-      .select('admin_id')
-      .eq('id', leagueId)
-      .single()
-
-    if (!league || league.admin_id !== adminUser.id) {
-      return NextResponse.json({ error: 'Unauthorized - not league admin' }, { status: 403 })
-    }
+    const adminUser = { id: admin.userInternalId }
 
     // Validate player count (1-3 players)
     if (playerIds.length < 1 || playerIds.length > 3) {
@@ -179,26 +166,12 @@ export async function GET(
     const { searchParams } = new URL(request.url)
     const gameweekId = searchParams.get('gameweekId')
 
-    // Get admin's internal user ID
-    const { data: adminUser } = await supabaseAdmin
-      .from('users')
-      .select('id')
-      .eq('clerk_id', user.id)
-      .single()
-
-    if (!adminUser) {
-      return NextResponse.json({ error: 'Admin user not found' }, { status: 404 })
-    }
-
-    // Verify user is admin of this league
-    const { data: league } = await supabaseAdmin
-      .from('leagues')
-      .select('admin_id')
-      .eq('id', leagueId)
-      .single()
-
-    if (!league || league.admin_id !== adminUser.id) {
-      return NextResponse.json({ error: 'Unauthorized - not league admin' }, { status: 403 })
+    // Authorize against the league_admins table rather than the legacy
+    // leagues.admin_id column — that column only names the original creator,
+    // so co-admins were wrongly locked out of the lineup override.
+    const admin = await requireLeagueAdmin(user.id, leagueId)
+    if (!admin.ok) {
+      return NextResponse.json({ error: admin.error }, { status: admin.status })
     }
 
     // Get all managers in the league (those with squads)

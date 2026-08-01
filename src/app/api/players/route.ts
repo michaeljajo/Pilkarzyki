@@ -3,7 +3,7 @@ import { createClerkSupabaseClientSsr } from '@/lib/supabase-server'
 import { auth } from '@clerk/nextjs/server'
 import { Position } from '@/types'
 import { supabaseAdmin } from '@/lib/supabase'
-import { assertLeagueMutableByName } from '@/lib/auth-helpers'
+import { assertLeagueMutableByName, requireLeagueAdminByName } from '@/lib/auth-helpers'
 
 export async function GET(request: NextRequest) {
   try {
@@ -65,11 +65,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid position' }, { status: 400 })
     }
 
-    if (league) {
-      const mutable = await assertLeagueMutableByName(league)
-      if (!mutable.ok) {
-        return NextResponse.json({ error: mutable.error }, { status: mutable.status })
-      }
+    // A player must belong to a league, otherwise there is nothing to
+    // authorize against and any signed-in user could seed the players table.
+    if (!league) {
+      return NextResponse.json({ error: 'Missing required field: league' }, { status: 400 })
+    }
+
+    const admin = await requireLeagueAdminByName(userId, league)
+    if (!admin.ok) {
+      return NextResponse.json({ error: admin.error }, { status: admin.status })
+    }
+
+    const mutable = await assertLeagueMutableByName(league)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
     }
 
     const supabase = await createClerkSupabaseClientSsr()
@@ -127,9 +136,24 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    // Refuse imports into any archived league
+    // A bulk import must name its target league(s); otherwise there is nothing
+    // to authorize against.
     const uniqueLeagueNames = [...new Set(players.map((p: any) => p.league).filter(Boolean))]
+    if (uniqueLeagueNames.length === 0) {
+      return NextResponse.json(
+        { error: 'Every imported player must specify a league' },
+        { status: 400 }
+      )
+    }
+
+    // The caller must administer every league touched by the import, and none
+    // of them may be archived.
     for (const leagueName of uniqueLeagueNames) {
+      const admin = await requireLeagueAdminByName(userId, leagueName as string)
+      if (!admin.ok) {
+        return NextResponse.json({ error: admin.error }, { status: admin.status })
+      }
+
       const mutable = await assertLeagueMutableByName(leagueName as string)
       if (!mutable.ok) {
         return NextResponse.json({ error: mutable.error }, { status: mutable.status })
