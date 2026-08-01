@@ -1,161 +1,51 @@
-# Scripts Directory
+# scripts/
 
-This directory contains the Dev Server Management System V2 - a bulletproof 5-layer defense system that prevents all localhost server issues.
+Everything here is either wired into `package.json` or is a reusable
+maintenance tool. One-off scripts do not belong in this directory — if you write
+one to fix a specific incident, delete it once the incident is closed.
 
-## 📚 Quick Reference
+Prior to the August 2026 cleanup this directory held 109 files, almost all of
+them one-shot data fixes, diagnostics for long-resolved bugs, and runners for
+migrations already applied in production. Keeping migration runners around is a
+liability: re-running one can damage live data.
 
-### Core V2 Components
+## Dev server
 
-| Script | Purpose | Layer |
-|--------|---------|-------|
-| `lock-manager.js` | Atomic lock management | Layer 1 |
-| `process-manager.js` | PID registry & tracking | Layer 2 |
-| `health-monitor-v2.js` | Advanced health monitoring | Layer 3 |
-| `emergency-cleanup.sh` | Nuclear cleanup script | Layer 4 |
-| `launchd/*` | System-level watchdog | Layer 5 |
+| Script | Used by | Purpose |
+|---|---|---|
+| `auto-cleanup.js` | `npm run dev` | frees port 3000 and clears stale `.next` lock/build state before starting |
+| `emergency-cleanup.sh` | `npm run dev:emergency`, `npm run dev:force`, `npm run clean` | last-resort cleanup when the dev server is wedged |
+| `kill-next.sh` | — | kills Next processes and frees ports |
+| `kill-next-aggressive.sh` | `npm run kill:all` | broader kill, also clears caches and lock files |
 
-### Supporting Components
+The health monitor, live dashboard, process manager, lock manager and the macOS
+launchd watchdog were removed in the August 2026 cleanup. They existed to work
+around dev-server instability that Next 16 + Turbopack no longer exhibits, and
+their auto-restart-on-memory-growth behaviour risked causing more confusion than
+it prevented. `auto-cleanup.js` already degraded gracefully when
+`process-manager.js` was unavailable, so its removal needed no code change.
+
+## Maintenance tools
 
 | Script | Purpose |
-|--------|---------|
-| `dev-dashboard.js` | Real-time status dashboard |
-| `auto-cleanup.js` | Pre-flight checks (V2) |
-| `kill-next-aggressive.sh` | Legacy aggressive cleanup |
-| `dev-health-monitor.js` | Legacy health monitor (V1) |
-| `dev-with-cleanup.sh` | Graceful shutdown wrapper |
+|---|---|
+| `generate-import-template.ts` | regenerates the player-import xlsx template |
+| `setup-database.sh` | initial database setup |
+| `verify-league-isolation.ts` | integrity check: no data bleeds across leagues |
+| `check-player-duplicates.ts` | integrity check: duplicate player rows |
+| `seed-test-draft.ts` | seeds a throwaway draft for testing the draft flow |
 
-## 🚀 Usage
-
-### Via npm commands (Recommended)
+Run the TypeScript ones with `tsx`:
 
 ```bash
-# Daily development
-npm run dev
-
-# Long sessions with monitoring
-npm run dev:monitored
-
-# Check status
-npm run dev:status
-
-# Cleanup
-npm run dev:cleanup
-
-# Emergency nuclear cleanup
-npm run dev:emergency
+npx tsx scripts/verify-league-isolation.ts
 ```
 
-### Direct script execution
+They read credentials from `.env.local` and talk to the live database. The two
+integrity checks are read-only; `seed-test-draft.ts` writes.
 
-```bash
-# Lock Manager
-node scripts/lock-manager.js acquire
-node scripts/lock-manager.js release
-node scripts/lock-manager.js info
+## Schema migrations
 
-# Process Manager
-node scripts/process-manager.js status
-node scripts/process-manager.js list
-node scripts/process-manager.js cleanup
-
-# Dashboard
-node scripts/dev-dashboard.js
-node scripts/dev-dashboard.js watch
-
-# Health Monitor
-node scripts/health-monitor-v2.js
-
-# Emergency Cleanup
-bash scripts/emergency-cleanup.sh
-
-# Launchd Watchdog
-bash scripts/launchd/install-watchdog.sh
-bash scripts/launchd/uninstall-watchdog.sh
-```
-
-## 🏗️ Architecture
-
-```
-Layer 1: Lock Manager
-└─> Prevents concurrent cleanup races
-
-Layer 2: Process Manager
-└─> Tracks all PIDs with parent-child relationships
-
-Layer 3: Health Monitor V2
-└─> Memory leak, CPU spike, and response time monitoring
-
-Layer 4: Emergency Cleanup
-└─> Nuclear option that always works
-
-Layer 5: System Watchdog
-└─> macOS launchd integration for boot cleanup
-```
-
-## 📁 Output Files
-
-All runtime state is stored in `.dev-server/`:
-
-```
-.dev-server/
-├── logs/
-│   ├── health-monitor.log      # Structured JSON logs
-│   └── launchd-cleanup.log     # Boot cleanup logs
-├── pids/
-│   └── *.json                  # Individual process metadata
-├── locks/
-│   └── cleanup.lock            # Cleanup operation lock
-├── process-registry.json       # Central process registry
-└── metrics.json                # Health metrics history
-```
-
-## 🔧 Maintenance
-
-### Adding a new script
-
-1. Create script in this directory
-2. Make it executable: `chmod +x scripts/your-script.sh`
-3. Add npm command in `package.json`
-4. Document in `DEV_SERVER_GUIDE.md`
-
-### Debugging
-
-```bash
-# Check process manager state
-node scripts/process-manager.js status
-
-# Check if cleanup is locked
-node scripts/lock-manager.js info
-
-# View health metrics
-cat .dev-server/metrics.json
-
-# View logs
-npm run dev:logs
-```
-
-## 📖 Documentation
-
-See `DEV_SERVER_GUIDE.md` for complete documentation including:
-- Detailed architecture
-- Troubleshooting guide
-- Best practices
-- Failure scenarios handled
-- Performance impact
-- Advanced usage
-
-## 🎯 Key Features
-
-✅ **Zero manual intervention** - System self-heals
-✅ **Atomic operations** - Lock manager prevents races
-✅ **Orphan detection** - PPID verification finds orphaned processes
-✅ **Memory leak detection** - Auto-restart on 30% growth
-✅ **CPU spike detection** - Auto-restart on sustained high CPU
-✅ **Multi-endpoint health** - More reliable than single endpoint
-✅ **Real-time dashboard** - Visual process status
-✅ **System-level watchdog** - Survives kernel panics
-✅ **Emergency recovery** - Nuclear option always works
-
----
-
-*For questions or issues, see DEV_SERVER_GUIDE.md*
+Migrations are applied by hand through the Supabase SQL editor. See
+`supabase/migrations/README.md` for ordering and conventions. Do not add
+migration-runner scripts here.
