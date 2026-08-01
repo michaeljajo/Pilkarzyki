@@ -70,18 +70,23 @@ export async function POST(
       return NextResponse.json({ error: 'Nie znaleziono ligi.' }, { status: 404 })
     }
 
-    // Duplicate check within the league pool.
+    // Typo guard, not a uniqueness rule: the pool legitimately contains
+    // different players who share a name (e.g. "Vitinha" at PSG and at Genoa),
+    // so only a same-name-AND-same-club row counts as a duplicate. limit(1)
+    // keeps this defined even when several rows share the name.
     const { data: existing } = await supabaseAdmin
       .from('players')
       .select('id')
       .eq('name', name)
       .eq('surname', surname)
+      .eq('club', club)
       .eq('league', league.name)
+      .limit(1)
       .maybeSingle()
 
     if (existing) {
       return NextResponse.json(
-        { error: `Zawodnik "${fullName}" już istnieje w tej lidze.` },
+        { error: `Zawodnik "${fullName}" (${club}) już istnieje w tej lidze.` },
         { status: 409 }
       )
     }

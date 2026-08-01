@@ -1,0 +1,1304 @@
+[
+  {
+    "sofa_id": 60,
+    "name": "Bournemouth",
+    "name_raw": "Bournemouth",
+    "league": "Premier League",
+    "country": "England"
+  },
+  {
+    "sofa_id": 42,
+    "name": "Arsenal",
+    "name_raw": "Arsenal",
+    "league": "Premier League",
+    "country": "England"
+  },
+  {
+    "sofa_id": 40,
+    "name": "Aston Villa",
+    "name_raw": "Aston Villa",
+    "league": "Premier League",
+    "country": "England"
+  },
+  {
+    "sofa_id": 50,
+    "name": "Brentford",
+    "name_raw": "Brentford",
+    "league": "Premier League",
+    "country": "England"
+  },
+  {
+    "sofa_id": 30,
+    "name": "Brighton & Hove Albion",
+    "name_raw": "Brighton & Hove Albion",
+    "league": "Premier League",
+    "country": "England"
+  },
+  {
+    "sofa_id": 38,
+    "name": "Chelsea",
+    "name_raw": "Chelsea",
+    "league": "Premier League",
+    "country": "England"
+  },
+  {
+    "sofa_id": 11,
+    "name": "Coventry City",
+    "name_raw": "Coventry City",
+    "league": "Premier League",
+    "country": "England"
+  },
+  {
+    "sofa_id": 7,
+    "name": "Crystal Palace",
+    "name_raw": "Crystal Palace",
+    "league": "Premier League",
+    "country": "England"
+  },
+  {
+    "sofa_id": 48,
+    "name": "Everton",
+    "name_raw": "Everton",
+    "league": "Premier League",
+    "country": "England"
+  },
+  {
+    "sofa_id": 43,
+    "name": "Fulham",
+    "name_raw": "Fulham",
+    "league": "Premier League",
+    "country": "England"
+  },
+  {
+    "sofa_id": 96,
+    "name": "Hull City",
+    "name_raw": "Hull City",
+    "league": "Premier League",
+    "country": "England"
+  },
+  {
+    "sofa_id": 32,
+    "name": "Ipswich Town",
+    "name_raw": "Ipswich Town",
+    "league": "Premier League",
+    "country": "England"
+  },
+  {
+    "sofa_id": 34,
+    "name": "Leeds United",
+    "name_raw": "Leeds United",
+    "league": "Premier League",
+    "country": "England"
+  },
+  {
+    "sofa_id": 44,
+    "name": "Liverpool FC",
+    "name_raw": "Liverpool FC",
+    "league": "Premier League",
+    "country": "England"
+  },
+  {
+    "sofa_id": 17,
+    "name": "Manchester City",
+    "name_raw": "Manchester City",
+    "league": "Premier League",
+    "country": "England"
+  },
+  {
+    "sofa_id": 35,
+    "name": "Manchester United",
+    "name_raw": "Manchester United",
+    "league": "Premier League",
+    "country": "England"
+  },
+  {
+    "sofa_id": 39,
+    "name": "Newcastle United",
+    "name_raw": "Newcastle United",
+    "league": "Premier League",
+    "country": "England"
+  },
+  {
+    "sofa_id": 14,
+    "name": "Nottingham Forest",
+    "name_raw": "Nottingham Forest",
+    "league": "Premier League",
+    "country": "England"
+  },
+  {
+    "sofa_id": 41,
+    "name": "Sunderland",
+    "name_raw": "Sunderland",
+    "league": "Premier League",
+    "country": "England"
+  },
+  {
+    "sofa_id": 33,
+    "name": "Tottenham Hotspur",
+    "name_raw": "Tottenham Hotspur",
+    "league": "Premier League",
+    "country": "England"
+  },
+  {
+    "sofa_id": 2825,
+    "name": "Athletic Club",
+    "name_raw": "Athletic Club",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  {
+    "sofa_id": 2836,
+    "name": "Atletico Madrid",
+    "name_raw": "Atlético Madrid",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  {
+    "sofa_id": 2820,
+    "name": "Osasuna",
+    "name_raw": "Osasuna",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  {
+    "sofa_id": 2846,
+    "name": "Elche",
+    "name_raw": "Elche",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  {
+    "sofa_id": 2885,
+    "name": "Deportivo Alaves",
+    "name_raw": "Deportivo Alavés",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  {
+    "sofa_id": 2814,
+    "name": "Espanyol",
+    "name_raw": "Espanyol",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  {
+    "sofa_id": 2817,
+    "name": "FC Barcelona",
+    "name_raw": "FC Barcelona",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  {
+    "sofa_id": 2859,
+    "name": "Getafe",
+    "name_raw": "Getafe",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  {
+    "sofa_id": 2849,
+    "name": "Levante UD",
+    "name_raw": "Levante UD",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  {
+    "sofa_id": 2830,
+    "name": "Malaga CF",
+    "name_raw": "Málaga CF",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  {
+    "sofa_id": 2835,
+    "name": "Real Racing Club",
+    "name_raw": "Real Racing Club",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  {
+    "sofa_id": 2818,
+    "name": "Rayo Vallecano",
+    "name_raw": "Rayo Vallecano",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  {
+    "sofa_id": 2821,
+    "name": "Celta Vigo",
+    "name_raw": "Celta Vigo",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  {
+    "sofa_id": 2832,
+    "name": "Deportivo de A Coruna",
+    "name_raw": "Deportivo de A Coruña",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  {
+    "sofa_id": 2816,
+    "name": "Real Betis",
+    "name_raw": "Real Betis",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  {
+    "sofa_id": 2829,
+    "name": "Real Madrid",
+    "name_raw": "Real Madrid",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  {
+    "sofa_id": 2824,
+    "name": "Real Sociedad",
+    "name_raw": "Real Sociedad",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  {
+    "sofa_id": 2833,
+    "name": "Sevilla",
+    "name_raw": "Sevilla",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  {
+    "sofa_id": 2828,
+    "name": "Valencia",
+    "name_raw": "Valencia",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  {
+    "sofa_id": 2819,
+    "name": "Villarreal",
+    "name_raw": "Villarreal",
+    "league": "LaLiga",
+    "country": "Spain"
+  },
+  {
+    "sofa_id": 1646,
+    "name": "Auxerre",
+    "name_raw": "Auxerre",
+    "league": "Ligue 1",
+    "country": "France"
+  },
+  {
+    "sofa_id": 1684,
+    "name": "Angers",
+    "name_raw": "Angers",
+    "league": "Ligue 1",
+    "country": "France"
+  },
+  {
+    "sofa_id": 1653,
+    "name": "AS Monaco",
+    "name_raw": "AS Monaco",
+    "league": "Ligue 1",
+    "country": "France"
+  },
+  {
+    "sofa_id": 1652,
+    "name": "Troyes",
+    "name_raw": "Troyes",
+    "league": "Ligue 1",
+    "country": "France"
+  },
+  {
+    "sofa_id": 1656,
+    "name": "Lorient",
+    "name_raw": "Lorient",
+    "league": "Ligue 1",
+    "country": "France"
+  },
+  {
+    "sofa_id": 1662,
+    "name": "Le Havre",
+    "name_raw": "Le Havre",
+    "league": "Ligue 1",
+    "country": "France"
+  },
+  {
+    "sofa_id": 1672,
+    "name": "Le Mans",
+    "name_raw": "Le Mans",
+    "league": "Ligue 1",
+    "country": "France"
+  },
+  {
+    "sofa_id": 1643,
+    "name": "Lille",
+    "name_raw": "Lille",
+    "league": "Ligue 1",
+    "country": "France"
+  },
+  {
+    "sofa_id": 1661,
+    "name": "Nice",
+    "name_raw": "Nice",
+    "league": "Ligue 1",
+    "country": "France"
+  },
+  {
+    "sofa_id": 1649,
+    "name": "Olympique Lyonnais",
+    "name_raw": "Olympique Lyonnais",
+    "league": "Ligue 1",
+    "country": "France"
+  },
+  {
+    "sofa_id": 1641,
+    "name": "Olympique de Marseille",
+    "name_raw": "Olympique de Marseille",
+    "league": "Ligue 1",
+    "country": "France"
+  },
+  {
+    "sofa_id": 6070,
+    "name": "Paris FC",
+    "name_raw": "Paris FC",
+    "league": "Ligue 1",
+    "country": "France"
+  },
+  {
+    "sofa_id": 1644,
+    "name": "Paris Saint-Germain",
+    "name_raw": "Paris Saint-Germain",
+    "league": "Ligue 1",
+    "country": "France"
+  },
+  {
+    "sofa_id": 1648,
+    "name": "RC Lens",
+    "name_raw": "RC Lens",
+    "league": "Ligue 1",
+    "country": "France"
+  },
+  {
+    "sofa_id": 1715,
+    "name": "Stade Brestois",
+    "name_raw": "Stade Brestois",
+    "league": "Ligue 1",
+    "country": "France"
+  },
+  {
+    "sofa_id": 1658,
+    "name": "Stade Rennais",
+    "name_raw": "Stade Rennais",
+    "league": "Ligue 1",
+    "country": "France"
+  },
+  {
+    "sofa_id": 1659,
+    "name": "RC Strasbourg",
+    "name_raw": "RC Strasbourg",
+    "league": "Ligue 1",
+    "country": "France"
+  },
+  {
+    "sofa_id": 1681,
+    "name": "Toulouse",
+    "name_raw": "Toulouse",
+    "league": "Ligue 1",
+    "country": "France"
+  },
+  {
+    "sofa_id": 3022,
+    "name": "Academico Viseu FC",
+    "name_raw": "Académico Viseu FC",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  {
+    "sofa_id": 36365,
+    "name": "Casa Pia",
+    "name_raw": "Casa Pia",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  {
+    "sofa_id": 4500,
+    "name": "Estoril Praia",
+    "name_raw": "Estoril Praia",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  {
+    "sofa_id": 3035,
+    "name": "CF Estrela Amadora",
+    "name_raw": "CF Estrela Amadora",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  {
+    "sofa_id": 190328,
+    "name": "FC Alverca",
+    "name_raw": "FC Alverca",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  {
+    "sofa_id": 25777,
+    "name": "FC Arouca",
+    "name_raw": "FC Arouca",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  {
+    "sofa_id": 49531,
+    "name": "Famalicao",
+    "name_raw": "Famalicão",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  {
+    "sofa_id": 3002,
+    "name": "FC Porto",
+    "name_raw": "FC Porto",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  {
+    "sofa_id": 3010,
+    "name": "Gil Vicente",
+    "name_raw": "Gil Vicente",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  {
+    "sofa_id": 3007,
+    "name": "CS Maritimo",
+    "name_raw": "CS Marítimo",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  {
+    "sofa_id": 3014,
+    "name": "Moreirense",
+    "name_raw": "Moreirense",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  {
+    "sofa_id": 3013,
+    "name": "CD Nacional",
+    "name_raw": "CD Nacional",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  {
+    "sofa_id": 3036,
+    "name": "Rio Ave",
+    "name_raw": "Rio Ave",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  {
+    "sofa_id": 3011,
+    "name": "Santa Clara",
+    "name_raw": "Santa Clara",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  {
+    "sofa_id": 2999,
+    "name": "Sporting Braga",
+    "name_raw": "Sporting Braga",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  {
+    "sofa_id": 3006,
+    "name": "Benfica",
+    "name_raw": "Benfica",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  {
+    "sofa_id": 3001,
+    "name": "Sporting CP",
+    "name_raw": "Sporting CP",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  {
+    "sofa_id": 3009,
+    "name": "Vitoria SC",
+    "name_raw": "Vitória SC",
+    "league": "Liga Portugal",
+    "country": "Portugal"
+  },
+  {
+    "sofa_id": 2692,
+    "name": "AC Milan",
+    "name_raw": "AC Milan",
+    "league": "Serie A",
+    "country": "Italy"
+  },
+  {
+    "sofa_id": 2729,
+    "name": "Monza",
+    "name_raw": "Monza",
+    "league": "Serie A",
+    "country": "Italy"
+  },
+  {
+    "sofa_id": 2693,
+    "name": "Fiorentina",
+    "name_raw": "Fiorentina",
+    "league": "Serie A",
+    "country": "Italy"
+  },
+  {
+    "sofa_id": 2702,
+    "name": "AS Roma",
+    "name_raw": "AS Roma",
+    "league": "Serie A",
+    "country": "Italy"
+  },
+  {
+    "sofa_id": 2686,
+    "name": "Atalanta",
+    "name_raw": "Atalanta",
+    "league": "Serie A",
+    "country": "Italy"
+  },
+  {
+    "sofa_id": 2685,
+    "name": "Bologna",
+    "name_raw": "Bologna",
+    "league": "Serie A",
+    "country": "Italy"
+  },
+  {
+    "sofa_id": 2719,
+    "name": "Cagliari",
+    "name_raw": "Cagliari",
+    "league": "Serie A",
+    "country": "Italy"
+  },
+  {
+    "sofa_id": 2704,
+    "name": "Como",
+    "name_raw": "Como",
+    "league": "Serie A",
+    "country": "Italy"
+  },
+  {
+    "sofa_id": 2801,
+    "name": "Frosinone",
+    "name_raw": "Frosinone",
+    "league": "Serie A",
+    "country": "Italy"
+  },
+  {
+    "sofa_id": 2713,
+    "name": "Genoa",
+    "name_raw": "Genoa",
+    "league": "Serie A",
+    "country": "Italy"
+  },
+  {
+    "sofa_id": 2697,
+    "name": "Inter",
+    "name_raw": "Inter",
+    "league": "Serie A",
+    "country": "Italy"
+  },
+  {
+    "sofa_id": 2687,
+    "name": "Juventus",
+    "name_raw": "Juventus",
+    "league": "Serie A",
+    "country": "Italy"
+  },
+  {
+    "sofa_id": 2699,
+    "name": "Lazio",
+    "name_raw": "Lazio",
+    "league": "Serie A",
+    "country": "Italy"
+  },
+  {
+    "sofa_id": 2690,
+    "name": "Parma",
+    "name_raw": "Parma",
+    "league": "Serie A",
+    "country": "Italy"
+  },
+  {
+    "sofa_id": 2793,
+    "name": "Sassuolo",
+    "name_raw": "Sassuolo",
+    "league": "Serie A",
+    "country": "Italy"
+  },
+  {
+    "sofa_id": 2714,
+    "name": "SSC Napoli",
+    "name_raw": "SSC Napoli",
+    "league": "Serie A",
+    "country": "Italy"
+  },
+  {
+    "sofa_id": 2696,
+    "name": "Torino",
+    "name_raw": "Torino",
+    "league": "Serie A",
+    "country": "Italy"
+  },
+  {
+    "sofa_id": 2695,
+    "name": "Udinese",
+    "name_raw": "Udinese",
+    "league": "Serie A",
+    "country": "Italy"
+  },
+  {
+    "sofa_id": 2689,
+    "name": "Lecce",
+    "name_raw": "Lecce",
+    "league": "Serie A",
+    "country": "Italy"
+  },
+  {
+    "sofa_id": 2688,
+    "name": "Venezia",
+    "name_raw": "Venezia",
+    "league": "Serie A",
+    "country": "Italy"
+  },
+  {
+    "sofa_id": 2929,
+    "name": "Cercle Brugge",
+    "name_raw": "Cercle Brugge",
+    "league": "Pro League",
+    "country": "Belgium"
+  },
+  {
+    "sofa_id": 2888,
+    "name": "Club Brugge KV",
+    "name_raw": "Club Brugge KV",
+    "league": "Pro League",
+    "country": "Belgium"
+  },
+  {
+    "sofa_id": 2903,
+    "name": "KAA Gent",
+    "name_raw": "KAA Gent",
+    "league": "Pro League",
+    "country": "Belgium"
+  },
+  {
+    "sofa_id": 2890,
+    "name": "KRC Genk",
+    "name_raw": "KRC Genk",
+    "league": "Pro League",
+    "country": "Belgium"
+  },
+  {
+    "sofa_id": 4858,
+    "name": "KV Kortrijk",
+    "name_raw": "KV Kortrijk",
+    "league": "Pro League",
+    "country": "Belgium"
+  },
+  {
+    "sofa_id": 2893,
+    "name": "KVC Westerlo",
+    "name_raw": "KVC Westerlo",
+    "league": "Pro League",
+    "country": "Belgium"
+  },
+  {
+    "sofa_id": 5046,
+    "name": "Lommel SK",
+    "name_raw": "Lommel SK",
+    "league": "Pro League",
+    "country": "Belgium"
+  },
+  {
+    "sofa_id": 2918,
+    "name": "Oud-Heverlee Leuven",
+    "name_raw": "Oud-Heverlee Leuven",
+    "league": "Pro League",
+    "country": "Belgium"
+  },
+  {
+    "sofa_id": 368506,
+    "name": "RAAL La Louviere",
+    "name_raw": "RAAL La Louvière",
+    "league": "Pro League",
+    "country": "Belgium"
+  },
+  {
+    "sofa_id": 2889,
+    "name": "Royal Antwerp FC",
+    "name_raw": "Royal Antwerp FC",
+    "league": "Pro League",
+    "country": "Belgium"
+  },
+  {
+    "sofa_id": 2898,
+    "name": "RC Sporting Charleroi",
+    "name_raw": "RC Sporting Charleroi",
+    "league": "Pro League",
+    "country": "Belgium"
+  },
+  {
+    "sofa_id": 2900,
+    "name": "RSC Anderlecht",
+    "name_raw": "RSC Anderlecht",
+    "league": "Pro League",
+    "country": "Belgium"
+  },
+  {
+    "sofa_id": 4859,
+    "name": "SK Beveren",
+    "name_raw": "SK Beveren",
+    "league": "Pro League",
+    "country": "Belgium"
+  },
+  {
+    "sofa_id": 2895,
+    "name": "Sint-Truidense VV",
+    "name_raw": "Sint-Truidense VV",
+    "league": "Pro League",
+    "country": "Belgium"
+  },
+  {
+    "sofa_id": 2901,
+    "name": "Standard Liege",
+    "name_raw": "Standard Liège",
+    "league": "Pro League",
+    "country": "Belgium"
+  },
+  {
+    "sofa_id": 2933,
+    "name": "SV Zulte Waregem",
+    "name_raw": "SV Zulte Waregem",
+    "league": "Pro League",
+    "country": "Belgium"
+  },
+  {
+    "sofa_id": 4860,
+    "name": "Royale Union Saint-Gilloise",
+    "name_raw": "Royale Union Saint-Gilloise",
+    "league": "Pro League",
+    "country": "Belgium"
+  },
+  {
+    "sofa_id": 5044,
+    "name": "KV Mechelen",
+    "name_raw": "KV Mechelen",
+    "league": "Pro League",
+    "country": "Belgium"
+  },
+  {
+    "sofa_id": 2966,
+    "name": "ADO Den Haag",
+    "name_raw": "ADO Den Haag",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  {
+    "sofa_id": 2953,
+    "name": "AFC Ajax",
+    "name_raw": "AFC Ajax",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  {
+    "sofa_id": 2950,
+    "name": "AZ Alkmaar",
+    "name_raw": "AZ Alkmaar",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  {
+    "sofa_id": 2967,
+    "name": "Excelsior",
+    "name_raw": "Excelsior",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  {
+    "sofa_id": 2951,
+    "name": "FC Groningen",
+    "name_raw": "FC Groningen",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  {
+    "sofa_id": 2955,
+    "name": "FC Twente",
+    "name_raw": "FC Twente",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  {
+    "sofa_id": 2948,
+    "name": "FC Utrecht",
+    "name_raw": "FC Utrecht",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  {
+    "sofa_id": 2959,
+    "name": "Feyenoord",
+    "name_raw": "Feyenoord",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  {
+    "sofa_id": 2957,
+    "name": "Fortuna Sittard",
+    "name_raw": "Fortuna Sittard",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  {
+    "sofa_id": 2979,
+    "name": "Go Ahead Eagles",
+    "name_raw": "Go Ahead Eagles",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  {
+    "sofa_id": 2962,
+    "name": "NEC Nijmegen",
+    "name_raw": "NEC Nijmegen",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  {
+    "sofa_id": 2971,
+    "name": "PEC Zwolle",
+    "name_raw": "PEC Zwolle",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  {
+    "sofa_id": 2952,
+    "name": "PSV Eindhoven",
+    "name_raw": "PSV Eindhoven",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  {
+    "sofa_id": 2970,
+    "name": "SC Cambuur",
+    "name_raw": "SC Cambuur",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  {
+    "sofa_id": 2964,
+    "name": "SC Heerenveen",
+    "name_raw": "SC Heerenveen",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  {
+    "sofa_id": 2972,
+    "name": "SC Telstar",
+    "name_raw": "SC Telstar",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  {
+    "sofa_id": 2960,
+    "name": "Sparta Rotterdam",
+    "name_raw": "Sparta Rotterdam",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  {
+    "sofa_id": 2961,
+    "name": "Willem II Tilburg",
+    "name_raw": "Willem II Tilburg",
+    "league": "Eredivisie",
+    "country": "Netherlands"
+  },
+  {
+    "sofa_id": 3110,
+    "name": "Gornik Zabrze",
+    "name_raw": "Górnik Zabrze",
+    "league": "Ekstraklasa",
+    "country": "Poland"
+  },
+  {
+    "sofa_id": 7295,
+    "name": "Radomiak Radom",
+    "name_raw": "Radomiak Radom",
+    "league": "Ekstraklasa",
+    "country": "Poland"
+  },
+  {
+    "sofa_id": 3122,
+    "name": "Wisla Plock",
+    "name_raw": "Wisła Płock",
+    "league": "Ekstraklasa",
+    "country": "Poland"
+  },
+  {
+    "sofa_id": 7691,
+    "name": "Jagiellonia Bialystok",
+    "name_raw": "Jagiellonia Białystok",
+    "league": "Ekstraklasa",
+    "country": "Poland"
+  },
+  {
+    "sofa_id": 3106,
+    "name": "Legia Warszawa",
+    "name_raw": "Legia Warszawa",
+    "league": "Ekstraklasa",
+    "country": "Poland"
+  },
+  {
+    "sofa_id": 7915,
+    "name": "Motor Lublin",
+    "name_raw": "Motor Lublin",
+    "league": "Ekstraklasa",
+    "country": "Poland"
+  },
+  {
+    "sofa_id": 3115,
+    "name": "Widzew Lodz",
+    "name_raw": "Widzew Łódź",
+    "league": "Ekstraklasa",
+    "country": "Poland"
+  },
+  {
+    "sofa_id": 3121,
+    "name": "Lech Poznan",
+    "name_raw": "Lech Poznań",
+    "league": "Ekstraklasa",
+    "country": "Poland"
+  },
+  {
+    "sofa_id": 4901,
+    "name": "KS Cracovia",
+    "name_raw": "KS Cracovia",
+    "league": "Ekstraklasa",
+    "country": "Poland"
+  },
+  {
+    "sofa_id": 3112,
+    "name": "GKS Katowice",
+    "name_raw": "GKS Katowice",
+    "league": "Ekstraklasa",
+    "country": "Poland"
+  },
+  {
+    "sofa_id": 3111,
+    "name": "Wisla Krakow",
+    "name_raw": "Wisła Kraków",
+    "league": "Ekstraklasa",
+    "country": "Poland"
+  },
+  {
+    "sofa_id": 7918,
+    "name": "Piast Gliwice",
+    "name_raw": "Piast Gliwice",
+    "league": "Ekstraklasa",
+    "country": "Poland"
+  },
+  {
+    "sofa_id": 3113,
+    "name": "Zaglebie Lubin",
+    "name_raw": "Zagłębie Lubin",
+    "league": "Ekstraklasa",
+    "country": "Poland"
+  },
+  {
+    "sofa_id": 35268,
+    "name": "Rakow Czestochowa",
+    "name_raw": "Raków Częstochowa",
+    "league": "Ekstraklasa",
+    "country": "Poland"
+  },
+  {
+    "sofa_id": 334956,
+    "name": "Wieczysta Krakow",
+    "name_raw": "Wieczysta Kraków",
+    "league": "Ekstraklasa",
+    "country": "Poland"
+  },
+  {
+    "sofa_id": 3108,
+    "name": "Slask Wroclaw",
+    "name_raw": "Śląsk Wrocław",
+    "league": "Ekstraklasa",
+    "country": "Poland"
+  },
+  {
+    "sofa_id": 5065,
+    "name": "MKS Korona Kielce",
+    "name_raw": "MKS Korona Kielce",
+    "league": "Ekstraklasa",
+    "country": "Poland"
+  },
+  {
+    "sofa_id": 3117,
+    "name": "Pogon Szczecin",
+    "name_raw": "Pogoń Szczecin",
+    "league": "Ekstraklasa",
+    "country": "Poland"
+  },
+  {
+    "sofa_id": 6362,
+    "name": "Alanyaspor",
+    "name_raw": "Alanyaspor",
+    "league": "Super Lig",
+    "country": "Turkey"
+  },
+  {
+    "sofa_id": 207011,
+    "name": "Amed Sportif Faaliyetler",
+    "name_raw": "Amed Sportif Faaliyetler",
+    "league": "Super Lig",
+    "country": "Turkey"
+  },
+  {
+    "sofa_id": 3050,
+    "name": "Besiktas JK",
+    "name_raw": "Beşiktaş JK",
+    "league": "Super Lig",
+    "country": "Turkey"
+  },
+  {
+    "sofa_id": 3064,
+    "name": "Caykur Rizespor",
+    "name_raw": "Çaykur Rizespor",
+    "league": "Super Lig",
+    "country": "Turkey"
+  },
+  {
+    "sofa_id": 77629,
+    "name": "Corum FK",
+    "name_raw": "Çorum FK",
+    "league": "Super Lig",
+    "country": "Turkey"
+  },
+  {
+    "sofa_id": 55603,
+    "name": "Erzurumspor FK",
+    "name_raw": "Erzurumspor FK",
+    "league": "Super Lig",
+    "country": "Turkey"
+  },
+  {
+    "sofa_id": 7040,
+    "name": "Eyupspor",
+    "name_raw": "Eyüpspor",
+    "league": "Super Lig",
+    "country": "Turkey"
+  },
+  {
+    "sofa_id": 3052,
+    "name": "Fenerbahce",
+    "name_raw": "Fenerbahçe",
+    "league": "Super Lig",
+    "country": "Turkey"
+  },
+  {
+    "sofa_id": 3061,
+    "name": "Galatasaray",
+    "name_raw": "Galatasaray",
+    "league": "Super Lig",
+    "country": "Turkey"
+  },
+  {
+    "sofa_id": 5138,
+    "name": "Gaziantep FK",
+    "name_raw": "Gaziantep FK",
+    "league": "Super Lig",
+    "country": "Turkey"
+  },
+  {
+    "sofa_id": 7802,
+    "name": "Genclerbirligi",
+    "name_raw": "Gençlerbirliği",
+    "league": "Super Lig",
+    "country": "Turkey"
+  },
+  {
+    "sofa_id": 3054,
+    "name": "Goztepe",
+    "name_raw": "Göztepe",
+    "league": "Super Lig",
+    "country": "Turkey"
+  },
+  {
+    "sofa_id": 3086,
+    "name": "Basaksehir FK",
+    "name_raw": "Başakşehir FK",
+    "league": "Super Lig",
+    "country": "Turkey"
+  },
+  {
+    "sofa_id": 6063,
+    "name": "Kasimpasa",
+    "name_raw": "Kasımpaşa",
+    "league": "Super Lig",
+    "country": "Turkey"
+  },
+  {
+    "sofa_id": 3065,
+    "name": "Kocaelispor",
+    "name_raw": "Kocaelispor",
+    "league": "Super Lig",
+    "country": "Turkey"
+  },
+  {
+    "sofa_id": 3085,
+    "name": "Konyaspor",
+    "name_raw": "Konyaspor",
+    "league": "Super Lig",
+    "country": "Turkey"
+  },
+  {
+    "sofa_id": 3053,
+    "name": "Samsunspor",
+    "name_raw": "Samsunspor",
+    "league": "Super Lig",
+    "country": "Turkey"
+  },
+  {
+    "sofa_id": 3051,
+    "name": "Trabzonspor",
+    "name_raw": "Trabzonspor",
+    "league": "Super Lig",
+    "country": "Turkey"
+  },
+  {
+    "sofa_id": 2671,
+    "name": "1. FC Koln",
+    "name_raw": "1. FC Köln",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  {
+    "sofa_id": 2681,
+    "name": "Bayer 04 Leverkusen",
+    "name_raw": "Bayer 04 Leverkusen",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  {
+    "sofa_id": 2672,
+    "name": "FC Bayern Munchen",
+    "name_raw": "FC Bayern München",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  {
+    "sofa_id": 2673,
+    "name": "Borussia Dortmund",
+    "name_raw": "Borussia Dortmund",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  {
+    "sofa_id": 2527,
+    "name": "Borussia M'gladbach",
+    "name_raw": "Borussia M'gladbach",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  {
+    "sofa_id": 2674,
+    "name": "Eintracht Frankfurt",
+    "name_raw": "Eintracht Frankfurt",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  {
+    "sofa_id": 2600,
+    "name": "FC Augsburg",
+    "name_raw": "FC Augsburg",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  {
+    "sofa_id": 2556,
+    "name": "1. FSV Mainz 05",
+    "name_raw": "1. FSV Mainz 05",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  {
+    "sofa_id": 2676,
+    "name": "Hamburger SV",
+    "name_raw": "Hamburger SV",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  {
+    "sofa_id": 36360,
+    "name": "RB Leipzig",
+    "name_raw": "RB Leipzig",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  {
+    "sofa_id": 2538,
+    "name": "SC Freiburg",
+    "name_raw": "SC Freiburg",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  {
+    "sofa_id": 2561,
+    "name": "SC Paderborn 07",
+    "name_raw": "SC Paderborn 07",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  {
+    "sofa_id": 2530,
+    "name": "FC Schalke 04",
+    "name_raw": "FC Schalke 04",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  {
+    "sofa_id": 2598,
+    "name": "SV 07 Elversberg",
+    "name_raw": "SV 07 Elversberg",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  {
+    "sofa_id": 2569,
+    "name": "TSG Hoffenheim",
+    "name_raw": "TSG Hoffenheim",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  {
+    "sofa_id": 2547,
+    "name": "1. FC Union Berlin",
+    "name_raw": "1. FC Union Berlin",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  {
+    "sofa_id": 2677,
+    "name": "VfB Stuttgart",
+    "name_raw": "VfB Stuttgart",
+    "league": "Bundesliga",
+    "country": "Germany"
+  },
+  {
+    "sofa_id": 2534,
+    "name": "SV Werder Bremen",
+    "name_raw": "SV Werder Bremen",
+    "league": "Bundesliga",
+    "country": "Germany"
+  }
+]

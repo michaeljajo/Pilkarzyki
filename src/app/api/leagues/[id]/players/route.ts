@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { fetchAllPlayersInLeague } from '@/lib/players'
 
 export async function GET(
   request: NextRequest,
@@ -30,11 +31,14 @@ export async function GET(
       )
     }
 
-    // Fetch all players for this league with their manager information
-    // Note: players.league is a TEXT field containing league name, not a foreign key
-    const { data: players, error } = await supabaseAdmin
-      .from('players')
-      .select(`
+    // Fetch all players for this league with their manager information.
+    // Note: players.league is a TEXT field containing league name, not a foreign key.
+    // Paged, because the league pool exceeds PostgREST's 1000-row response cap.
+    let players
+    try {
+      players = await fetchAllPlayersInLeague(
+        league.name,
+        `
         id,
         name,
         surname,
@@ -47,12 +51,11 @@ export async function GET(
           first_name,
           last_name
         )
-      `)
-      .eq('league', league.name)
-      .order('name', { ascending: true })
-
-    if (error) {
-      console.error('Error fetching players:', error)
+      `,
+        'name'
+      )
+    } catch (playersError) {
+      console.error('Error fetching players:', playersError)
       return NextResponse.json(
         { error: 'Failed to fetch players' },
         { status: 500 }

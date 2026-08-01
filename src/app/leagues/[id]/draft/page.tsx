@@ -1,10 +1,9 @@
 import { currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import Image from 'next/image'
-import { ArrowLeft } from 'lucide-react'
 import { supabaseAdmin } from '@/lib/supabase'
 import { verifyLeagueAdmin } from '@/lib/auth-helpers'
+import { TakeoverHeader } from '@/components/nav/TakeoverHeader'
+import { APP_CONTAINER } from '@/components/layout/appContainer'
 import { DraftClient } from './DraftClient'
 
 interface DraftPageProps {
@@ -62,26 +61,26 @@ export default async function DraftPage({ params }: DraftPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Takeover header: full-screen, no tab bar, with a single explicit exit. */}
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
-        <div className="max-w-[1100px] mx-auto h-16 px-4 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <Image src="/pilkarzyki-logo.png" alt="Piłkarzyki" width={120} height={30} priority />
-            <span className="text-gray-400">/</span>
-            <span className="font-semibold text-gray-900 truncate">Draft — {league.name}</span>
-          </div>
-          <Link
-            href={`/leagues/${leagueId}/squad`}
-            className="inline-flex items-center gap-1.5 shrink-0 min-h-[44px] px-3 rounded-xl text-sm font-medium text-[#29544D] hover:bg-gray-100 transition-colors"
-          >
-            <ArrowLeft size={18} />
-            Wróć do składu
-          </Link>
-        </div>
-      </header>
+    /* dvh, not min-h-screen: `100vh` on mobile Safari is the viewport with the
+       URL bar hidden, so pairing it with the board's `100dvh` left the page
+       taller than the screen by exactly the URL-bar height — a scrollbar on a
+       screen that is meant not to scroll. */
+    /* gray-50 behind white cards, exactly like AppShell — on a white page the
+       bordered panels had nothing to sit against and read as one flat sheet. */
+    <div className="min-h-[100dvh] bg-gray-50">
+      {/* Takeover: full-screen, no tab bar, one explicit exit. Header and content
+          share AppShell's container so the left edge does not jump when you
+          cross into the draft. */}
+      <TakeoverHeader
+        title={`Draft — ${league.name}`}
+        backHref={`/leagues/${leagueId}/squad`}
+        backLabel="Wróć do składu"
+      />
 
-      <main className="max-w-[1100px] mx-auto px-4 py-8">
+      {/* Phone: 1rem above, none below — the board is sized to exactly one
+          viewport (see DraftLiveBoard) and ends in its own tab bar, which must
+          meet the bottom edge. The height budget there assumes this pt-4. */}
+      <main className={`${APP_CONTAINER} pt-4 pb-0 md:py-8`}>
         <DraftClient leagueId={leagueId} />
       </main>
     </div>

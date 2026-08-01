@@ -6,6 +6,8 @@ import toast from 'react-hot-toast'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { DraftLiveBoard } from '@/components/draft/DraftLiveBoard'
 import { DraftChat, DraftChatMessage } from '@/components/draft/DraftChat'
+import { DelegationPanel } from '@/components/draft/DelegationPanel'
+import { Delegation, resolveActingForSquadId } from '@/lib/draft-delegations'
 
 // ----------------------------------------------------------------------------
 // Types
@@ -20,6 +22,8 @@ interface DraftRow {
   round: number
   pick_order: string[]
   current_queue: string[]
+  /** squadId -> picks still owed after a skip; repaid in catch-up rounds. */
+  skip_debts?: Record<string, number> | null
 }
 
 interface ManagerRow {
@@ -55,9 +59,16 @@ interface Snapshot {
   managers: ManagerRow[]
   players: PlayerRow[]
   picks: PickRow[]
+  delegations: Delegation[]
   onTheClockSquadId: string | null
   onTheClockManagerId: string | null
-  access: { isAdmin: boolean; isManager: boolean; mySquadId: string | null; myTurn: boolean }
+  access: {
+    isAdmin: boolean
+    isManager: boolean
+    mySquadId: string | null
+    myUserId: string | null
+    myTurn: boolean
+  }
 }
 
 // ----------------------------------------------------------------------------
@@ -124,6 +135,14 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
   const [notifStatus, setNotifStatus] = useState<NotificationPermission | 'unsupported'>('unsupported')
   const prevMyTurn = useRef(false)
 
+  // A pick fires several realtime events at once (drafts + draft_picks), each
+  // triggering a refetch on top of the one the pick itself already started.
+  // Without a sequence number a slower earlier response can land last and put a
+  // pre-pick snapshot back on screen — which is what left "TWOJA KOLEJ!" up
+  // after the turn had moved on. Only the newest request may write state.
+  const snapshotSeq = useRef(0)
+  const messagesSeq = useRef(0)
+
   const supabase = useMemo(
     () =>
       createClient(
@@ -135,28 +154,32 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
   )
 
   const fetchSnapshot = useCallback(async () => {
+    const seq = ++snapshotSeq.current
     try {
       const res = await fetch(`/api/leagues/${leagueId}/draft`, { cache: 'no-store' })
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))
-        setError(body.error || 'Nie udało się wczytać draftu.')
+        if (seq === snapshotSeq.current) setError(body.error || 'Nie udało się wczytać draftu.')
         return
       }
       const data: Snapshot = await res.json()
+      if (seq !== snapshotSeq.current) return // a newer snapshot already landed
       setSnap(data)
       setError(null)
     } catch {
-      setError('Nie udało się wczytać draftu.')
+      if (seq === snapshotSeq.current) setError('Nie udało się wczytać draftu.')
     } finally {
       setLoading(false)
     }
   }, [leagueId])
 
   const fetchMessages = useCallback(async () => {
+    const seq = ++messagesSeq.current
     try {
       const res = await fetch(`/api/leagues/${leagueId}/draft/messages`, { cache: 'no-store' })
       if (res.ok) {
         const data = await res.json()
+        if (seq !== messagesSeq.current) return
         setMessages(data.messages || [])
       }
     } catch {
@@ -189,6 +212,9 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'draft_picks', filter: `draft_id=eq.${draftId}` }, () => {
         fetchSnapshot()
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'draft_delegations', filter: `draft_id=eq.${draftId}` }, () => {
+        fetchSnapshot()
+      })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'draft_messages', filter: `draft_id=eq.${draftId}` }, () => {
         fetchMessages()
       })
@@ -210,28 +236,6 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
     }
   }, [snap?.draft?.status, snap?.managers])
 
-  // Turn notification: fire when myTurn transitions false -> true.
-  useEffect(() => {
-    const myTurn = !!snap?.access.myTurn
-    if (myTurn && !prevMyTurn.current) {
-      playTurnChime()
-      if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-        try {
-          new Notification('TWOJA KOLEJ!', { body: 'Wybierz zawodnika w drafcie.' })
-        } catch {
-          // ignore
-        }
-      }
-    }
-    prevMyTurn.current = myTurn
-  }, [snap?.access.myTurn])
-
-  const requestNotifications = async () => {
-    if (typeof window === 'undefined' || !('Notification' in window)) return
-    const perm = await Notification.requestPermission()
-    setNotifStatus(perm)
-  }
-
   // Derived data ------------------------------------------------------------
 
   const managersBySquad = useMemo(() => {
@@ -249,7 +253,77 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
   const onClockManager = snap ? managersByManagerId.get(snap.onTheClockManagerId || '') : undefined
   const status = snap?.draft?.status
   const isAdmin = !!snap?.access.isAdmin
-  const myTurn = !!snap?.access.myTurn
+  // Same derivation as the board uses, so the chime and the banner can never
+  // disagree about whether the viewer is on the clock.
+  const myTurn =
+    status === 'live' &&
+    (!!snap?.access.myTurn ||
+      (!!snap?.access.mySquadId && snap.access.mySquadId === snap.onTheClockSquadId))
+
+  // Who picks after the manager on the clock. The queue holds the rest of the
+  // current round; when it runs out the next round restarts from pick_order.
+  // At a round boundary the next round's line-up depends on how the current
+  // manager acts (a catch-up round is built from who still owes picks), so
+  // rather than guess we show nothing there.
+  const nextSquadId = useMemo(() => {
+    const draft = snap?.draft
+    if (!draft || draft.status !== 'live') return null
+    const queue = draft.current_queue || []
+    if (queue.length > 1) return queue[1]
+    return draft.round < draft.total_rounds ? draft.pick_order?.[0] ?? null : null
+  }, [snap?.draft])
+
+  // Rounds past total_rounds exist only to repay skipped picks — labelling one
+  // of those "Runda 9 z 8" would be nonsense.
+  const roundLabel = useMemo(() => {
+    const draft = snap?.draft
+    if (!draft) return ''
+    return draft.round > draft.total_rounds
+      ? `Runda uzupełniająca ${draft.round - draft.total_rounds}`
+      : `Runda ${draft.round} z ${draft.total_rounds}`
+  }, [snap?.draft])
+
+  // The squad I am standing in for right now (null unless a delegator of mine
+  // is on the clock).
+  const actingForSquadId =
+    status === 'live'
+      ? resolveActingForSquadId({
+          delegations: snap?.delegations || [],
+          onClockSquadId: snap?.onTheClockSquadId,
+          myUserId: snap?.access.myUserId,
+          mySquadId: snap?.access.mySquadId,
+        })
+      : null
+  const actingForName = actingForSquadId
+    ? managerName(managersBySquad.get(actingForSquadId))
+    : ''
+
+  // Turn notification: fire when it becomes my move — my own turn, or the turn
+  // of someone I am standing in for.
+  useEffect(() => {
+    const mine = myTurn
+    const acting = actingForName
+    const myMove = mine || !!acting
+    if (myMove && !prevMyTurn.current) {
+      playTurnChime()
+      if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+        try {
+          new Notification(mine ? 'TWOJA KOLEJ!' : 'KOLEJ ZASTĘPSTWA!', {
+            body: mine ? 'Wybierz zawodnika w drafcie.' : `Wybierz zawodnika za: ${acting}.`,
+          })
+        } catch {
+          // ignore
+        }
+      }
+    }
+    prevMyTurn.current = myMove
+  }, [myTurn, actingForName])
+
+  const requestNotifications = async () => {
+    if (typeof window === 'undefined' || !('Notification' in window)) return
+    const perm = await Notification.requestPermission()
+    setNotifStatus(perm)
+  }
 
   // Actions -----------------------------------------------------------------
 
@@ -290,6 +364,27 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
     await doAction('skip', {}, 'Pominięto kolejkę.')
   }
   const handleUndo = () => doAction('undo', {}, 'Cofnięto ostatni wybór.')
+
+  const handleSetDelegate = async (squadId: string, delegateUserId: string | null) => {
+    try {
+      const res = await fetch(`/api/leagues/${leagueId}/draft-delegation`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kind: 'preseason', squadId, delegateUserId }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        toast.error(data.error || 'Nie udało się zapisać zastępstwa.')
+        return false
+      }
+      toast.success(delegateUserId ? 'Zastępca wyznaczony.' : 'Zastępstwo odwołane.')
+      await fetchSnapshot()
+      return true
+    } catch {
+      toast.error('Błąd połączenia.')
+      return false
+    }
+  }
 
   // Add / edit handlers passed to the shared board (which owns the modals).
   const onAddPlayerBoard = async (form: {
@@ -385,35 +480,49 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
     return <div className="py-16 text-center text-gray-500">Brak draftu dla tej ligi.</div>
   }
 
+  // Screen-level controls, rendered in whichever single action bar is on screen:
+  // the setup row before the draft starts, the board's bar once it is running.
+  // Previously each of these owned a right-aligned row of its own, which stacked
+  // into a staircase down the top-right of the page.
+  const headerActions = (
+    <>
+      {status !== 'finished' && notifStatus !== 'granted' && notifStatus !== 'unsupported' && (
+        <button
+          onClick={requestNotifications}
+          title="Włącz powiadomienia, aby wiedzieć, kiedy nadejdzie Twoja kolej"
+          className="text-sm whitespace-nowrap px-3 py-2 rounded-md border border-[#29544D] text-[#29544D] hover:bg-[#29544D]/5"
+        >
+          Włącz powiadomienia
+        </button>
+      )}
+      {status === 'live' && (
+        <DelegationPanel
+          managers={snap.managers}
+          delegations={snap.delegations || []}
+          mySquadId={snap.access.mySquadId}
+          myUserId={snap.access.myUserId}
+          isAdmin={isAdmin}
+          variant="adminOnly"
+          onSetDelegate={handleSetDelegate}
+        />
+      )}
+    </>
+  )
+
   return (
     <div className="space-y-6">
-      {/* Turn banner */}
-      {status === 'live' && myTurn && (
-        <div className="rounded-xl bg-[#29544D] text-white px-6 py-4 text-center text-xl font-bold shadow-lg animate-pulse">
-          TWOJA KOLEJ!
+      {/* The "TWOJA KOLEJ!" banner belongs to DraftLiveBoard — rendering a second
+          copy here is what put two of them on screen. */}
+
+      {/* No page title here: the takeover header already reads "Draft — <liga>",
+          and a second "Draft" heading was just costing a row. During setup the
+          screen still needs a line of its own, since there is no board yet. */}
+      {status === 'setup' && (
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <p className="text-gray-600">Oczekiwanie na rozpoczęcie draftu</p>
+          <div className="flex flex-wrap items-center gap-2">{headerActions}</div>
         </div>
       )}
-
-      {/* Header / status */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Draft</h1>
-          {status === 'setup' && <p className="text-gray-600">Oczekiwanie na rozpoczęcie draftu</p>}
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Notification opt-in */}
-          {status !== 'finished' && notifStatus !== 'granted' && notifStatus !== 'unsupported' && (
-            <button
-              onClick={requestNotifications}
-              title="Włącz powiadomienia, aby wiedzieć, kiedy nadejdzie Twoja kolej"
-              className="text-sm whitespace-nowrap px-3 py-2 rounded-md border border-[#29544D] text-[#29544D] hover:bg-[#29544D]/5"
-            >
-              🔔 Włącz powiadomienia
-            </button>
-          )}
-        </div>
-      </div>
 
       {/* FINISHED banner + proceed CTA */}
       {status === 'finished' && (
@@ -437,6 +546,20 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
         </div>
       )}
 
+      {/* Stand-ins are nominated before the draft starts, so the full card only
+          appears during setup. Once live it survives as the admin's
+          "Zarządzaj zastępstwami" button inside the board's action bar. */}
+      {status === 'setup' && (
+        <DelegationPanel
+          managers={snap.managers}
+          delegations={snap.delegations || []}
+          mySquadId={snap.access.mySquadId}
+          myUserId={snap.access.myUserId}
+          isAdmin={isAdmin}
+          onSetDelegate={handleSetDelegate}
+        />
+      )}
+
       {/* SETUP (admin) */}
       {status === 'setup' && (
         <SetupPanel
@@ -453,21 +576,26 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
       {/* LIVE / FINISHED — shared board */}
       {(status === 'live' || status === 'finished') && (
         <DraftLiveBoard
-          roundLabel={`Runda ${snap.draft.round} z ${snap.draft.total_rounds}`}
+          roundLabel={roundLabel}
           status={status as 'live' | 'finished'}
           players={snap.players}
           picks={snap.picks}
           managers={snap.managers}
           onClockSquadId={snap.onTheClockSquadId}
           onClockManagerId={snap.onTheClockManagerId}
+          nextSquadId={nextSquadId}
           isAdmin={isAdmin}
           myTurn={myTurn}
+          delegations={snap.delegations || []}
+          myUserId={snap.access.myUserId}
+          mySquadId={snap.access.mySquadId}
           submitting={submitting}
           onConfirmPick={(playerId) => doAction('pick', { playerId })}
           onAdminPick={(playerId) => doAction('admin-pick', { playerId })}
           onSkip={() => setConfirmSkip(true)}
           onUndo={handleUndo}
           slotCount={() => snap.draft!.squad_size}
+          actions={headerActions}
           onAddPlayer={onAddPlayerBoard}
           onEditPlayer={onEditPlayerBoard}
           sideTop={
@@ -492,7 +620,7 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
         onClose={() => setConfirmSkip(false)}
         onConfirm={handleSkip}
         title="Pominąć kolejkę?"
-        message={`Menedżer ${managerName(onClockManager)} zostanie przeniesiony na koniec bieżącej rundy.`}
+        message={`Menedżer ${managerName(onClockManager)} nie wybiera w tej rundzie — kolejność draftu pozostaje bez zmian. Pominięty wybór odrobi w rundzie uzupełniającej, po ostatniej rundzie draftu.`}
         confirmText="Pomiń kolejkę"
         variant="warning"
         loading={submitting}
@@ -524,7 +652,7 @@ function SetupPanel({
 }) {
   if (!isAdmin) {
     return (
-      <div className="rounded-xl border border-gray-200 p-8 text-center">
+      <div className="rounded-xl bg-white border border-gray-200 shadow-sm p-8 text-center">
         <p className="text-gray-600">Oczekiwanie na rozpoczęcie draftu przez administratora.</p>
         <p className="text-sm text-gray-400 mt-2">{managers.length} menedżerów gotowych.</p>
       </div>
@@ -532,7 +660,7 @@ function SetupPanel({
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 p-6">
+    <div className="rounded-xl bg-white border border-gray-200 shadow-sm p-6">
       <h2 className="text-lg font-semibold text-gray-900 mb-1">Kolejność draftu</h2>
       <p className="text-sm text-gray-500 mb-4">
         Ustaw kolejność, w jakiej menedżerowie będą wybierać (ta sama kolejność w każdej rundzie).

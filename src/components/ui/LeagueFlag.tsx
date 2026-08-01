@@ -1,11 +1,26 @@
 import { CSSProperties } from 'react'
 
-// Emoji flag per league. The "Liga" field holds a Polish country adjective;
-// each maps to the corresponding flag emoji. England uses the subdivision
-// (tag) flag emoji.
+// Emoji flag per league. The "Liga" column identifies the country of the club,
+// and has been written three different ways over time: the Polish country noun
+// ("Anglia" — what the squad scraper and the current import emit), the Polish
+// adjective ("angielska" — older hand-made sheets), and occasionally the plain
+// English name. All three map to the same flag so no player loses his flag
+// because of how his row was imported. England uses the subdivision (tag) emoji.
 const ENGLAND_FLAG = '\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}'
 
 const LEAGUE_FLAGS: Record<string, string> = {
+  // Polish nouns (current import format)
+  francja: '🇫🇷',
+  anglia: ENGLAND_FLAG,
+  hiszpania: '🇪🇸',
+  portugalia: '🇵🇹',
+  wlochy: '🇮🇹',
+  belgia: '🇧🇪',
+  holandia: '🇳🇱',
+  polska: '🇵🇱',
+  turcja: '🇹🇷',
+  niemcy: '🇩🇪',
+  // Polish adjectives (legacy sheets)
   francuska: '🇫🇷',
   angielska: ENGLAND_FLAG,
   hiszpanska: '🇪🇸',
@@ -13,9 +28,19 @@ const LEAGUE_FLAGS: Record<string, string> = {
   wloska: '🇮🇹',
   belgijska: '🇧🇪',
   holenderska: '🇳🇱',
-  polska: '🇵🇱',
   turecka: '🇹🇷',
   niemiecka: '🇩🇪',
+  // English names (scraper output with POLISH_OUTPUT = False)
+  france: '🇫🇷',
+  england: ENGLAND_FLAG,
+  spain: '🇪🇸',
+  portugal: '🇵🇹',
+  italy: '🇮🇹',
+  belgium: '🇧🇪',
+  netherlands: '🇳🇱',
+  poland: '🇵🇱',
+  turkey: '🇹🇷',
+  germany: '🇩🇪',
 }
 
 function normalize(value: string): string {

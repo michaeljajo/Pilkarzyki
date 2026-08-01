@@ -66,15 +66,21 @@ const getUserLeagues = unstable_cache(
           )
         `)
         .eq('manager_id', userId),
+      // league_admins is the source of truth for who administers a league
+      // (verifyLeagueAdmin uses it everywhere else); leagues.admin_id is the
+      // deprecated single-admin column kept only for backward compatibility.
       supabaseAdmin
-        .from('leagues')
-        .select('id, name, season, is_active, created_at, admin_id')
-        .eq('admin_id', userId)
+        .from('league_admins')
+        .select('leagues!inner (id, name, season, is_active, created_at, admin_id)')
+        .eq('user_id', userId)
     ])
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const adminLeagues = (adminLeaguesResult.data || []).map((row: any) => row.leagues)
 
     return {
       managerSquads: managerSquadsResult.data,
-      adminLeagues: adminLeaguesResult.data,
+      adminLeagues,
       errors: {
         squadError: managerSquadsResult.error,
         adminError: adminLeaguesResult.error
@@ -121,6 +127,11 @@ export default async function DashboardPage() {
 
   const managerLeagueIds = new Set(typedManagerSquads?.map(s => s.leagues.id) || [])
 
+  // Admin rights are per league. The global users.is_admin flag deliberately
+  // plays no part here: it used to mark every league the user manages as one he
+  // administers, which put admin-only affordances in front of plain managers.
+  const adminLeagueIds = new Set(adminLeagues?.map(l => l.id) || [])
+
   const allLeagues = [
     ...(typedManagerSquads?.map(item => ({
       id: item.leagues.id,
@@ -128,7 +139,7 @@ export default async function DashboardPage() {
       season: item.leagues.season,
       is_active: item.leagues.is_active,
       created_at: item.leagues.created_at,
-      isAdmin: item.leagues.admin_id === userRecord.id || userRecord.is_admin === true,
+      isAdmin: adminLeagueIds.has(item.leagues.id),
       isManager: true
     })) || []),
     ...(adminLeagues?.filter(l => !managerLeagueIds.has(l.id)).map(league => ({

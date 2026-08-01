@@ -68,7 +68,28 @@ export default function LeaguePlayersImportPage() {
         body: formData,
       })
 
-      const data = await response.json()
+      // A timed-out or crashed request can return an empty / non-JSON body.
+      // Parsing that directly surfaces a cryptic browser error ("The string
+      // did not match the expected pattern"), so handle it explicitly.
+      const raw = await response.text()
+      let data: {
+        error?: string
+        result?: { imported?: number; skipped?: number; replaced?: number }
+      } = {}
+
+      if (raw) {
+        try {
+          data = JSON.parse(raw)
+        } catch {
+          throw new Error(
+            `Serwer zwrócił nieprawidłową odpowiedź (HTTP ${response.status}). Spróbuj ponownie.`
+          )
+        }
+      } else if (!response.ok) {
+        throw new Error(
+          `Import nie powiódł się (HTTP ${response.status}) — brak odpowiedzi serwera. Plik mógł być zbyt duży lub przekroczono limit czasu.`
+        )
+      }
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to import players')
@@ -76,7 +97,12 @@ export default function LeaguePlayersImportPage() {
 
       const imported = data.result?.imported ?? 0
       const skipped = data.result?.skipped ?? 0
-      setSuccess(`Zaimportowano ${imported} zawodników${skipped ? `, pominięto ${skipped}` : ''}.`)
+      const replaced = data.result?.replaced ?? 0
+      setSuccess(
+        `Zaimportowano ${imported} zawodników` +
+        `${replaced ? `, zastępując poprzednią pulę (${replaced})` : ''}` +
+        `${skipped ? `, pominięto ${skipped}` : ''}.`
+      )
       setFile(null)
 
       // Redirect back to players page after 2 seconds
@@ -183,6 +209,17 @@ export default function LeaguePlayersImportPage() {
             <p className="text-gray-500 text-xs mt-2">
               Uwaga: Zawodnicy trafiają do puli tej ligi jako nieprzypisani — menedżerowie
               wybierają ich podczas draftu. Bramkarze nie są obsługiwani.
+            </p>
+            <p className="text-gray-500 text-xs">
+              Import <strong>zastępuje całą pulę</strong> tej ligi — wszyscy dotychczasowi
+              nieprzypisani zawodnicy zostaną usunięci i wstawieni na nowo z pliku. Jest to
+              możliwe wyłącznie przed rozpoczęciem draftu; po starcie draftu import zostanie
+              odrzucony.
+            </p>
+            <p className="text-gray-500 text-xs">
+              Zawodnicy o tym samym imieniu i nazwisku są zachowywani — plik może zawierać
+              np. dwóch różnych zawodników &bdquo;Vitinha&rdquo;, a każdy wiersz tworzy
+              osobnego zawodnika. Kolumna Klub pozwala ich rozróżnić podczas draftu.
             </p>
             <p className="text-gray-700 mt-4">
               Przykład:

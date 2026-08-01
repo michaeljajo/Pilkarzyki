@@ -1,0 +1,187 @@
+sofa_id,name,name_raw,league,country,fs_id,fs_slug,confidence
+60,Bournemouth,Bournemouth,Premier League,England,OtpNdwrc,bournemouth,auto
+42,Arsenal,Arsenal,Premier League,England,hA1Zm19f,arsenal,auto
+40,Aston Villa,Aston Villa,Premier League,England,W00wmLO0,aston-vila,auto
+50,Brentford,Brentford,Premier League,England,xYe7DwID,brentford,auto
+30,Brighton & Hove Albion,Brighton & Hove Albion,Premier League,England,,,NOT FOUND
+38,Chelsea,Chelsea,Premier League,England,4fGZN2oK,chelsea,auto
+11,Coventry City,Coventry City,Premier League,England,GOvB22xg,coventry,auto
+7,Crystal Palace,Crystal Palace,Premier League,England,AovF1Mia,crystal-palace,auto
+48,Everton,Everton,Premier League,England,KluSTr9s,everton,auto
+43,Fulham,Fulham,Premier League,England,69ZiU2Om,fulham,auto
+96,Hull City,Hull City,Premier League,England,E5OFfojD,hull,auto
+32,Ipswich Town,Ipswich Town,Premier League,England,thqhB2MB,ipswich,auto
+34,Leeds United,Leeds United,Premier League,England,tUxUbLR2,leeds,auto
+44,Liverpool FC,Liverpool FC,Premier League,England,0KuKBKxT,liverpool-m,auto
+17,Manchester City,Manchester City,Premier League,England,Wtn9Stg0,manchester-city,auto
+35,Manchester United,Manchester United,Premier League,England,ppjDR086,manchester-utd,auto
+39,Newcastle United,Newcastle United,Premier League,England,p6ahwuwJ,newcastle-utd,auto
+14,Nottingham Forest,Nottingham Forest,Premier League,England,UsushcZr,nottingham,auto
+41,Sunderland,Sunderland,Premier League,England,WSzc94ws,sunderland,auto
+33,Tottenham Hotspur,Tottenham Hotspur,Premier League,England,UDg08Ohm,tottenham,auto
+2825,Athletic Club,Athletic Club,LaLiga,Spain,INXlw5Bp,athletic-club,auto
+2836,Atletico Madrid,Atlético Madrid,LaLiga,Spain,M9eddp7L,atletico-madrid,auto
+2820,Osasuna,Osasuna,LaLiga,Spain,ETdxjU8a,osasuna,auto
+2846,Elche,Elche,LaLiga,Spain,4jl02tPF,elche,auto
+2885,Deportivo Alaves,Deportivo Alavés,LaLiga,Spain,hxt57t2q,alaves,auto
+2814,Espanyol,Espanyol,LaLiga,Spain,rBhPzPFk,espanyol,auto
+2817,FC Barcelona,FC Barcelona,LaLiga,Spain,pCMG6CNp,barcelona-sc,auto
+2859,Getafe,Getafe,LaLiga,Spain,dboeiWOt,getafe,auto
+2849,Levante UD,Levante UD,LaLiga,Spain,G8FL0ShI,levante,auto
+2830,Malaga CF,Málaga CF,LaLiga,Spain,25tIqYiJ,malaga,auto
+2835,Real Racing Club,Real Racing Club,LaLiga,Spain,,,NOT FOUND
+2818,Rayo Vallecano,Rayo Vallecano,LaLiga,Spain,8bcjFy6O,vallecano,auto
+2821,Celta Vigo,Celta Vigo,LaLiga,Spain,8pvUZFhf,celta-vigo,auto
+2832,Deportivo de A Coruna,Deportivo de A Coruña,LaLiga,Spain,,,NOT FOUND
+2816,Real Betis,Real Betis,LaLiga,Spain,vJbTeCGP,betis,auto
+2829,Real Madrid,Real Madrid,LaLiga,Spain,W8mj7MDD,real-madrid,auto
+2824,Real Sociedad,Real Sociedad,LaLiga,Spain,jNvak2f3,real-sociedad,auto
+2833,Sevilla,Sevilla,LaLiga,Spain,rJdhcQiF,sevilla,auto
+2828,Valencia,Valencia,LaLiga,Spain,nyHCJRsR,valencia-fc,auto
+2819,Villarreal,Villarreal,LaLiga,Spain,,,NOT FOUND
+1646,Auxerre,Auxerre,Ligue 1,France,MTLr36WA,auksere,auto
+1684,Angers,Angers,Ligue 1,France,SAlF91iL,angers,auto
+1653,AS Monaco,AS Monaco,Ligue 1,France,2PIvr8o4,monakas,auto
+1652,Troyes,Troyes,Ligue 1,France,fsfAHubD,troisas,auto
+1656,Lorient,Lorient,Ligue 1,France,jgNAYRGi,lorient,auto
+1662,Le Havre,Le Havre,Ligue 1,France,CIEe04GT,le-havre,auto
+1672,Le Mans,Le Mans,Ligue 1,France,ER0NeOOp,le-mans,auto
+1643,Lille,Lille,Ligue 1,France,pfDZL71o,lille,auto
+1661,Nice,Nice,Ligue 1,France,YagoQJpq,nice,auto
+1649,Olympique Lyonnais,Olympique Lyonnais,Ligue 1,France,,,NOT FOUND
+1641,Olympique de Marseille,Olympique de Marseille,Ligue 1,France,,,NOT FOUND
+6070,Paris FC,Paris FC,Ligue 1,France,0OEHEprs,paris-fc,auto
+1644,Paris Saint-Germain,Paris Saint-Germain,Ligue 1,France,,,NOT FOUND
+1648,RC Lens,RC Lens,Ligue 1,France,IBmris38,lens,auto
+1715,Stade Brestois,Stade Brestois,Ligue 1,France,,,NOT FOUND
+1658,Stade Rennais,Stade Rennais,Ligue 1,France,,,NOT FOUND
+1659,RC Strasbourg,RC Strasbourg,Ligue 1,France,nP6UzIU1,strasbourg,auto
+1681,Toulouse,Toulouse,Ligue 1,France,MLmY2yB1,toulouse,auto
+3022,Academico Viseu FC,Académico Viseu FC,Liga Portugal,Portugal,GrRgeTHo,academico-viseu,auto
+36365,Casa Pia,Casa Pia,Liga Portugal,Portugal,QFHt9Zgs,casa-pia,auto
+4500,Estoril Praia,Estoril Praia,Liga Portugal,Portugal,,,NOT FOUND
+3035,CF Estrela Amadora,CF Estrela Amadora,Liga Portugal,Portugal,hrYABE5k,estrela-da-amadora,auto
+190328,FC Alverca,FC Alverca,Liga Portugal,Portugal,roaMksQg,fc-alverca,auto
+25777,FC Arouca,FC Arouca,Liga Portugal,Portugal,fJqfm7CG,arouca,auto
+49531,Famalicao,Famalicão,Liga Portugal,Portugal,ABBgitC3,famalicao,auto
+3002,FC Porto,FC Porto,Liga Portugal,Portugal,S2NmScGp,fc-porto,auto
+3010,Gil Vicente,Gil Vicente,Liga Portugal,Portugal,CS0fFFd8,gil-vicente,auto
+3007,CS Maritimo,CS Marítimo,Liga Portugal,Portugal,noguvetP,maritimo,auto
+3014,Moreirense,Moreirense,Liga Portugal,Portugal,8d9NGt9H,moreirense,auto
+3013,CD Nacional,CD Nacional,Liga Portugal,Portugal,4ETLrR7n,nacional,auto
+3036,Rio Ave,Rio Ave,Liga Portugal,Portugal,jPzXLi4l,rio-ave,auto
+3011,Santa Clara,Santa Clara,Liga Portugal,Portugal,YmQyLBJf,santa-clara,auto
+2999,Sporting Braga,Sporting Braga,Liga Portugal,Portugal,dpUer7ht,braga,auto
+3006,Benfica,Benfica,Liga Portugal,Portugal,hGZMB1yP,benfica,auto
+3001,Sporting CP,Sporting CP,Liga Portugal,Portugal,,,NOT FOUND
+3009,Vitoria SC,Vitória SC,Liga Portugal,Portugal,8bSbHipn,vitoria,auto
+2692,AC Milan,AC Milan,Serie A,Italy,8Sa8HInO,ac-milan,auto
+2729,Monza,Monza,Serie A,Italy,4YSMlwj7,monza,auto
+2693,Fiorentina,Fiorentina,Serie A,Italy,Q3A3IbXH,fiorentina,auto
+2702,AS Roma,AS Roma,Serie A,Italy,zVqqL0ma,associazione-sportiva-roma,auto
+2686,Atalanta,Atalanta,Serie A,Italy,8C9JjMXu,atalanta,auto
+2685,Bologna,Bologna,Serie A,Italy,0M9xNN8N,bologna,auto
+2719,Cagliari,Cagliari,Serie A,Italy,SCGVmKHb,cagliari,auto
+2704,Como,Como,Serie A,Italy,ttyLthOA,como,auto
+2801,Frosinone,Frosinone,Serie A,Italy,pfo9H1Wp,frosinone,auto
+2713,Genoa,Genoa,Serie A,Italy,d0PJxeie,genoa,auto
+2697,Inter,Inter,Serie A,Italy,Iw7eKK25,football-club-internazionale-milano,auto
+2687,Juventus,Juventus,Serie A,Italy,C06aJvIB,juventus,auto
+2699,Lazio,Lazio,Serie A,Italy,URcSl02h,lazio,auto
+2690,Parma,Parma,Serie A,Italy,6DxlaxHN,parma,auto
+2793,Sassuolo,Sassuolo,Serie A,Italy,QDdvI0zl,sassuolo,auto
+2714,SSC Napoli,SSC Napoli,Serie A,Italy,UFe3wHyG,napoli,auto
+2696,Torino,Torino,Serie A,Italy,MZFZnvX4,torino,auto
+2695,Udinese,Udinese,Serie A,Italy,rXw8YKDE,udinese,auto
+2689,Lecce,Lecce,Serie A,Italy,G8lYsMgU,lecce,auto
+2688,Venezia,Venezia,Serie A,Italy,MkPmVv50,unione-venecija,auto
+2929,Cercle Brugge,Cercle Brugge,Pro League,Belgium,,,NOT FOUND
+2888,Club Brugge KV,Club Brugge KV,Pro League,Belgium,rkZnBUjN,club-brugge,auto
+2903,KAA Gent,KAA Gent,Pro League,Belgium,,,NOT FOUND
+2890,KRC Genk,KRC Genk,Pro League,Belgium,,,NOT FOUND
+4858,KV Kortrijk,KV Kortrijk,Pro League,Belgium,,,NOT FOUND
+2893,KVC Westerlo,KVC Westerlo,Pro League,Belgium,t4YoM1VH,westerlo,auto
+5046,Lommel SK,Lommel SK,Pro League,Belgium,8EyXqyoo,lommel-sk,auto
+2918,Oud-Heverlee Leuven,Oud-Heverlee Leuven,Pro League,Belgium,,,NOT FOUND
+368506,RAAL La Louviere,RAAL La Louvière,Pro League,Belgium,K0H6jm7P,raal-la-louviere,auto
+2889,Royal Antwerp FC,Royal Antwerp FC,Pro League,Belgium,,,NOT FOUND
+2898,RC Sporting Charleroi,RC Sporting Charleroi,Pro League,Belgium,,,NOT FOUND
+2900,RSC Anderlecht,RSC Anderlecht,Pro League,Belgium,j3Am9obj,rsc-anderlecht,auto
+4859,SK Beveren,SK Beveren,Pro League,Belgium,QaqfE8WE,sk-beveren,auto
+2895,Sint-Truidense VV,Sint-Truidense VV,Pro League,Belgium,,,NOT FOUND
+2901,Standard Liege,Standard Liège,Pro League,Belgium,,,NOT FOUND
+2933,SV Zulte Waregem,SV Zulte Waregem,Pro League,Belgium,,,NOT FOUND
+4860,Royale Union Saint-Gilloise,Royale Union Saint-Gilloise,Pro League,Belgium,,,NOT FOUND
+5044,KV Mechelen,KV Mechelen,Pro League,Belgium,AijMGsEm,mechelen,auto
+2966,ADO Den Haag,ADO Den Haag,Eredivisie,Netherlands,lAgLCkT3,den-haagas,auto
+2953,AFC Ajax,AFC Ajax,Eredivisie,Netherlands,GncWwxTm,jong-ajax,auto
+2950,AZ Alkmaar,AZ Alkmaar,Eredivisie,Netherlands,,,NOT FOUND
+2967,Excelsior,Excelsior,Eredivisie,Netherlands,Q1ppQDBc,excelsior-ac,auto
+2951,FC Groningen,FC Groningen,Eredivisie,Netherlands,MBUGcjb9,groningen,auto
+2955,FC Twente,FC Twente,Eredivisie,Netherlands,8Wb4V5AR,twente,auto
+2948,FC Utrecht,FC Utrecht,Eredivisie,Netherlands,846Go5PK,utrecht,auto
+2959,Feyenoord,Feyenoord,Eredivisie,Netherlands,KxPxLcnl,sportclub-feyenoord,auto
+2957,Fortuna Sittard,Fortuna Sittard,Eredivisie,Netherlands,YyEB5T8o,jong-fortuna-sittard,auto
+2979,Go Ahead Eagles,Go Ahead Eagles,Eredivisie,Netherlands,,,NOT FOUND
+2962,NEC Nijmegen,NEC Nijmegen,Eredivisie,Netherlands,,,NOT FOUND
+2971,PEC Zwolle,PEC Zwolle,Eredivisie,Netherlands,dp1HOsI7,pec-zwolle,auto
+2952,PSV Eindhoven,PSV Eindhoven,Eredivisie,Netherlands,M9UEHJWi,psv,auto
+2970,SC Cambuur,SC Cambuur,Eredivisie,Netherlands,,,NOT FOUND
+2964,SC Heerenveen,SC Heerenveen,Eredivisie,Netherlands,2738mRf8,heerenveen,auto
+2972,SC Telstar,SC Telstar,Eredivisie,Netherlands,MLrisYIp,telstar,auto
+2960,Sparta Rotterdam,Sparta Rotterdam,Eredivisie,Netherlands,z3u6UttD,jong-sparta-rotterdam,auto
+2961,Willem II Tilburg,Willem II Tilburg,Eredivisie,Netherlands,,,NOT FOUND
+3110,Gornik Zabrze,Górnik Zabrze,Ekstraklasa,Poland,2LH3Ywq4,gornik-zabrze,auto
+7295,Radomiak Radom,Radomiak Radom,Ekstraklasa,Poland,zD5nYhAT,radomiak-radom,auto
+3122,Wisla Plock,Wisła Płock,Ekstraklasa,Poland,,,NOT FOUND
+7691,Jagiellonia Bialystok,Jagiellonia Białystok,Ekstraklasa,Poland,,,NOT FOUND
+3106,Legia Warszawa,Legia Warszawa,Ekstraklasa,Poland,K6kUepBs,legia,auto
+7915,Motor Lublin,Motor Lublin,Ekstraklasa,Poland,IoLk2VlL,motor-lublin,auto
+3115,Widzew Lodz,Widzew Łódź,Ekstraklasa,Poland,rNOIW3uC,widzew-lodz,auto
+3121,Lech Poznan,Lech Poznań,Ekstraklasa,Poland,rNGjp9DJ,lech-uam-poznan,auto
+4901,KS Cracovia,KS Cracovia,Ekstraklasa,Poland,,,NOT FOUND
+3112,GKS Katowice,GKS Katowice,Ekstraklasa,Poland,YX1CxJ91,katowice,auto
+7918,Piast Gliwice,Piast Gliwice,Ekstraklasa,Poland,QXDX6863,piast,auto
+3111,Wisla Krakow,Wisła Kraków,Ekstraklasa,Poland,,,NOT FOUND
+3113,Zaglebie Lubin,Zagłębie Lubin,Ekstraklasa,Poland,,,NOT FOUND
+35268,Rakow Czestochowa,Raków Częstochowa,Ekstraklasa,Poland,SQOrbYim,rks-rakow-czestochowa,auto
+334956,Wieczysta Krakow,Wieczysta Kraków,Ekstraklasa,Poland,ImhQf1z6,ks-wieczysta-krakow,auto
+3108,Slask Wroclaw,Śląsk Wrocław,Ekstraklasa,Poland,d6oyi5l4,slask-vroclavas,auto
+5065,MKS Korona Kielce,MKS Korona Kielce,Ekstraklasa,Poland,pp78XcbA,korona,auto
+3117,Pogon Szczecin,Pogoń Szczecin,Ekstraklasa,Poland,I1Div3tI,pogon-szczecin,auto
+6362,Alanyaspor,Alanyaspor,Super Lig,Turkey,IcN8oPcJ,alanyaspor,auto
+207011,Amed Sportif Faaliyetler,Amed Sportif Faaliyetler,Super Lig,Turkey,,,NOT FOUND
+3050,Besiktas JK,Beşiktaş JK,Super Lig,Turkey,IDmErJCR,besiktasas,auto
+3064,Caykur Rizespor,Çaykur Rizespor,Super Lig,Turkey,EFRnJdkr,rizespor,auto
+77629,Corum FK,Çorum FK,Super Lig,Turkey,0vne21BK,corum-fk,auto
+55603,Erzurumspor FK,Erzurumspor FK,Super Lig,Turkey,xQZ3CpVE,erzurumspor-fk,auto
+7040,Eyupspor,Eyüpspor,Super Lig,Turkey,276zKCgt,eyupspor,auto
+3052,Fenerbahce,Fenerbahçe,Super Lig,Turkey,MsbmracL,fenerbahce,auto
+3061,Galatasaray,Galatasaray,Super Lig,Turkey,riaqqurF,galtasarajus,auto
+5138,Gaziantep FK,Gaziantep FK,Super Lig,Turkey,ITkIKZ7q,gaziantep,auto
+7802,Genclerbirligi,Gençlerbirliği,Super Lig,Turkey,GOPqBIRK,genklerbirligi,auto
+3054,Goztepe,Göztepe,Super Lig,Turkey,0MJlDkrA,goztepe,auto
+3086,Basaksehir FK,Başakşehir FK,Super Lig,Turkey,YqP5NmC1,basaksehir,auto
+6063,Kasimpasa,Kasımpaşa,Super Lig,Turkey,dOlaIG4l,kasimpasa,auto
+3065,Kocaelispor,Kocaelispor,Super Lig,Turkey,hfvQIzKf,kocaelispor,auto
+3085,Konyaspor,Konyaspor,Super Lig,Turkey,YazuCbCE,konyaspor,auto
+3053,Samsunspor,Samsunspor,Super Lig,Turkey,pSc6z7bf,samsunspor,auto
+3051,Trabzonspor,Trabzonspor,Super Lig,Turkey,,,NOT FOUND
+2671,1. FC Koln,1. FC Köln,Bundesliga,Germany,WG9pOTse,koln,auto
+2681,Bayer 04 Leverkusen,Bayer 04 Leverkusen,Bundesliga,Germany,hjuyw2Kb,leverkusen,auto
+2672,FC Bayern Munchen,FC Bayern München,Bundesliga,Germany,,,NOT FOUND
+2673,Borussia Dortmund,Borussia Dortmund,Bundesliga,Germany,,,NOT FOUND
+2527,Borussia M'gladbach,Borussia M'gladbach,Bundesliga,Germany,,,NOT FOUND
+2674,Eintracht Frankfurt,Eintracht Frankfurt,Bundesliga,Germany,C6sxeOzB,eintracht-frankfurt,auto
+2600,FC Augsburg,FC Augsburg,Bundesliga,Germany,OpjOKd4r,augsburg,auto
+2556,1. FSV Mainz 05,1. FSV Mainz 05,Bundesliga,Germany,,,NOT FOUND
+2676,Hamburger SV,Hamburger SV,Bundesliga,Germany,v9k3aY5F,hamburgeras,auto
+36360,RB Leipzig,RB Leipzig,Bundesliga,Germany,KbS1suSm,rb-leipzig,auto
+2538,SC Freiburg,SC Freiburg,Bundesliga,Germany,UNGe0paS,freiburg,auto
+2561,SC Paderborn 07,SC Paderborn 07,Bundesliga,Germany,,,NOT FOUND
+2530,FC Schalke 04,FC Schalke 04,Bundesliga,Germany,,,NOT FOUND
+2598,SV 07 Elversberg,SV 07 Elversberg,Bundesliga,Germany,6in2Eknb,elversberg,auto
+2569,TSG Hoffenheim,TSG Hoffenheim,Bundesliga,Germany,,,NOT FOUND
+2547,1. FC Union Berlin,1. FC Union Berlin,Bundesliga,Germany,pzHW4oaE,union-berlin,auto
+2677,VfB Stuttgart,VfB Stuttgart,Bundesliga,Germany,nJQmYp1B,stuttgart,auto
+2534,SV Werder Bremen,SV Werder Bremen,Bundesliga,Germany,vyDE3LZH,werder-bremen,auto

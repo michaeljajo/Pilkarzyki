@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { resolveDraftAccess } from '@/lib/draft-helpers'
+import { fetchAllPlayersInLeague } from '@/lib/players'
 
 /**
  * Consolidated snapshot for the mid-season draft screen. Returns the latest
@@ -56,11 +57,12 @@ export async function GET(
       email: s.users?.email || '',
     }))
 
-    const { data: players } = await supabaseAdmin
-      .from('players')
-      .select('id, name, surname, club, football_league, position, manager_id')
-      .eq('league', league.name)
-      .order('surname', { ascending: true })
+    // Paged — the pool is larger than PostgREST's 1000-row response cap, which
+    // would otherwise truncate the free-agent list.
+    const players = await fetchAllPlayersInLeague(
+      league.name,
+      'id, name, surname, club, football_league, position, manager_id'
+    )
 
     const drops = draft
       ? (await supabaseAdmin
@@ -77,6 +79,18 @@ export async function GET(
           .order('pick_number', { ascending: true })).data || []
       : []
 
+    // Active stand-ins: who may pick for whom while a manager is away.
+    const delegationRows = draft
+      ? (await supabaseAdmin
+          .from('draft_delegations')
+          .select('delegator_squad_id, delegate_user_id')
+          .eq('draft_id', draft.id)).data || []
+      : []
+    const delegations = delegationRows.map((d) => ({
+      delegatorSquadId: d.delegator_squad_id,
+      delegateUserId: d.delegate_user_id,
+    }))
+
     const queue: string[] = Array.isArray(draft?.current_queue) ? draft!.current_queue : []
     const onTheClockSquadId = queue.length > 0 ? queue[0] : null
     const onTheClockManager = managers.find((m) => m.squadId === onTheClockSquadId) || null
@@ -87,15 +101,17 @@ export async function GET(
       draft,
       league: { id: league.id, name: league.name, isActive: league.is_active !== false },
       managers,
-      players: players || [],
+      players,
       drops,
       picks,
+      delegations,
       onTheClockSquadId,
       onTheClockManagerId: onTheClockManager?.managerId || null,
       access: {
         isAdmin: access.isAdmin,
         isManager: access.isManager,
         mySquadId: access.squadId,
+        myUserId: access.userInternalId || null,
         myTurn,
       },
     })
