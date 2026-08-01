@@ -3,6 +3,11 @@ import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { verifyLeagueAdmin } from '@/lib/auth-helpers'
 import { evaluateDefaultLineup } from '@/lib/default-lineup-validation'
+import {
+  SQUAD_PLAYER_COLUMNS,
+  groupPlayersByManager,
+  type PlayerRow,
+} from '@/lib/player-mapper'
 import { Player } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -117,19 +122,18 @@ export async function GET(
     }
 
     // Load squads (players keyed by league NAME) to validate defaults.
-    const squadPlayersByManager = new Map<string, Player[]>()
+    let squadPlayersByManager = new Map<string, Player[]>()
     if (managerIds.length > 0) {
       const { data: leaguePlayers } = await supabaseAdmin
         .from('players')
-        .select('id, name, surname, league, position, football_league, manager_id')
+        .select(SQUAD_PLAYER_COLUMNS)
         .eq('league', league.name)
         .in('manager_id', managerIds)
         .not('manager_id', 'is', null)
-      for (const p of (leaguePlayers ?? []) as Player[]) {
-        const list = squadPlayersByManager.get(p.manager_id as string) ?? []
-        list.push(p)
-        squadPlayersByManager.set(p.manager_id as string, list)
-      }
+
+      squadPlayersByManager = groupPlayersByManager(
+        leaguePlayers as unknown as PlayerRow[] | null
+      )
     }
 
     // Default-lineup validity per manager (only meaningful before completion).

@@ -8,6 +8,17 @@ interface GetOrCreateUserOptions {
 }
 
 /**
+ * The shape we rely on here. `selectFields` is caller-supplied, so Supabase
+ * cannot infer the row type and falls back to GenericStringError — hence the
+ * explicit cast at each query. `id` is always present because every caller
+ * selects either '*' or a list including it.
+ */
+interface UserRow {
+  id: string
+  [key: string]: unknown
+}
+
+/**
  * Gets a user by Clerk ID, creating them if they don't exist
  * @param clerkUserId - The Clerk user ID
  * @param options - Optional configuration
@@ -21,11 +32,13 @@ export async function getOrCreateUser(
 
   try {
     // Try to get existing user
-    const { data: existingUser, error: fetchError } = await supabaseAdmin
+    const { data: existingUserRow, error: fetchError } = await supabaseAdmin
       .from('users')
       .select(selectFields)
       .eq('clerk_id', clerkUserId)
       .single()
+
+    const existingUser = existingUserRow as UserRow | null
 
     if (existingUser) {
       console.log(`${context} - Found existing user:`, existingUser.id)
@@ -62,7 +75,7 @@ export async function getOrCreateUser(
         lastName = resolved.lastName
       }
 
-      const { data: newUser, error: createError } = await supabaseAdmin
+      const { data: newUserRow, error: createError } = await supabaseAdmin
         .from('users')
         .insert({
           clerk_id: clerkUserId,
@@ -78,6 +91,7 @@ export async function getOrCreateUser(
         throw new Error(`Failed to create user: ${createError.message}`)
       }
 
+      const newUser = newUserRow as unknown as UserRow
       console.log(`${context} - Created new user:`, newUser.id)
       return newUser
     }

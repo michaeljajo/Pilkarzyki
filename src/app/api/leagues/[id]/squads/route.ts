@@ -161,14 +161,14 @@ export async function GET(
         let defaultLineupPlayers: any[] = []
         if (defaultLineup && defaultLineup.player_ids && players) {
           defaultLineupPlayers = defaultLineup.player_ids
-            .map(playerId => players.find(p => p.id === playerId))
+            .map((playerId: string) => players.find(p => p.id === playerId))
             .filter(Boolean)
         }
 
         let defaultCupLineupPlayers: any[] = []
         if (defaultCupLineup && defaultCupLineup.player_ids && players) {
           defaultCupLineupPlayers = defaultCupLineup.player_ids
-            .map(playerId => players.find(p => p.id === playerId))
+            .map((playerId: string) => players.find(p => p.id === playerId))
             .filter(Boolean)
         }
 

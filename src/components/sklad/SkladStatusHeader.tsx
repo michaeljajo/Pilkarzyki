@@ -78,7 +78,21 @@ function colorFor(r: Remaining | null): string {
   return COLORS.navy
 }
 
-function managerLabel(m: { first_name?: string; last_name?: string; email: string; squad?: { team_name?: string } } | null): string {
+/**
+ * A manager as returned by the combined-schedule endpoint. `id` matters as
+ * much as the label fields — opponentFor() matches on it — so it belongs in
+ * the type rather than being dropped by deriving the match shape from
+ * managerLabel's parameter.
+ */
+interface ScheduleManager {
+  id: string
+  first_name?: string
+  last_name?: string
+  email: string
+  squad?: { team_name?: string }
+}
+
+function managerLabel(m: ScheduleManager | null): string {
   if (!m) return '—'
   return m.squad?.team_name || m.first_name || m.email?.split('@')[0] || '—'
 }
@@ -115,8 +129,8 @@ export function SkladStatusHeader({ leagueId }: SkladStatusHeaderProps) {
         const matches: Array<{
           type: Competition
           gameweekNumber: number
-          homeManager: Parameters<typeof managerLabel>[0]
-          awayManager: Parameters<typeof managerLabel>[0]
+          homeManager: ScheduleManager | null
+          awayManager: ScheduleManager | null
         }> = Array.isArray(sched) ? sched : sched?.matches ?? []
 
         const opponentFor = (competition: Competition, gwNumber: number | null): string | null => {

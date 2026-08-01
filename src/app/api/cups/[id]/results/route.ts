@@ -163,7 +163,14 @@ export async function GET(
     // Batch fetch all players (filter by league to avoid cross-league duplicates)
     const playersMap = new Map()
     if (allPlayerIds.length > 0) {
-      const leagueName = Array.isArray(cup.leagues) ? cup.leagues[0]?.name : cup.leagues?.name
+      // Supabase types this join as an array, but returns a bare object when
+      // the relationship resolves to one row. Widen before narrowing, or the
+      // non-array branch narrows to `never`.
+      const cupLeagues = cup.leagues as unknown as
+        | { name: string }
+        | { name: string }[]
+        | null
+      const leagueName = Array.isArray(cupLeagues) ? cupLeagues[0]?.name : cupLeagues?.name
 
       const { data: players } = await supabaseAdmin
         .from('players')

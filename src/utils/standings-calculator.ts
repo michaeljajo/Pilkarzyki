@@ -222,20 +222,30 @@ function sortStandingsWithTiebreakers(standings: ManagerStats[], matches: MatchR
     }
 
     // 5. Manual Tiebreaker (ascending - lower value = higher rank)
-    // Only applies if at least one team has a manual tiebreaker set
-    if (a.manualTiebreaker !== null || b.manualTiebreaker !== null) {
+    // Only applies if at least one team has a manual tiebreaker set.
+    //
+    // manualTiebreaker is optional, so "unset" can be undefined as well as
+    // null. The checks below only tested against null; normalise first so an
+    // undefined tiebreaker cannot slip past them into `undefined - undefined`
+    // (NaN), which would make this comparator non-deterministic. The only
+    // current producer coerces with `|| null`, so this is a guard rather than
+    // a fix for observed behaviour.
+    const aTiebreaker = a.manualTiebreaker ?? null
+    const bTiebreaker = b.manualTiebreaker ?? null
+
+    if (aTiebreaker !== null || bTiebreaker !== null) {
       // If both have tiebreakers, compare them
-      if (a.manualTiebreaker !== null && b.manualTiebreaker !== null) {
-        if (a.manualTiebreaker !== b.manualTiebreaker) {
-          return a.manualTiebreaker - b.manualTiebreaker
+      if (aTiebreaker !== null && bTiebreaker !== null) {
+        if (aTiebreaker !== bTiebreaker) {
+          return aTiebreaker - bTiebreaker
         }
       }
       // If only 'a' has a tiebreaker, it ranks higher
-      if (a.manualTiebreaker !== null && b.manualTiebreaker === null) {
+      if (aTiebreaker !== null && bTiebreaker === null) {
         return -1
       }
       // If only 'b' has a tiebreaker, it ranks higher
-      if (a.manualTiebreaker === null && b.manualTiebreaker !== null) {
+      if (aTiebreaker === null && bTiebreaker !== null) {
         return 1
       }
     }

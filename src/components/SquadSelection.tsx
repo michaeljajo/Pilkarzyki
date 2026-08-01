@@ -442,8 +442,12 @@ export default function SquadSelection({ leagueId, isDefaultMode = false, defaul
   }
 
   const saveLineups = async () => {
+    // Nothing is loaded yet — there is no squad, league or gameweek to save
+    // against. One guard here rather than optional chaining at every use.
+    if (!squadData) return
+
     // In default mode, we don't need a currentGameweek
-    if (!isDefaultMode && !squadData?.currentGameweek) return
+    if (!isDefaultMode && !squadData.currentGameweek) return
 
     setSaving(true)
     try {

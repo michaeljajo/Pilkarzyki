@@ -4,6 +4,8 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { requireGlobalAdmin } from '@/lib/auth-helpers'
 import * as XLSX from 'xlsx'
 import {
+  parseManagersMapping,
+  type ManagersMappingRow,
   parseLeagueGameweeks,
   parseLeagueFixtures,
   parseCupGroups,
@@ -77,8 +79,11 @@ export async function POST(request: NextRequest) {
     const buffer = await file.arrayBuffer()
     const workbook = XLSX.read(buffer)
 
-    // Validate sheets exist
+    // Validate sheets exist. Managers_Mapping is sheet 1 of the generated
+    // template and resolves team names to manager emails; every fixture
+    // parser needs it.
     const requiredSheets = [
+      'Managers_Mapping',
       'League_Gameweeks',
       'League_Fixtures_And_Results',
       'Cup_Groups',
@@ -94,6 +99,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse all sheets
+    const managersMappingData = XLSX.utils.sheet_to_json(
+      workbook.Sheets['Managers_Mapping']
+    ) as ManagersMappingRow[]
+
+    const mm = parseManagersMapping(managersMappingData)
+    if (mm.errors.length > 0) {
+      return NextResponse.json({
+        error: 'Managers_Mapping errors found',
+        details: mm.errors
+      }, { status: 400 })
+    }
+
     const leagueGameweeksData = XLSX.utils.sheet_to_json(
       workbook.Sheets['League_Gameweeks']
     ) as LeagueGameweekRow[]
@@ -116,10 +133,10 @@ export async function POST(request: NextRequest) {
 
     // Parse data
     const lgw = parseLeagueGameweeks(leagueGameweeksData)
-    const lf = parseLeagueFixtures(leagueFixturesData)
-    const cg = parseCupGroups(cupGroupsData)
+    const lf = parseLeagueFixtures(leagueFixturesData, mm.data)
+    const cg = parseCupGroups(cupGroupsData, mm.data)
     const cgw = parseCupGameweeks(cupGameweeksData)
-    const cf = parseCupFixtures(cupFixturesData)
+    const cf = parseCupFixtures(cupFixturesData, mm.data)
 
     // Collect all parsing errors
     const parsingErrors = [
@@ -139,6 +156,7 @@ export async function POST(request: NextRequest) {
 
     // Create migration data structure
     const migrationData: MigrationData = {
+      managersMapping: mm.data,
       leagueGameweeks: lgw.data,
       leagueMatches: lf.data,
       cupGroups: cg.data,

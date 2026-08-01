@@ -81,6 +81,7 @@ async function checkTopScorers() {
       const playerManagerMap = new Map<string, string | null>()
 
       for (const [gameweekId, gwResults] of gameweekResultsMap.entries()) {
+        if (!gwResults) continue
         const playerIds = gwResults.map(r => r.player_id)
         console.log(`\n  Resolving ${playerIds.length} players for gameweek ${gameweekId}...`)
 

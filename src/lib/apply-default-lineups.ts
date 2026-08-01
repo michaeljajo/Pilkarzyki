@@ -1,6 +1,11 @@
 import { supabaseAdmin } from '@/lib/supabase'
 import { Player } from '@/types'
 import { evaluateDefaultLineup } from '@/lib/default-lineup-validation'
+import {
+  SQUAD_PLAYER_COLUMNS,
+  groupPlayersByManager,
+  type PlayerRow,
+} from '@/lib/player-mapper'
 
 export interface ApplyError {
   managerId?: string
@@ -61,20 +66,18 @@ export async function applyDefaultLineupsForGameweek(
     .eq('id', gameweek.league_id)
     .single()
 
-  const squadPlayersByManager = new Map<string, Player[]>()
+  let squadPlayersByManager = new Map<string, Player[]>()
   if (leagueRow) {
     const { data: leaguePlayers } = await supabaseAdmin
       .from('players')
-      .select('id, name, surname, league, position, football_league, manager_id')
+      .select(SQUAD_PLAYER_COLUMNS)
       .eq('league', leagueRow.name)
       .in('manager_id', managerIds as string[])
       .not('manager_id', 'is', null)
 
-    for (const p of (leaguePlayers ?? []) as Player[]) {
-      const list = squadPlayersByManager.get(p.manager_id as string) ?? []
-      list.push(p)
-      squadPlayersByManager.set(p.manager_id as string, list)
-    }
+    squadPlayersByManager = groupPlayersByManager(
+      leaguePlayers as unknown as PlayerRow[] | null
+    )
   }
 
   // Get existing lineups for this gameweek

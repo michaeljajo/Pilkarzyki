@@ -12,22 +12,31 @@ export interface LeagueGameweekRow {
   IsCompleted: string | boolean
 }
 
+/**
+ * A goals cell as it actually arrives from XLSX.utils.sheet_to_json: a number
+ * for a numeric cell, but an empty string for a blank one. Declaring these as
+ * plain `number` made the `!== ''` blank-cell guards below unreachable
+ * (TS2367), which would have silently turned every blank goals cell into
+ * Number('') === 0 had the guards ever been "cleaned up" to match the type.
+ */
+export type ExcelGoalsCell = number | string
+
 export interface LeagueFixtureRow {
   Gameweek: number
   HomeTeam: string
   AwayTeam: string
   HomePlayer1?: string
-  HomePlayer1Goals?: number
+  HomePlayer1Goals?: ExcelGoalsCell
   HomePlayer2?: string
-  HomePlayer2Goals?: number
+  HomePlayer2Goals?: ExcelGoalsCell
   HomePlayer3?: string
-  HomePlayer3Goals?: number
+  HomePlayer3Goals?: ExcelGoalsCell
   AwayPlayer1?: string
-  AwayPlayer1Goals?: number
+  AwayPlayer1Goals?: ExcelGoalsCell
   AwayPlayer2?: string
-  AwayPlayer2Goals?: number
+  AwayPlayer2Goals?: ExcelGoalsCell
   AwayPlayer3?: string
-  AwayPlayer3Goals?: number
+  AwayPlayer3Goals?: ExcelGoalsCell
   IsCompleted: string | boolean
 }
 
@@ -56,17 +65,17 @@ export interface CupFixtureRow {
   HomeTeam?: string
   AwayTeam?: string
   HomePlayer1?: string
-  HomePlayer1Goals?: number
+  HomePlayer1Goals?: ExcelGoalsCell
   HomePlayer2?: string
-  HomePlayer2Goals?: number
+  HomePlayer2Goals?: ExcelGoalsCell
   HomePlayer3?: string
-  HomePlayer3Goals?: number
+  HomePlayer3Goals?: ExcelGoalsCell
   AwayPlayer1?: string
-  AwayPlayer1Goals?: number
+  AwayPlayer1Goals?: ExcelGoalsCell
   AwayPlayer2?: string
-  AwayPlayer2Goals?: number
+  AwayPlayer2Goals?: ExcelGoalsCell
   AwayPlayer3?: string
-  AwayPlayer3Goals?: number
+  AwayPlayer3Goals?: ExcelGoalsCell
   IsCompleted: string | boolean
 }
 
