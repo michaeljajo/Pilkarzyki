@@ -14,7 +14,8 @@
     "dev:logs": "tail -f .dev-server/logs/health-monitor.log 2>/dev/null || echo 'No logs available yet'",
     "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "eslint src scripts",
+    "typecheck": "tsc --noEmit",
     "kill:all": "bash scripts/kill-next-aggressive.sh",
     "kill:dev": "lsof -ti:3000 | xargs kill -9 2>/dev/null || true",
     "clean": "bash scripts/emergency-cleanup.sh && rm -rf node_modules/.cache"
@@ -51,7 +52,6 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/papaparse": "^5.3.16",
