@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { requireGlobalAdmin } from '@/lib/auth-helpers'
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,15 +11,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check if user is admin
-    const { data: adminUser, error: adminError } = await supabaseAdmin
-      .from('users')
-      .select('is_admin')
-      .eq('clerk_id', userId)
-      .single()
-
-    if (adminError || !adminUser?.is_admin) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
+    const admin = await requireGlobalAdmin(userId)
+    if (!admin.ok) {
+      return NextResponse.json({ error: admin.error }, { status: admin.status })
     }
 
 

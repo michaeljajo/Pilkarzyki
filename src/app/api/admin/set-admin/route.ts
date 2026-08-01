@@ -10,6 +10,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Bootstrap-only endpoint. /setup-admin is a public route, so without this
+    // gate any authenticated manager could promote themselves to global admin.
+    // Promotion is allowed only while no global admin exists; afterwards,
+    // admin rights are granted through the league_admins flows.
+    const { count, error: countError } = await supabaseAdmin
+      .from('users')
+      .select('id', { count: 'exact', head: true })
+      .eq('is_admin', true)
+
+    if (countError) {
+      console.error('set-admin: failed to count existing admins', countError)
+      return NextResponse.json(
+        { error: 'Failed to verify administrator state' },
+        { status: 500 }
+      )
+    }
+
+    if (count && count > 0) {
+      return NextResponse.json(
+        { error: 'An administrator already exists' },
+        { status: 403 }
+      )
+    }
 
     // Set the current user as admin in Clerk metadata
     const client = await clerkClient()

@@ -210,6 +210,194 @@ export async function assertLeagueMutableByResult(resultId: string) {
 }
 
 /**
+ * Verifies that a user holds *global* admin rights (users.is_admin).
+ *
+ * This is deliberately stricter than verifyLeagueAdmin: it gates the
+ * handful of endpoints that operate on the database as a whole rather
+ * than on a single league — schema migrations, bulk data rewrites and
+ * historical imports. Those run under the service-role client and can
+ * damage every league at once, so league-level admin is not sufficient.
+ *
+ * Returns a discriminated union so callers can forward status/error
+ * straight into NextResponse.json.
+ */
+export async function requireGlobalAdmin(clerkUserId: string): Promise<
+  { ok: true } | { ok: false; status: number; error: string }
+> {
+  const { data, error } = await supabaseAdmin
+    .from('users')
+    .select('is_admin')
+    .eq('clerk_id', clerkUserId)
+    .maybeSingle()
+
+  if (error) {
+    console.error('requireGlobalAdmin: DB error', error)
+    return { ok: false, status: 500, error: 'Error verifying administrator access' }
+  }
+
+  if (!data?.is_admin) {
+    return { ok: false, status: 403, error: 'Administrator access required' }
+  }
+
+  return { ok: true }
+}
+
+export const LEAGUE_ADMIN_ERROR_MESSAGE =
+  'Tylko administrator ligi może wykonać tę operację.'
+
+export type AdminGuardResult =
+  | { ok: true; leagueId: string; userInternalId: string }
+  | { ok: false; status: number; error: string }
+
+/**
+ * Guard for endpoints that mutate competitive outcomes — results, gameweeks,
+ * lineups, players, tiebreakers, standings.
+ *
+ * These endpoints run under the service-role client, which bypasses RLS, so
+ * "is the caller signed in" is not a sufficient check: any authenticated
+ * manager could otherwise rewrite another league's results. Every mutating
+ * handler in this group must call one of the requireLeagueAdmin* variants.
+ *
+ * Returns a discriminated union so callers can forward status/error straight
+ * into NextResponse.json, and hands back the resolved leagueId so callers that
+ * only had a child id (cup, gameweek, result) don't have to look it up twice.
+ */
+export async function requireLeagueAdmin(
+  clerkUserId: string,
+  leagueId: string
+): Promise<AdminGuardResult> {
+  if (!leagueId) {
+    return { ok: false, status: 400, error: 'Brak identyfikatora ligi.' }
+  }
+
+  const { isAdmin, userInternalId } = await verifyLeagueAdmin(clerkUserId, leagueId)
+
+  if (!isAdmin || !userInternalId) {
+    return { ok: false, status: 403, error: LEAGUE_ADMIN_ERROR_MESSAGE }
+  }
+
+  return { ok: true, leagueId, userInternalId }
+}
+
+/** Variant when the caller has a cup id. */
+export async function requireLeagueAdminByCup(
+  clerkUserId: string,
+  cupId: string
+): Promise<AdminGuardResult> {
+  if (!cupId) {
+    return { ok: false, status: 400, error: 'Brak identyfikatora pucharu.' }
+  }
+  const { data, error } = await supabaseAdmin
+    .from('cups')
+    .select('league_id')
+    .eq('id', cupId)
+    .maybeSingle()
+  if (error) {
+    console.error('requireLeagueAdminByCup: DB error', error)
+    return { ok: false, status: 500, error: 'Błąd serwera podczas weryfikacji uprawnień.' }
+  }
+  if (!data) {
+    return { ok: false, status: 404, error: 'Nie znaleziono pucharu.' }
+  }
+  return requireLeagueAdmin(clerkUserId, data.league_id)
+}
+
+/** Variant when the caller has a gameweek id. */
+export async function requireLeagueAdminByGameweek(
+  clerkUserId: string,
+  gameweekId: string
+): Promise<AdminGuardResult> {
+  if (!gameweekId) {
+    return { ok: false, status: 400, error: 'Brak identyfikatora kolejki.' }
+  }
+  const { data, error } = await supabaseAdmin
+    .from('gameweeks')
+    .select('league_id')
+    .eq('id', gameweekId)
+    .maybeSingle()
+  if (error) {
+    console.error('requireLeagueAdminByGameweek: DB error', error)
+    return { ok: false, status: 500, error: 'Błąd serwera podczas weryfikacji uprawnień.' }
+  }
+  if (!data) {
+    return { ok: false, status: 404, error: 'Nie znaleziono kolejki.' }
+  }
+  return requireLeagueAdmin(clerkUserId, data.league_id)
+}
+
+/** Variant when the caller has a cup_gameweek id. */
+export async function requireLeagueAdminByCupGameweek(
+  clerkUserId: string,
+  cupGameweekId: string
+): Promise<AdminGuardResult> {
+  if (!cupGameweekId) {
+    return { ok: false, status: 400, error: 'Brak identyfikatora kolejki pucharu.' }
+  }
+  const { data, error } = await supabaseAdmin
+    .from('cup_gameweeks')
+    .select('cup_id')
+    .eq('id', cupGameweekId)
+    .maybeSingle()
+  if (error) {
+    console.error('requireLeagueAdminByCupGameweek: DB error', error)
+    return { ok: false, status: 500, error: 'Błąd serwera podczas weryfikacji uprawnień.' }
+  }
+  if (!data) {
+    return { ok: false, status: 404, error: 'Nie znaleziono kolejki pucharu.' }
+  }
+  return requireLeagueAdminByCup(clerkUserId, data.cup_id)
+}
+
+/** Variant when the caller has a result id. */
+export async function requireLeagueAdminByResult(
+  clerkUserId: string,
+  resultId: string
+): Promise<AdminGuardResult> {
+  if (!resultId) {
+    return { ok: false, status: 400, error: 'Brak identyfikatora wyniku.' }
+  }
+  const { data, error } = await supabaseAdmin
+    .from('results')
+    .select('gameweek_id')
+    .eq('id', resultId)
+    .maybeSingle()
+  if (error) {
+    console.error('requireLeagueAdminByResult: DB error', error)
+    return { ok: false, status: 500, error: 'Błąd serwera podczas weryfikacji uprawnień.' }
+  }
+  if (!data) {
+    return { ok: false, status: 404, error: 'Nie znaleziono wyniku.' }
+  }
+  return requireLeagueAdminByGameweek(clerkUserId, data.gameweek_id)
+}
+
+/**
+ * Variant when the caller has a league *name* rather than an id — the
+ * players table keys on league name (see assertLeagueMutableByName).
+ */
+export async function requireLeagueAdminByName(
+  clerkUserId: string,
+  leagueName: string
+): Promise<AdminGuardResult> {
+  if (!leagueName) {
+    return { ok: false, status: 400, error: 'Brak nazwy ligi.' }
+  }
+  const { data, error } = await supabaseAdmin
+    .from('leagues')
+    .select('id')
+    .eq('name', leagueName)
+    .maybeSingle()
+  if (error) {
+    console.error('requireLeagueAdminByName: DB error', error)
+    return { ok: false, status: 500, error: 'Błąd serwera podczas weryfikacji uprawnień.' }
+  }
+  if (!data) {
+    return { ok: false, status: 404, error: 'Nie znaleziono ligi.' }
+  }
+  return requireLeagueAdmin(clerkUserId, data.id)
+}
+
+/**
  * Verifies that a user is an admin of a specific league
  * Uses the league_admins junction table to support multiple admins per league
  * @param clerkUserId - The Clerk user ID
