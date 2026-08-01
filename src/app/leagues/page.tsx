@@ -51,7 +51,7 @@ const getUserRecord = unstable_cache(
 // Cached function to get user's leagues
 const getUserLeagues = unstable_cache(
   async (userId: string) => {
-    const [managerSquadsResult, adminLeaguesResult] = await Promise.all([
+    const [managerSquadsResult, adminLeaguesResult, publicLeaguesResult] = await Promise.all([
       supabaseAdmin
         .from('squads')
         .select(`
@@ -72,7 +72,13 @@ const getUserLeagues = unstable_cache(
       supabaseAdmin
         .from('league_admins')
         .select('leagues!inner (id, name, season, is_active, created_at, admin_id)')
-        .eq('user_id', userId)
+        .eq('user_id', userId),
+      // Showcase leagues: visible to everyone signed in, so a new user has
+      // something real to look at before joining anything of their own.
+      supabaseAdmin
+        .from('leagues')
+        .select('id, name, season, is_active, created_at, admin_id')
+        .eq('is_public', true)
     ])
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -81,6 +87,7 @@ const getUserLeagues = unstable_cache(
     return {
       managerSquads: managerSquadsResult.data,
       adminLeagues,
+      publicLeagues: publicLeaguesResult.data || [],
       errors: {
         squadError: managerSquadsResult.error,
         adminError: adminLeaguesResult.error
@@ -111,7 +118,7 @@ export default async function DashboardPage() {
     redirect('/sign-in')
   }
 
-  const { managerSquads, adminLeagues } = await getUserLeagues(userRecord.id)
+  const { managerSquads, adminLeagues, publicLeagues } = await getUserLeagues(userRecord.id)
 
   const typedManagerSquads = managerSquads as Array<{
     league_id: string;
@@ -150,7 +157,20 @@ export default async function DashboardPage() {
       created_at: league.created_at,
       isAdmin: true,
       isManager: false
-    })) || [])
+    })) || []),
+    // Showcase leagues the user has no other relationship with — neither
+    // manager nor admin, so they appear read-only and without admin controls.
+    ...(publicLeagues
+      ?.filter(l => !managerLeagueIds.has(l.id) && !adminLeagueIds.has(l.id))
+      .map(league => ({
+        id: league.id,
+        name: league.name,
+        season: league.season,
+        is_active: league.is_active,
+        created_at: league.created_at,
+        isAdmin: false,
+        isManager: false
+      })) || [])
   ]
 
   allLeagues.sort((a, b) => {

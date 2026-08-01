@@ -23,6 +23,8 @@ export interface League {
   startDate?: Date
   endDate?: Date
   isActive: boolean
+  /** Showcase flag: any signed-in user may VIEW this league. Never grants writes. */
+  isPublic?: boolean
   createdAt: Date
   updatedAt: Date
 }

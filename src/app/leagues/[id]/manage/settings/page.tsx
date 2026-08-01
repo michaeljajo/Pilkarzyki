@@ -24,7 +24,8 @@ export default function LeagueSettingsPage() {
   const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     name: '',
-    isActive: true
+    isActive: true,
+    isPublic: false
   })
 
   useEffect(() => {
@@ -46,7 +47,8 @@ export default function LeagueSettingsPage() {
       setLeague(data.league)
       setFormData({
         name: data.league.name,
-        isActive: data.league.isActive
+        isActive: data.league.isActive,
+        isPublic: data.league.isPublic === true
       })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
@@ -230,6 +232,30 @@ export default function LeagueSettingsPage() {
                 />
               </div>
 
+              {/* Showcase visibility. Deliberately available on archived
+                  seasons too — a finished season is exactly what you want a
+                  new user to browse, and the flag only ever grants reads. */}
+              <div className="pt-2 border-t border-gray-100">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.isPublic}
+                    onChange={(e) => setFormData(prev => ({ ...prev, isPublic: e.target.checked }))}
+                    className="mt-0.5 w-4 h-4 shrink-0 accent-[#29544D]"
+                  />
+                  <span>
+                    <span className="block text-sm font-medium text-gray-900">
+                      Liga widoczna dla wszystkich
+                    </span>
+                    <span className="block text-sm text-gray-600 mt-0.5">
+                      Każdy zalogowany użytkownik będzie mógł przeglądać tę ligę — tabelę, wyniki
+                      i składy — bez dołączania do niej. Przydatne, aby pokazać nowym użytkownikom
+                      przykładowy, rozegrany sezon. Podgląd jest tylko do odczytu: nikt spoza ligi
+                      nie może niczego w niej zmienić.
+                    </span>
+                  </span>
+                </label>
+              </div>
 
             </CardContent>
           </Card>

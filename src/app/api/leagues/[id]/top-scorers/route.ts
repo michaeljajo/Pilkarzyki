@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { TopScorer } from '@/types'
 import { batchGetManagersAtGameweek } from '@/utils/transfer-resolver'
+import { canViewLeague } from '@/lib/auth-helpers'
 
 /**
  * GET /api/leagues/[id]/top-scorers
@@ -52,11 +53,15 @@ export async function GET(
       .eq('manager_id', userRecord.id)
       .single()
 
+    // Members, admins, or anyone at all when the league is a public showcase.
     if (!userSquad) {
-      return NextResponse.json(
-        { error: 'Access denied. You are not a member of this league.' },
-        { status: 403 }
-      )
+      const { canView } = await canViewLeague(userId, leagueId)
+      if (!canView) {
+        return NextResponse.json(
+          { error: 'Access denied. You are not a member of this league.' },
+          { status: 403 }
+        )
+      }
     }
 
     // Fetch all league lineups for this league to determine which players participated in league matches

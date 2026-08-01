@@ -29,6 +29,7 @@ function mapLeagueRow(data: any) {
     startDate: data.start_date,
     endDate: data.end_date,
     isActive: data.is_active,
+    isPublic: data.is_public === true,
     createdAt: data.created_at,
     updatedAt: data.updated_at,
   }
@@ -129,16 +130,24 @@ export async function PUT(
     const requestBody = await request.json()
     console.log('Update request body:', requestBody)
 
-    const { name, isActive, maxManagers } = requestBody
+    const { name, isActive, maxManagers, isPublic } = requestBody
 
-    // Archived seasons are read-only: the only edit permitted is un-archiving
-    // (isActive: true), which restores the league. Any other change is rejected.
+    // Archived seasons are read-only. Two edits are still permitted:
+    // un-archiving (isActive: true), and toggling public visibility — the
+    // showcase league new users are pointed at is precisely a finished season,
+    // so refusing that here would make the flag unusable where it matters most.
+    // Visibility grants reads only, so it cannot alter an archived record.
     if (league.is_active === false) {
       const onlyReactivating =
         isActive === true &&
         (name === undefined || name === league.name) &&
         maxManagers === undefined
-      if (!onlyReactivating) {
+      const onlyVisibility =
+        isPublic !== undefined &&
+        isActive === undefined &&
+        (name === undefined || name === league.name) &&
+        maxManagers === undefined
+      if (!onlyReactivating && !onlyVisibility) {
         return NextResponse.json(
           { error: ARCHIVED_LEAGUE_ERROR_MESSAGE },
           { status: 403 }
@@ -176,6 +185,10 @@ export async function PUT(
       }
 
       updates.max_managers = managerCount
+    }
+
+    if (isPublic !== undefined) {
+      updates.is_public = isPublic === true
     }
 
     const { data, error } = await supabaseAdmin

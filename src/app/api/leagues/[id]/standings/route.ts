@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { calculateLeagueStandings, recalculateLeagueStandings, ManagerStats } from '@/utils/standings-calculator'
-import { verifyLeagueAdmin, assertLeagueMutable } from '@/lib/auth-helpers'
+import { verifyLeagueAdmin, assertLeagueMutable, canViewLeague } from '@/lib/auth-helpers'
 
 // Simple in-memory cache to prevent concurrent calculations
 const calculatingStandings = new Map<string, Promise<ManagerStats[]>>()
@@ -70,8 +70,13 @@ export async function GET(
     const { data: squad } = squadResult
     const { data: standingsData, error: standingsError } = standingsResult
 
+    // Members see their league; anyone signed in sees a league flagged public
+    // (the onboarding showcase). Read-only either way.
     if (!squad) {
-      return NextResponse.json({ error: 'You are not a member of this league' }, { status: 403 })
+      const { canView } = await canViewLeague(userId, leagueId)
+      if (!canView) {
+        return NextResponse.json({ error: 'You are not a member of this league' }, { status: 403 })
+      }
     }
 
     if (standingsError) {

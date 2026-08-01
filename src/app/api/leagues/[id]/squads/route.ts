@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { auth } from '@clerk/nextjs/server'
+import { canViewLeague } from '@/lib/auth-helpers'
 
 export async function GET(
   request: NextRequest,
@@ -37,17 +38,12 @@ export async function GET(
       return NextResponse.json({ error: 'League not found' }, { status: 404 })
     }
 
-    // Check if user is admin or has a squad in this league
-    const isAdmin = userRecord.is_admin || league.admin_id === userRecord.id
-
-    const { data: userSquad } = await supabaseAdmin
-      .from('squads')
-      .select('id')
-      .eq('league_id', leagueId)
-      .eq('manager_id', userRecord.id)
-      .single()
-
-    if (!isAdmin && !userSquad) {
+    // League admins, its managers, or anyone when the league is a public
+    // showcase. canViewLeague is league-scoped (league_admins), replacing the
+    // old global users.is_admin check that granted every super-admin read
+    // access to every league.
+    const { canView } = await canViewLeague(userId, leagueId)
+    if (!canView) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 })
     }
 

@@ -260,6 +260,55 @@ export async function verifyLeagueAdmin(clerkUserId: string, leagueId: string): 
 }
 
 /**
+ * Whether a signed-in user may VIEW a league: its admins, its managers, and —
+ * when the league is flagged public — anyone at all.
+ *
+ * Read access only. Callers must keep using verifyLeagueAdmin / squad ownership
+ * for anything that writes; a public league is a showcase, not an open door.
+ */
+export async function canViewLeague(
+  clerkUserId: string,
+  leagueId: string
+): Promise<{ canView: boolean; userInternalId?: string; isPublic: boolean }> {
+  try {
+    const { data: userRecord } = await supabaseAdmin
+      .from('users')
+      .select('id')
+      .eq('clerk_id', clerkUserId)
+      .single()
+
+    if (!userRecord) return { canView: false, isPublic: false }
+
+    const [{ data: league }, { data: squad }, { data: adminRecord }] = await Promise.all([
+      supabaseAdmin.from('leagues').select('is_public').eq('id', leagueId).maybeSingle(),
+      supabaseAdmin
+        .from('squads')
+        .select('id')
+        .eq('league_id', leagueId)
+        .eq('manager_id', userRecord.id)
+        .maybeSingle(),
+      supabaseAdmin
+        .from('league_admins')
+        .select('id')
+        .eq('league_id', leagueId)
+        .eq('user_id', userRecord.id)
+        .maybeSingle(),
+    ])
+
+    const isPublic = league?.is_public === true
+
+    return {
+      canView: isPublic || !!squad || !!adminRecord,
+      userInternalId: userRecord.id,
+      isPublic,
+    }
+  } catch (error) {
+    console.error('Error checking league view access:', error)
+    return { canView: false, isPublic: false }
+  }
+}
+
+/**
  * Checks if a user administers any leagues
  * Uses the league_admins junction table to support multiple admins per league
  * Note: No longer uses global admin status - users must be explicitly added as league admins
