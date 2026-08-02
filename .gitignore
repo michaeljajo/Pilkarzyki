@@ -20,8 +20,11 @@
 
 # iCloud duplicate dirs/files (e.g. ".next 2", "node_modules 3", "*.icloud")
 # iCloud appends " <n>" to conflicted copies, which escapes the rules above.
-/.next */
-/node_modules */
+# No trailing slash: iCloud also produces SYMLINKS ("node_modules 2" ->
+# node_modules.nosync), and a trailing slash matches directories only — which
+# is how "node_modules 2" ended up tracked in git in the first place.
+/.next *
+/node_modules *
 *.icloud
 
 # dev server runtime state
