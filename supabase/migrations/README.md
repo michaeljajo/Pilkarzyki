@@ -115,6 +115,13 @@ policy set needs review.
 
 ## Related
 
-`/api/admin/migrate` calls `supabaseAdmin.rpc('exec_sql', ...)`. That RPC does
-not exist in this project, so the endpoint returns an error rather than applying
-anything. It is dead weight and a candidate for removal.
+There is no application code that applies migrations. The endpoints that used
+to — `/api/admin/migrate`, `/api/admin/migrate-names` and
+`/api/admin/migration/{import,template,sql,verify}` — were removed in the
+August 2026 cleanup: none had any UI calling them, and `migrate` could not work
+at all because it called an `exec_sql` RPC this project does not define.
+
+The historical xlsx import they supported (the WNC season) has already run. If
+a future season needs importing, recover them from git history rather than
+assuming they still exist. The player import at `/api/admin/players/import` is
+a different, live endpoint and was not touched.

@@ -209,39 +209,6 @@ export async function assertLeagueMutableByResult(resultId: string) {
   return assertLeagueMutableByGameweek(data.gameweek_id)
 }
 
-/**
- * Verifies that a user holds *global* admin rights (users.is_admin).
- *
- * This is deliberately stricter than verifyLeagueAdmin: it gates the
- * handful of endpoints that operate on the database as a whole rather
- * than on a single league — schema migrations, bulk data rewrites and
- * historical imports. Those run under the service-role client and can
- * damage every league at once, so league-level admin is not sufficient.
- *
- * Returns a discriminated union so callers can forward status/error
- * straight into NextResponse.json.
- */
-export async function requireGlobalAdmin(clerkUserId: string): Promise<
-  { ok: true } | { ok: false; status: number; error: string }
-> {
-  const { data, error } = await supabaseAdmin
-    .from('users')
-    .select('is_admin')
-    .eq('clerk_id', clerkUserId)
-    .maybeSingle()
-
-  if (error) {
-    console.error('requireGlobalAdmin: DB error', error)
-    return { ok: false, status: 500, error: 'Error verifying administrator access' }
-  }
-
-  if (!data?.is_admin) {
-    return { ok: false, status: 403, error: 'Administrator access required' }
-  }
-
-  return { ok: true }
-}
-
 export const LEAGUE_ADMIN_ERROR_MESSAGE =
   'Tylko administrator ligi może wykonać tę operację.'
 
