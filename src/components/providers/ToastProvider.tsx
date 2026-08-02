@@ -15,7 +15,7 @@ export function ToastProvider() {
           borderRadius: 'var(--radius-xl)',
           padding: 'var(--space-4)',
           boxShadow: 'var(--shadow-xl)',
-          backdropFilter: 'blur(var(--blur-lg))',
+          backdropFilter: 'blur(var(--effect-blur-lg))',
         },
         success: {
           iconTheme: {

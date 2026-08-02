@@ -423,13 +423,13 @@ a:focus-visible {
 /* Glass Morphism */
 .glass {
   background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(var(--blur-lg));
+  backdrop-filter: blur(var(--effect-blur-lg));
   border: 1px solid rgba(229, 231, 235, 0.8);
 }
 
 .glass-light {
   background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(var(--blur-md));
+  backdrop-filter: blur(var(--effect-blur-md));
   border: 1px solid rgba(229, 231, 235, 0.5);
 }
 
@@ -662,7 +662,7 @@ a:focus-visible {
 /* Container - Enhanced Horizontal Spacing */
 .container {
   width: 100%;
-  max-width: var(--container-2xl);
+  max-width: var(--layout-width-2xl);
   margin: 0 auto;
   padding-left: var(--container-padding-desktop);
   padding-right: var(--container-padding-desktop);

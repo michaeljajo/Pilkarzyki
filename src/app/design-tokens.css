@@ -2,6 +2,35 @@
  * PILKARZYKI DESIGN TOKENS v2.0
  * Modern Dark-First Design System
  * Inspired by Arsenal 23/24 Third Kit
+ *
+ * ============================================================================
+ * IMPORT ORDER IS LOAD-BEARING — READ BEFORE ADDING TOKENS
+ * ============================================================================
+ * globals.css imports this file AFTER `@import "tailwindcss"`, and that is
+ * REQUIRED: several groups below intentionally re-theme Tailwind's own scale.
+ *
+ * How the coupling works: Tailwind v4 emits its theme as `:root` custom
+ * properties and its utilities read them with `var()` at RUNTIME — e.g.
+ *   .text-sm  { font-size: var(--text-sm); ... }
+ *   .rounded-lg { border-radius: var(--radius-lg); }
+ * So a plain `:root` declaration here does not "add" anything to Tailwind; it
+ * REDEFINES the value every matching utility resolves to, app-wide.
+ *
+ * Consequence: any token named for a Tailwind theme namespace
+ * (--text-*, --leading-*, --tracking-*, --radius-*, --font-*, --blur-*,
+ *  --ease-*, --container-*, --breakpoint-*, --color-*, --spacing) is NOT a
+ * private token. Naming one by accident silently retunes the whole app.
+ *
+ * Each such group below is annotated DELIBERATE or NAMESPACED-OUT. Before
+ * adding a token, check it against Tailwind's theme
+ * (node_modules/tailwindcss/theme.css) and annotate it the same way. If the
+ * value is meant to be private, prefix it out of the namespace — see
+ * --layout-width-* and --effect-blur-* for the established pattern.
+ *
+ * Do NOT move this import above Tailwind, and do NOT wrap this file in a
+ * @layer — either one lets Tailwind's defaults win and reverts the intended
+ * type/radius scale everywhere at once.
+ * ============================================================================
  */
 
 :root {
@@ -64,11 +93,27 @@
      ================================ */
 
   /* Font Families */
+  /* --font-display / --font-body are project-private: Tailwind's font-family
+     namespace only ships sans/serif/mono, so these collide with nothing. */
   --font-display: 'Inter', 'SF Pro Display', system-ui, -apple-system, sans-serif;
   --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+  /* DELIBERATE Tailwind override — retunes `font-mono` (15 call sites) from
+     Tailwind's ui-monospace stack to the design system's. Keep the file
+     imported after Tailwind or this reverts. NOTE: 'JetBrains Mono' is not
+     loaded by next/font (layout.tsx loads Inter only), so it resolves to the
+     'SF Mono'/Consolas fallbacks unless the user has it installed locally. */
   --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
 
   /* Font Sizes - Style Guide Scale */
+  /* DELIBERATE Tailwind override — this IS the app's type ramp. Every `text-*`
+     utility (~930 call sites) plus the h1-h6 rules in globals.css resolve
+     through these, so the scale below is the single source of truth and must
+     stay in the --text-* namespace to reach the utilities.
+     Tailwind for reference: xs .75 / sm .875 / base 1 / lg 1.125 / xl 1.25 /
+     2xl 1.5 / 3xl 1.875 / 4xl 2.25 rem.
+     Paired line-heights (--text-*--line-height) are deliberately NOT overridden:
+     Tailwind defines them as unitless calc() ratios, so they scale with the
+     font sizes below instead of needing to be restated. */
   --text-xs: 0.75rem;      /* 12px - Caption */
   --text-sm: 0.9375rem;    /* 15px - Small */
   --text-base: 1.0625rem;  /* 17px - Body */
@@ -79,6 +124,9 @@
   --text-4xl: 4rem;        /* 64px - Display */
 
   /* Font Weights */
+  /* Safe despite the --font- prefix: Tailwind's weight utilities read
+     --font-weight-* (`.font-bold { font-weight: var(--font-weight-bold) }`),
+     not --font-*. These stay project-private. */
   --font-normal: 400;
   --font-medium: 500;
   --font-semibold: 600;
@@ -86,6 +134,13 @@
   --font-extrabold: 800;
 
   /* Line Heights - Enhanced for Readability */
+  /* DELIBERATE Tailwind override — loosens the whole ramp for readability, and
+     the percentages below are the design system's stated intent. Retunes the
+     `leading-*` utilities and the body/p/ul rules in globals.css together.
+     Tailwind for reference: tight 1.25 / snug 1.375 / normal 1.5 / relaxed
+     1.625 / loose 2.
+     (--leading-none is inert: `.leading-none` hardcodes `line-height: 1`
+     rather than reading the variable. Kept for use by project CSS.) */
   --leading-none: 1;
   --leading-tight: 1.35;     /* headings: 135% of font size */
   --leading-snug: 1.5;       /* subheadings: 150% */
@@ -94,6 +149,11 @@
   --leading-loose: 2;        /* maximum spacing: 200% */
 
   /* Letter Spacing */
+  /* In the Tailwind --tracking-* namespace, but every value below is identical
+     to Tailwind's default, so these are a no-op restatement rather than an
+     override — harmless in the same way --breakpoint-* is. Kept so the scale
+     reads as part of the design system. If you change a value here, you are
+     retuning the matching `tracking-*` utility app-wide; do that on purpose. */
   --tracking-tighter: -0.05em;
   --tracking-tight: -0.025em;
   --tracking-normal: 0;
@@ -152,6 +212,13 @@
      BORDER RADIUS - Style Guide
      ================================ */
 
+  /* DELIBERATE Tailwind override — the design system's rounding is one step
+     softer than Tailwind's at every stop, and `rounded-*` (~350 call sites) is
+     how the app consumes it. Must stay in the --radius-* namespace to apply.
+     Tailwind for reference: sm .25 / md .375 / lg .5 / xl .75 / 2xl 1 /
+     3xl 1.5 rem.
+     (--radius-none and --radius-full are inert: `.rounded-none` hardcodes 0 and
+     `.rounded-full` hardcodes calc(infinity * 1px). Kept for project CSS.) */
   --radius-none: 0;
   --radius-sm: 0.5rem;     /* 8px */
   --radius-md: 0.75rem;    /* 12px */
@@ -165,6 +232,15 @@
      SHADOWS
      ================================ */
 
+  /* NOT a Tailwind collision, despite the matching names. Tailwind v4 inlines
+     shadow values into each utility so it can swap the color:
+       .shadow-md { --tw-shadow: 0 4px 6px -1px var(--tw-shadow-color, rgb(0 0 0 / .1)), ...; }
+     It never reads var(--shadow-md), so the `shadow-*` utilities (~100 call
+     sites) keep Tailwind's lighter defaults regardless of what is set here.
+     These tokens apply ONLY where project CSS/JSX references them explicitly
+     (globals.css .hover-lift, ToastProvider) — that is why they are heavier
+     than the utilities they appear to shadow. Renaming them would be churn for
+     no cascade benefit, so they keep the familiar scale names. */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
@@ -204,6 +280,13 @@
   --duration-slower: 500ms;
 
   /* Easing Functions */
+  /* In the Tailwind --ease-* namespace, but in/out/in-out are byte-identical to
+     Tailwind's defaults, so they are a no-op restatement, not an override
+     (--ease-linear is inert too: `.ease-linear` hardcodes `linear`).
+     --ease-bounce and --ease-smooth are additions Tailwind has no utility for;
+     they are reachable from project CSS as var() and from arbitrary values like
+     `ease-(--ease-bounce)`. Changing in/out/in-out here retunes those
+     utilities app-wide — do it only on purpose. */
   --ease-linear: linear;
   --ease-in: cubic-bezier(0.4, 0, 1, 1);
   --ease-out: cubic-bezier(0, 0, 0.2, 1);
@@ -215,6 +298,9 @@
      BREAKPOINTS
      ================================ */
 
+  /* In the Tailwind --breakpoint-* namespace, but harmless twice over: the
+     values match Tailwind's defaults exactly, and media queries are resolved at
+     build time rather than read from var() at runtime. */
   --breakpoint-sm: 640px;
   --breakpoint-md: 768px;
   --breakpoint-lg: 1024px;
@@ -222,14 +308,23 @@
   --breakpoint-2xl: 1536px;
 
   /* ================================
-     CONTAINER WIDTHS
+     LAYOUT WIDTHS
      ================================ */
 
-  --container-sm: 640px;
-  --container-md: 768px;
-  --container-lg: 1024px;
-  --container-xl: 1280px;
-  --container-2xl: 1536px;
+  /* NAMESPACED-OUT (accidental collision, do not revert).
+     These were named --container-sm..2xl, which is Tailwind's namespace for
+     `max-w-*` / `w-*` / `min-w-*`: `.max-w-2xl { max-width: var(--container-2xl) }`.
+     The values were a copy of the BREAKPOINT scale, not a max-width scale, so
+     every one was wrong by roughly 2x — `max-w-2xl` resolved to 1536px instead
+     of Tailwind's 672px, `max-w-md` to 768px instead of 448px. Renaming hands
+     the utilities back their correct defaults.
+     Only the sizes the project actually references live here; do NOT re-add
+     --container-sm/md/lg/xl/2xl. */
+  --layout-width-sm: 640px;
+  --layout-width-md: 768px;
+  --layout-width-lg: 1024px;
+  --layout-width-xl: 1280px;
+  --layout-width-2xl: 1536px;
 
   /* ================================
      ICON SIZES
@@ -246,11 +341,20 @@
      BLUR EFFECTS
      ================================ */
 
-  --blur-sm: 4px;
-  --blur-md: 8px;
-  --blur-lg: 16px;
-  --blur-xl: 24px;
-  --blur-2xl: 40px;
+  /* NAMESPACED-OUT (accidental collision, do not revert).
+     These were named --blur-sm..2xl, which is Tailwind's namespace for
+     `blur-*` / `backdrop-blur-*`: `.backdrop-blur-md { --tw-backdrop-blur: blur(var(--blur-md)) }`.
+     Evidence it was accidental rather than a design decision: lg/xl/2xl matched
+     Tailwind v4 exactly and only sm/md diverged — by precisely the offset
+     Tailwind v4 introduced when it added `blur-xs` and shifted the scale up.
+     It was a stale v3 scale, not an intentional retune of two of five steps.
+     Renaming restores Tailwind's v4 values for the utilities (backdrop-blur-sm
+     4px -> 8px) while project CSS keeps these values via var(). */
+  --effect-blur-sm: 4px;
+  --effect-blur-md: 8px;
+  --effect-blur-lg: 16px;
+  --effect-blur-xl: 24px;
+  --effect-blur-2xl: 40px;
 
   /* ================================
      OPACITY LEVELS
