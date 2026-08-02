@@ -24,9 +24,6 @@ const nextConfig = {
     return config;
   },
 
-  // Output configuration for better caching
-  output: 'standalone',
-
   // Optimize production builds
   productionBrowserSourceMaps: false,
 
