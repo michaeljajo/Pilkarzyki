@@ -23,8 +23,7 @@ Reconstructed from `git log --diff-filter=A`:
 | 2025-10-17 | `001_add_league_dates.sql` |
 | 2025-10-17 | `001_remove_max_managers.sql` |
 | 2025-10-17 | `002_add_cup_tournament.sql` |
-| 2025-10-17 | `003_cup_rls_policies.sql` |
-| 2025-10-17 | `003_cup_rls_policies_v2.sql` |
+| 2025-10-17 | `003_cup_rls_policies_v2.sql` (`003_cup_rls_policies.sql` sits beside it but was NEVER APPLIED — see below) |
 | 2025-10-17 | `20251016_add_performance_indexes.sql` |
 | 2025-10-20 | `003_add_admin_lineup_tracking.sql` |
 | 2025-10-27 | `add_club_column.sql` |
@@ -77,7 +76,7 @@ marked as already-applied.
 | Prefix | Files |
 |---|---|
 | `001_` | `add_league_dates`, `remove_max_managers` |
-| `003_` | `add_admin_lineup_tracking`, `cup_rls_policies`, `cup_rls_policies_v2` |
+| `003_` | `add_admin_lineup_tracking`, `cup_rls_policies_v2` (+ `cup_rls_policies`, never applied) |
 | `017_` | `add_football_league`, `add_league_admins`, `fix_transfer_validation` |
 
 Unnumbered: `add_club_column.sql`, `20251016_add_performance_indexes.sql`, and
@@ -90,28 +89,41 @@ Unnumbered: `add_club_column.sql`, `20251016_add_performance_indexes.sql`, and
 Country data now lives in `players.football_league`, which holds Polish country
 nouns ("Anglia", "Niemcy"), not adjectives.
 
-### 003_cup_rls_policies vs _v2 — UNRESOLVED
+### 003_cup_rls_policies vs _v2 — RESOLVED 2026-08-02: v2 is live
 
-Both exist; only one should be live. They are distinguishable by policy name:
+`003_cup_rls_policies_v2.sql` is what production runs.
 
-- v1 creates four policies per table: `<table>_select_policy`,
-  `_insert_policy`, `_update_policy`, `_delete_policy`
-- v2 creates two: `<table>_select_policy` and `<table>_admin_all_policy`
+**`003_cup_rls_policies.sql` (v1) was never applied. Do not run it.** It is kept
+only so the numbering history stays intact; it does not describe any state this
+database has ever been in.
 
-This could not be determined from outside the database — `pg_policies` is a
-system view and PostgREST does not expose it, and this project has no `exec_sql`
-RPC. Run this in the Supabase SQL editor and record the answer here:
+Verified by querying `pg_policies` in the Supabase SQL editor (that view is not
+reachable from outside the database — PostgREST does not expose system views,
+and this project has no `exec_sql` RPC).
 
-```sql
-select tablename, policyname
-from pg_policies
-where tablename like 'cup%'
-order by tablename, policyname;
+The two files were distinguishable by policy name: v1 created four policies per
+table (`_select_`/`_insert_`/`_update_`/`_delete_policy`), v2 creates two
+(`_select_policy` and `_admin_all_policy`). v1 had 15 policies that v2 does not
+define, and **none of those 15 exist in production**. The live set is exactly
+v2's 15 policies, plus two `cup_lineup_history` policies from a later migration:
+
+```
+cup_gameweeks        cup_gameweeks_admin_all_policy / _select_policy
+cup_group_standings  cup_group_standings_admin_all_policy / _select_policy
+cup_groups           cup_groups_admin_all_policy / _select_policy
+cup_lineups          cup_lineups_admin_all_policy / _select_ / _insert_ / _update_ / _delete_policy
+cup_matches          cup_matches_admin_all_policy / _select_policy
+cups                 cups_admin_all_policy / _select_policy
+cup_lineup_history   "Admins can view all cup lineup history"
+                     "Users can view their own cup lineup history"
 ```
 
-If `cups_admin_all_policy` appears, v2 is live. If `cups_insert_policy` appears,
-v1 is live. If both appear, they were applied on top of each other and the
-policy set needs review.
+v1 was therefore a superseded draft rather than history: v2's header calls
+itself a "Simplified version", and since both files create `cups_select_policy`,
+applying v1 first would have made v2 fail on a duplicate policy name.
+
+It is retained rather than deleted because these files are the audit trail for a
+live database — but treat it as a dead draft, not as migration `003`.
 
 ## Related
 
