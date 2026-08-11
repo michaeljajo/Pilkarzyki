@@ -51,7 +51,7 @@ export interface Player {
   surname: string
   /** Owning league. This, not `league`, is the identity — names are not unique. */
   leagueId: string
-  /** Legacy league NAME. Retained until migration 030 drops the column; do not
+  /** Legacy league NAME. Retained until a later migration drops the column; do not
    *  scope or authorize on it. */
   league: string
   position: Position
@@ -70,7 +70,7 @@ export interface PlayerWithManager {
   surname: string
   /** Owning league. This, not `league`, is the identity — names are not unique. */
   league_id: string
-  /** Legacy league NAME. Retained until migration 030 drops the column; do not
+  /** Legacy league NAME. Retained until a later migration drops the column; do not
    *  scope or authorize on it. */
   league: string
   position: Position

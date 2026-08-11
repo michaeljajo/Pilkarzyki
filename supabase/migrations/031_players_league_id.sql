@@ -1,5 +1,5 @@
 -- =====================================================================
--- Migration 029: Scope players by league_id instead of a league NAME
+-- Migration 031: Scope players by league_id instead of a league NAME
 --
 -- THE BUG
 --
@@ -36,6 +36,9 @@
 -- players.league (text) is deliberately KEPT for now. Dropping it is a
 -- separate migration, once the application has been running on league_id
 -- long enough to be confident nothing still reads it.
+--
+-- Numbered 031, not 029: feat/draft-ux-overhaul already holds 029
+-- (skip_keeps_pick_order) and 030 (add_public_leagues).
 --
 -- Safe to re-run.
 -- =====================================================================

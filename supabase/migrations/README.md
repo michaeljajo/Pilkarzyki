@@ -7,7 +7,12 @@ numeric prefixes no longer uniquely order them (see Collisions below).
 ## Convention going forward
 
 `NNN_description.sql`, strictly sequential, one number per migration, never
-reused. The next free number is **028**.
+reused. The next free number is **032**.
+
+**Check every branch before picking a number**, not just your own —
+`git ls-tree --name-only <branch> -- supabase/migrations/`. Unmerged branches
+hold numbers that do not exist on main; 029 and 030 are already taken by
+`feat/draft-ux-overhaul`.
 
 Migrations are applied by hand through the Supabase SQL editor. There is no
 migration runner, and scripts that re-applied migrations were deliberately
@@ -55,6 +60,11 @@ Reconstructed from `git log --diff-filter=A`:
 | 2026-07-27 | `026_add_midseason_draft.sql` |
 | 2026-07-28 | `027_add_cup_format.sql` |
 | 2026-08-02 | `028_add_draft_delegations.sql` (reconstructed; table itself applied 2026-07-31) |
+| 2026-08-02 | `031_players_league_id.sql` — **NOT YET APPLIED**, run before deploying the league-isolation code |
+
+029 and 030 are taken by `feat/draft-ux-overhaul` (`029_skip_keeps_pick_order`,
+`030_add_public_leagues`), which is why the players change is numbered 031.
+Check every branch, not just your own, before picking a number.
 
 Note that add-date is a proxy, not proof, of when a migration was run against
 production. Several files numbered 004–009 were committed *after*
