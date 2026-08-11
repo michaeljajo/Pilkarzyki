@@ -201,7 +201,7 @@ export async function GET(
         )
       `)
       .in('id', playerIds)
-      .eq('league', leagueName)
+      .eq('league_id', leagueId)
 
     if (playersError) {
       console.error('Error fetching players:', playersError)

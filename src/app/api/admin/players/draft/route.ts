@@ -177,7 +177,7 @@ export async function POST(request: NextRequest) {
         club,
         football_league
       `)
-      .eq('league', leagueName)
+      .eq('league_id', leagueId)
 
     const existingPlayersMap = new Map(
       existingPlayers?.map(p => [`${p.name}|${p.surname}`, p]) || []
@@ -403,6 +403,7 @@ export async function POST(request: NextRequest) {
               name: firstName,
               surname: surname,
               league: leagueName,
+              league_id: leagueId,
               position: row.Position,
               club: row.Club,
               football_league: row.League || null,
@@ -523,7 +524,7 @@ export async function POST(request: NextRequest) {
           email
         )
       `)
-      .eq('league', leagueName)
+      .eq('league_id', leagueId)
       .not('manager_id', 'is', null) // Only players currently assigned to a manager
 
     // Check each assigned player - if not in file, unassign them

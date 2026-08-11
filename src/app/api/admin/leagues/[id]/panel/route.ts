@@ -121,13 +121,14 @@ export async function GET(
       }
     }
 
-    // Load squads (players keyed by league NAME) to validate defaults.
+    // Load squads to validate defaults. Scoped by league_id: two leagues
+    // can share a name, and filtering by name pulled in the other one's players.
     let squadPlayersByManager = new Map<string, Player[]>()
     if (managerIds.length > 0) {
       const { data: leaguePlayers } = await supabaseAdmin
         .from('players')
         .select(SQUAD_PLAYER_COLUMNS)
-        .eq('league', league.name)
+        .eq('league_id', leagueId)
         .in('manager_id', managerIds)
         .not('manager_id', 'is', null)
 

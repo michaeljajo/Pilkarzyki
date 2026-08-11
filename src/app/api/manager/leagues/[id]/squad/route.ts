@@ -54,7 +54,7 @@ export async function GET(
       .from('players')
       .select('*')
       .eq('manager_id', targetUserId)
-      .eq('league', league.name)
+      .eq('league_id', leagueId)
       .order('position')
       .order('name')
 
@@ -101,7 +101,7 @@ export async function GET(
           .from('players')
           .select('id, name, position, manager_id')
           .in('manager_id', allUserIds)
-          .eq('league', league.name)
+          .eq('league_id', leagueId)
 
       }
 
@@ -115,7 +115,7 @@ export async function GET(
           .from('players')
           .select('*')
           .in('manager_id', duplicateIds)
-          .eq('league', league.name)
+          .eq('league_id', leagueId)
 
         if (foundPlayers && foundPlayers.length > 0) {
           orphanedPlayers = foundPlayers
@@ -136,7 +136,7 @@ export async function GET(
               .from('players')
               .select('*')
               .eq('manager_id', targetUserId)
-              .eq('league', league.name)
+              .eq('league_id', leagueId)
               .order('position')
               .order('name')
 

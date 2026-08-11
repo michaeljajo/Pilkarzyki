@@ -78,7 +78,7 @@ export async function checkDefaultLineupGate(
     // League name (players are keyed by league NAME, not id) + active status.
     const { data: league } = await supabaseAdmin
       .from('leagues')
-      .select('name, is_active')
+      .select('id, name, is_active')
       .eq('id', leagueId)
       .single()
 
@@ -106,7 +106,7 @@ export async function checkDefaultLineupGate(
       .from('players')
       .select('id, name, surname, league, position, football_league')
       .eq('manager_id', managerId)
-      .eq('league', league.name)
+      .eq('league_id', league.id)
 
     const squad = (squadPlayers ?? []) as unknown as Player[]
 

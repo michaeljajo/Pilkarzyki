@@ -163,20 +163,14 @@ export async function GET(
     // Batch fetch all players (filter by league to avoid cross-league duplicates)
     const playersMap = new Map()
     if (allPlayerIds.length > 0) {
-      // Supabase types this join as an array, but returns a bare object when
-      // the relationship resolves to one row. Widen before narrowing, or the
-      // non-array branch narrows to `never`.
-      const cupLeagues = cup.leagues as unknown as
-        | { name: string }
-        | { name: string }[]
-        | null
-      const leagueName = Array.isArray(cupLeagues) ? cupLeagues[0]?.name : cupLeagues?.name
-
       const { data: players } = await supabaseAdmin
         .from('players')
         .select('id, name, surname, position, manager_id')
         .in('id', allPlayerIds)
-        .eq('league', leagueName)  // CRITICAL: Filter by league to prevent cross-league player confusion
+        // CRITICAL: scope by league_id, not by league name. Two leagues can
+        // share a name (there are two called "WNC"), so a name filter matched
+        // both and pulled in the other league's players.
+        .eq('league_id', cup.league_id)
 
       players?.forEach(p => playersMap.set(p.id, p))
     }

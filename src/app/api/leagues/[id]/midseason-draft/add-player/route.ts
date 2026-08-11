@@ -63,7 +63,7 @@ export async function POST(
       .select('id')
       .eq('name', name)
       .eq('surname', surname)
-      .eq('league', league.name)
+      .eq('league_id', leagueId)
       .maybeSingle()
 
     if (existing) {
@@ -76,6 +76,7 @@ export async function POST(
         name,
         surname,
         league: league.name,
+        league_id: leagueId,
         position,
         club,
         football_league: footballLeague,

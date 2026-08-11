@@ -3,7 +3,7 @@ import { createClerkSupabaseClientSsr } from '@/lib/supabase-server'
 import { auth } from '@clerk/nextjs/server'
 import { Position } from '@/types'
 import { supabaseAdmin } from '@/lib/supabase'
-import { assertLeagueMutableByName, requireLeagueAdminByName } from '@/lib/auth-helpers'
+import { assertLeagueMutable, requireLeagueAdmin } from '@/lib/auth-helpers'
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const managerId = searchParams.get('managerId')
-    const league = searchParams.get('league')
+    const leagueId = searchParams.get('leagueId')
 
     // Temporarily use admin client to test RLS issue
     const supabase = supabaseAdmin
@@ -32,8 +32,8 @@ export async function GET(request: NextRequest) {
       query = query.eq('manager_id', managerId)
     }
 
-    if (league) {
-      query = query.eq('league', league)
+    if (leagueId) {
+      query = query.eq('league_id', leagueId)
     }
 
     const { data, error } = await query
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { name, surname, league, position, managerId } = await request.json()
+    const { name, surname, leagueId, position, managerId } = await request.json()
 
     // Validate position
     const validPositions: Position[] = ['Goalkeeper', 'Defender', 'Midfielder', 'Forward']
@@ -67,16 +67,18 @@ export async function POST(request: NextRequest) {
 
     // A player must belong to a league, otherwise there is nothing to
     // authorize against and any signed-in user could seed the players table.
-    if (!league) {
-      return NextResponse.json({ error: 'Missing required field: league' }, { status: 400 })
+    // Scoped by id, not name: league names are not unique, so authorizing by
+    // name let an admin of one league write into another that shares its name.
+    if (!leagueId) {
+      return NextResponse.json({ error: 'Missing required field: leagueId' }, { status: 400 })
     }
 
-    const admin = await requireLeagueAdminByName(userId, league)
+    const admin = await requireLeagueAdmin(userId, leagueId)
     if (!admin.ok) {
       return NextResponse.json({ error: admin.error }, { status: admin.status })
     }
 
-    const mutable = await assertLeagueMutableByName(league)
+    const mutable = await assertLeagueMutable(leagueId)
     if (!mutable.ok) {
       return NextResponse.json({ error: mutable.error }, { status: mutable.status })
     }
@@ -88,7 +90,7 @@ export async function POST(request: NextRequest) {
       .insert({
         name,
         surname,
-        league,
+        league_id: leagueId,
         position,
         manager_id: managerId || null,
         total_goals: 0
@@ -117,7 +119,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { players } = await request.json()
+    const { players, leagueId } = await request.json()
 
     if (!Array.isArray(players) || players.length === 0) {
       return NextResponse.json({ error: 'Invalid players data' }, { status: 400 })
@@ -136,28 +138,24 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    // A bulk import must name its target league(s); otherwise there is nothing
-    // to authorize against.
-    const uniqueLeagueNames = [...new Set(players.map((p: any) => p.league).filter(Boolean))]
-    if (uniqueLeagueNames.length === 0) {
+    // A bulk import targets exactly one league, identified by id. It used to
+    // derive the target from each row's league NAME, which was ambiguous when
+    // two leagues share a name and made authorization unreliable.
+    if (!leagueId) {
       return NextResponse.json(
-        { error: 'Every imported player must specify a league' },
+        { error: 'Missing required field: leagueId' },
         { status: 400 }
       )
     }
 
-    // The caller must administer every league touched by the import, and none
-    // of them may be archived.
-    for (const leagueName of uniqueLeagueNames) {
-      const admin = await requireLeagueAdminByName(userId, leagueName as string)
-      if (!admin.ok) {
-        return NextResponse.json({ error: admin.error }, { status: admin.status })
-      }
+    const admin = await requireLeagueAdmin(userId, leagueId)
+    if (!admin.ok) {
+      return NextResponse.json({ error: admin.error }, { status: admin.status })
+    }
 
-      const mutable = await assertLeagueMutableByName(leagueName as string)
-      if (!mutable.ok) {
-        return NextResponse.json({ error: mutable.error }, { status: mutable.status })
-      }
+    const mutable = await assertLeagueMutable(leagueId)
+    if (!mutable.ok) {
+      return NextResponse.json({ error: mutable.error }, { status: mutable.status })
     }
 
     // Get manager IDs for Manager column (if provided)
@@ -179,7 +177,7 @@ export async function PUT(request: NextRequest) {
     const playersToInsert = players.map(player => ({
       name: player.name,
       surname: player.surname,
-      league: player.league,
+      league_id: leagueId,
       position: player.position,
       manager_id: player.manager ? managerMap[player.manager] || null : null,
       total_goals: 0

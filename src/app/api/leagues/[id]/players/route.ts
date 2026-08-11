@@ -48,7 +48,7 @@ export async function GET(
           last_name
         )
       `)
-      .eq('league', league.name)
+      .eq('league_id', leagueId)
       .order('name', { ascending: true })
 
     if (error) {

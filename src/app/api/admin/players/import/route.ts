@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
           .select('id')
           .eq('name', firstName)
           .eq('surname', surname)
-          .eq('league', leagueName)
+          .eq('league_id', leagueId)
           .maybeSingle()
 
         if (existingPlayer) {
@@ -156,7 +156,8 @@ export async function POST(request: NextRequest) {
           .insert({
             name: firstName,
             surname,
-            league: leagueName, // CRITICAL: must match the target league
+            league: leagueName,
+            league_id: leagueId, // CRITICAL: scopes the player to THIS league
             position,
             club,
             football_league: footballLeague,

@@ -83,7 +83,7 @@ export async function GET(
     const { data: players } = await supabaseAdmin
       .from('players')
       .select('id, name, surname, club, football_league, position')
-      .eq('league', league.name)
+      .eq('league_id', leagueId)
       .order('surname', { ascending: true })
 
     // All confirmed picks for this draft.

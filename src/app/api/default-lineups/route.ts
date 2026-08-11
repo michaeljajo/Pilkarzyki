@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
     // Get league name for player validation
     const { data: league } = await supabaseAdmin
       .from('leagues')
-      .select('name')
+      .select('id, name')
       .eq('id', leagueId)
       .single()
 
@@ -150,12 +150,12 @@ export async function POST(request: NextRequest) {
     // Validate lineup if playerIds provided
     if (playerIds.length > 0) {
       // Get player details for validation
-      // CRITICAL: Filter by league to prevent cross-league player confusion
+      // CRITICAL: scope by league_id, not name — two leagues can share a name.
       const { data: players } = await supabaseAdmin
         .from('players')
         .select('*')
         .in('id', playerIds)
-        .eq('league', league.name)
+        .eq('league_id', league.id)
 
       if (players) {
         const validation = validateLineup(players)

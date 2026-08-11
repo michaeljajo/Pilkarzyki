@@ -168,7 +168,7 @@ async function getSpecificLeague(userId: string, leagueId: string) {
       .from('players')
       .select('id')
       .eq('manager_id', user.id)
-      .eq('league', league.name) // Players are assigned by league name
+      .eq('league_id', league.id)
       .limit(1)
 
     // Check if user is admin of this league using the league_admins table

@@ -160,34 +160,6 @@ export async function assertLeagueMutableByPost(postId: string) {
 }
 
 /**
- * Variant when the caller has a league name (players table uses
- * league name as its foreign key rather than an id).
- */
-export async function assertLeagueMutableByName(leagueName: string) {
-  if (!leagueName) {
-    return { ok: false as const, status: 400, error: 'Brak nazwy ligi.' }
-  }
-  const { data, error } = await supabaseAdmin
-    .from('leagues')
-    .select('is_active')
-    .eq('name', leagueName)
-    .maybeSingle()
-  if (error) {
-    console.error('assertLeagueMutableByName: DB error', error)
-    return { ok: false as const, status: 500, error: 'Błąd serwera podczas weryfikacji statusu ligi.' }
-  }
-  if (!data) {
-    // No league with that name exists yet — treat as mutable so imports
-    // targeting a not-yet-created league name still succeed.
-    return { ok: true as const }
-  }
-  if (data.is_active === false) {
-    return { ok: false as const, status: 403, error: ARCHIVED_LEAGUE_ERROR_MESSAGE }
-  }
-  return { ok: true as const }
-}
-
-/**
  * Variant when the caller has a result id.
  */
 export async function assertLeagueMutableByResult(resultId: string) {
@@ -336,32 +308,6 @@ export async function requireLeagueAdminByResult(
     return { ok: false, status: 404, error: 'Nie znaleziono wyniku.' }
   }
   return requireLeagueAdminByGameweek(clerkUserId, data.gameweek_id)
-}
-
-/**
- * Variant when the caller has a league *name* rather than an id — the
- * players table keys on league name (see assertLeagueMutableByName).
- */
-export async function requireLeagueAdminByName(
-  clerkUserId: string,
-  leagueName: string
-): Promise<AdminGuardResult> {
-  if (!leagueName) {
-    return { ok: false, status: 400, error: 'Brak nazwy ligi.' }
-  }
-  const { data, error } = await supabaseAdmin
-    .from('leagues')
-    .select('id')
-    .eq('name', leagueName)
-    .maybeSingle()
-  if (error) {
-    console.error('requireLeagueAdminByName: DB error', error)
-    return { ok: false, status: 500, error: 'Błąd serwera podczas weryfikacji uprawnień.' }
-  }
-  if (!data) {
-    return { ok: false, status: 404, error: 'Nie znaleziono ligi.' }
-  }
-  return requireLeagueAdmin(clerkUserId, data.id)
 }
 
 /**

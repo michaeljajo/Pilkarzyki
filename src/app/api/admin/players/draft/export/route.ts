@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
           last_name
         )
       `)
-      .eq('league', leagueName)
+      .eq('league_id', leagueId)
       .order('name', { ascending: true })
 
     if (playersError) {

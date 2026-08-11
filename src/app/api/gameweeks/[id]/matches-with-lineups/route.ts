@@ -141,7 +141,7 @@ export async function GET(
         .from('players')
         .select('id, name, surname, position, manager_id')
         .in('id', allPlayerIds)
-        .eq('league', (gameweek.leagues as any).name)
+        .eq('league_id', gameweek.league_id)
 
       if (playersError) {
         console.error('Error fetching players:', playersError)

@@ -62,7 +62,7 @@ export async function applyDefaultLineupsForGameweek(
   // validate each default against the manager's live squad before applying.
   const { data: leagueRow } = await supabaseAdmin
     .from('leagues')
-    .select('name')
+    .select('id, name')
     .eq('id', gameweek.league_id)
     .single()
 
@@ -71,7 +71,7 @@ export async function applyDefaultLineupsForGameweek(
     const { data: leaguePlayers } = await supabaseAdmin
       .from('players')
       .select(SQUAD_PLAYER_COLUMNS)
-      .eq('league', leagueRow.name)
+      .eq('league_id', leagueRow.id)
       .in('manager_id', managerIds as string[])
       .not('manager_id', 'is', null)
 

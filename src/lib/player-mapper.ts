@@ -17,6 +17,7 @@ export interface PlayerRow {
   position: Position
   club?: string | null
   football_league?: string | null
+  league_id: string
   manager_id?: string | null
   total_goals?: number | null
   created_at?: string | null
@@ -25,13 +26,14 @@ export interface PlayerRow {
 
 /** Column list matching PlayerRow. Keep the two in sync. */
 export const SQUAD_PLAYER_COLUMNS =
-  'id, name, surname, league, position, club, football_league, manager_id, total_goals, created_at, updated_at'
+  'id, name, surname, league, league_id, position, club, football_league, manager_id, total_goals, created_at, updated_at'
 
 export function mapPlayerRow(row: PlayerRow): Player {
   return {
     id: row.id,
     name: row.name,
     surname: row.surname,
+    leagueId: row.league_id,
     league: row.league,
     position: row.position,
     club: row.club ?? undefined,

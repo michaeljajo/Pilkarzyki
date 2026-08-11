@@ -216,7 +216,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Cannot modify lineup after lock date' }, { status: 400 })
     }
 
-    const leagueName = (gameweek.leagues as any)?.name
+    const leagueId = (gameweek as any)?.league_id
 
     // Validate lineup if playerIds provided
     if (playerIds.length > 0) {
@@ -226,7 +226,7 @@ export async function POST(request: NextRequest) {
         .from('players')
         .select('*')
         .in('id', playerIds)
-        .eq('league', leagueName)
+        .eq('league_id', leagueId)
 
       if (players) {
         const validation = validateLineup(players)

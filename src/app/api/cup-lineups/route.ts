@@ -211,7 +211,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get league name from cup or gameweek
-    const leagueName = (cupGameweek.cups as any)?.leagues?.name || (cupGameweek.gameweeks as any)?.leagues?.name
+    const leagueId = (cupGameweek.cups as any)?.league_id || (cupGameweek.gameweeks as any)?.league_id
 
     // Validate lineup if playerIds provided
     if (playerIds.length > 0) {
@@ -220,7 +220,7 @@ export async function POST(request: NextRequest) {
         .from('players')
         .select('*')
         .in('id', playerIds)
-        .eq('league', leagueName)
+        .eq('league_id', leagueId)
 
       if (players) {
         const validation = validateLineup(players)

@@ -148,17 +148,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Cup not found' }, { status: 404 })
     }
 
-    const leagueName = (cup.leagues as any)?.name
+    const leagueId = (cup as any)?.league_id
 
     // Validate lineup if playerIds provided
     if (playerIds.length > 0) {
       // Get player details for validation
-      // CRITICAL: Filter by league to prevent cross-league player confusion
+      // CRITICAL: scope by league_id, not name — two leagues can share a name.
       const { data: players } = await supabaseAdmin
         .from('players')
         .select('*')
         .in('id', playerIds)
-        .eq('league', leagueName)
+        .eq('league_id', leagueId)
 
       if (players) {
         const validation = validateLineup(players)

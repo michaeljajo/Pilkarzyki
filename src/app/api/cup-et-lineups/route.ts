@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const leagueName = (cupGameweek.cups as any)?.leagues?.name || (cupGameweek.gameweeks as any)?.leagues?.name
+    const leagueId = (cupGameweek.cups as any)?.league_id || (cupGameweek.gameweeks as any)?.league_id
 
     // Validate ET lineup if players provided
     if (playerIds.length > 0) {
@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
         .from('players')
         .select('*')
         .in('id', playerIds)
-        .eq('league', leagueName)
+        .eq('league_id', leagueId)
 
       if (players) {
         const validation = validateLineup(players)

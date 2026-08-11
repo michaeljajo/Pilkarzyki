@@ -132,7 +132,7 @@ export async function GET(
           // how the draft board renders a roster.
           .select('id, name, surname, position, club, football_league')
           .eq('manager_id', squad.manager_id)
-          .eq('league', league.name)
+          .eq('league_id', leagueId)
 
         const orderedPlayers = [...(players || [])].sort(byDraftSequence)
 

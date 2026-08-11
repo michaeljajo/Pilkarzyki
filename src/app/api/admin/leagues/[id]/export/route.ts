@@ -119,7 +119,7 @@ export async function GET(
       supabaseAdmin
         .from('players')
         .select('*')
-        .eq('league', league.name),
+        .eq('league_id', leagueId),
 
       // All lineups
       supabaseAdmin

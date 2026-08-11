@@ -3,40 +3,44 @@ import { createClerkSupabaseClientSsr } from '@/lib/supabase-server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { auth } from '@clerk/nextjs/server'
 import { Position } from '@/types'
-import { assertLeagueMutableByName, requireLeagueAdminByName } from '@/lib/auth-helpers'
+import { assertLeagueMutable, requireLeagueAdmin } from '@/lib/auth-helpers'
 
 async function assertPlayerLeagueMutable(playerId: string) {
   const { data } = await supabaseAdmin
     .from('players')
-    .select('league')
+    .select('league_id')
     .eq('id', playerId)
     .maybeSingle()
-  if (!data?.league) {
+  if (!data?.league_id) {
     return { ok: true as const }
   }
-  return assertLeagueMutableByName(data.league)
+  return assertLeagueMutable(data.league_id)
 }
 
 /**
- * Admin guard for a player, resolved through the league *name* the player
- * belongs to. Unlike assertPlayerLeagueMutable this fails closed when the
- * player has no league — an unattributable player must not be editable by
- * an arbitrary signed-in user.
+ * Admin guard for a player, resolved through the league the player belongs
+ * to. Resolved by league_id rather than name: names are not unique, so a
+ * name-based guard let an admin of one league edit players in another that
+ * happened to share its name.
+ *
+ * Unlike assertPlayerLeagueMutable this fails closed when the player has no
+ * league — an unattributable player must not be editable by an arbitrary
+ * signed-in user.
  */
 async function requirePlayerLeagueAdmin(clerkUserId: string, playerId: string) {
   const { data } = await supabaseAdmin
     .from('players')
-    .select('league')
+    .select('league_id')
     .eq('id', playerId)
     .maybeSingle()
 
   if (!data) {
     return { ok: false as const, status: 404, error: 'Nie znaleziono zawodnika.' }
   }
-  if (!data.league) {
+  if (!data.league_id) {
     return { ok: false as const, status: 403, error: 'Zawodnik nie należy do żadnej ligi.' }
   }
-  return requireLeagueAdminByName(clerkUserId, data.league)
+  return requireLeagueAdmin(clerkUserId, data.league_id)
 }
 
 export async function GET(
@@ -89,8 +93,8 @@ export async function PUT(
       return NextResponse.json({ error: admin.error }, { status: admin.status })
     }
     // Moving a player into another league requires admin rights there too.
-    if (updates.league) {
-      const targetAdmin = await requireLeagueAdminByName(userId, updates.league)
+    if (updates.league_id) {
+      const targetAdmin = await requireLeagueAdmin(userId, updates.league_id)
       if (!targetAdmin.ok) {
         return NextResponse.json({ error: targetAdmin.error }, { status: targetAdmin.status })
       }
@@ -100,8 +104,8 @@ export async function PUT(
     if (!mutable.ok) {
       return NextResponse.json({ error: mutable.error }, { status: mutable.status })
     }
-    if (updates.league) {
-      const targetMutable = await assertLeagueMutableByName(updates.league)
+    if (updates.league_id) {
+      const targetMutable = await assertLeagueMutable(updates.league_id)
       if (!targetMutable.ok) {
         return NextResponse.json({ error: targetMutable.error }, { status: targetMutable.status })
       }
