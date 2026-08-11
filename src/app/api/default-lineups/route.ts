@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
             email,
             first_name: firstName,
             last_name: lastName,
-            is_admin: clerkUser.publicMetadata?.isAdmin === true
+            is_admin: false, // no global admin: rights are per-league via league_admins
           })
           .select('id, email')
           .single()

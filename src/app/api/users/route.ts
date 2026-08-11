@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { auth, clerkClient } from '@clerk/nextjs/server'
 
 export async function GET() {
@@ -102,7 +102,6 @@ export async function GET() {
         id: user.id,
         clerkId: user.id,
         displayName: user.username || emailLocalPart || 'Użytkownik',
-        isAdmin: user.publicMetadata?.isAdmin === true,
         createdAt: new Date(user.createdAt),
         updatedAt: new Date(user.updatedAt)
       }
@@ -112,44 +111,6 @@ export async function GET() {
     return NextResponse.json({ users: transformedUsers })
   } catch (error) {
     console.error('Error fetching users:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-  }
-}
-
-export async function POST(request: NextRequest) {
-  try {
-    const { userId } = await auth()
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const { email, firstName, lastName, isAdmin, password } = await request.json()
-
-    const client = await clerkClient()
-
-    const newUser = await client.users.createUser({
-      emailAddress: [email],
-      firstName,
-      lastName,
-      password,
-      publicMetadata: {
-        isAdmin: isAdmin || false
-      }
-    })
-
-    const transformedUser = {
-      id: newUser.id,
-      clerkId: newUser.id,
-      email: newUser.emailAddresses[0]?.emailAddress || '',
-      firstName: newUser.firstName || '',
-      lastName: newUser.lastName || '',
-      isAdmin: newUser.publicMetadata?.isAdmin === true,
-      createdAt: new Date(newUser.createdAt),
-      updatedAt: new Date(newUser.updatedAt)
-    }
-
-    return NextResponse.json({ user: transformedUser })
-  } catch (error) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

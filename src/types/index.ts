@@ -8,7 +8,6 @@ export interface User {
   // Non-identifying label safe to expose to other users (username, or the
   // local-part of the email). Never contains the full email address.
   displayName?: string
-  isAdmin: boolean
   createdAt: Date
   updatedAt: Date
 }

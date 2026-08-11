@@ -105,7 +105,7 @@ async function handleUserCreated(userData: ClerkWebhookEvent['data']) {
         email,
         first_name: firstName,
         last_name: lastName,
-        is_admin: userData.public_metadata?.isAdmin || false
+        is_admin: false, // no global admin: rights are per-league via league_admins
       })
 
     if (error) {
@@ -135,7 +135,7 @@ async function handleUserUpdated(userData: ClerkWebhookEvent['data']) {
         email,
         first_name: firstName,
         last_name: lastName,
-        is_admin: userData.public_metadata?.isAdmin || false,
+        is_admin: false, // no global admin: rights are per-league via league_admins
         updated_at: new Date().toISOString()
       })
       .eq('clerk_id', userData.id)

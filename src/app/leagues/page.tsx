@@ -13,7 +13,7 @@ const getUserRecord = unstable_cache(
   async (clerkId: string, email: string, firstName: string, lastName: string) => {
     let { data: userRecord } = await supabaseAdmin
       .from('users')
-      .select('id, is_admin')
+      .select('id')
       .eq('clerk_id', clerkId)
       .single()
 
@@ -25,9 +25,8 @@ const getUserRecord = unstable_cache(
           email,
           first_name: firstName || email.split('@')[0] || 'User',
           last_name: lastName || '',
-          is_admin: false
         })
-        .select('id, is_admin')
+        .select('id')
         .single()
 
       if (createError || !newUser) {
@@ -65,15 +64,30 @@ const getUserLeagues = unstable_cache(
           )
         `)
         .eq('manager_id', userId),
+      // Admin rights live in the league_admins junction table. The old query
+      // filtered leagues.admin_id, which is NULL for every league, so it always
+      // returned nothing — the global users.is_admin flag was silently doing all
+      // the work. There is no global admin any more; rights are per league.
       supabaseAdmin
-        .from('leagues')
-        .select('id, name, season, is_active, created_at, admin_id')
-        .eq('admin_id', userId)
+        .from('league_admins')
+        .select(`
+          league_id,
+          leagues:league_id (
+            id,
+            name,
+            season,
+            is_active,
+            created_at
+          )
+        `)
+        .eq('user_id', userId)
     ])
 
     return {
       managerSquads: managerSquadsResult.data,
-      adminLeagues: adminLeaguesResult.data,
+      adminLeagues: (adminLeaguesResult.data || [])
+        .map((row: any) => row.leagues)
+        .filter(Boolean),
       errors: {
         squadError: managerSquadsResult.error,
         adminError: adminLeaguesResult.error
@@ -114,11 +128,12 @@ export default async function DashboardPage() {
       season: string;
       is_active: boolean;
       created_at: string;
-      admin_id: string;
     };
   }> | null;
 
   const managerLeagueIds = new Set(typedManagerSquads?.map(s => s.leagues.id) || [])
+  // The leagues this user administers, by id — the only source of admin rights.
+  const adminLeagueIds = new Set((adminLeagues || []).map(l => l.id))
 
   const allLeagues = [
     ...(typedManagerSquads?.map(item => ({
@@ -127,7 +142,7 @@ export default async function DashboardPage() {
       season: item.leagues.season,
       is_active: item.leagues.is_active,
       created_at: item.leagues.created_at,
-      isAdmin: item.leagues.admin_id === userRecord.id || userRecord.is_admin === true,
+      isAdmin: adminLeagueIds.has(item.leagues.id),
       isManager: true
     })) || []),
     ...(adminLeagues?.filter(l => !managerLeagueIds.has(l.id)).map(league => ({
@@ -149,8 +164,8 @@ export default async function DashboardPage() {
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
   })
 
-  const hasAdminAccess =
-    (adminLeagues?.some(l => l.is_active) ?? false) || userRecord.is_admin === true
+  // Admin nav appears only if the user administers at least one ACTIVE league.
+  const hasAdminAccess = adminLeagues?.some(l => l.is_active) ?? false
 
   return (
     <div className="min-h-screen bg-white">
