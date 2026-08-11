@@ -54,22 +54,32 @@ Reconstructed from `git log --diff-filter=A`:
 | 2026-07-27 | `025_add_player_swap.sql` |
 | 2026-07-27 | `026_add_midseason_draft.sql` |
 | 2026-07-28 | `027_add_cup_format.sql` |
+| 2026-08-02 | `028_add_draft_delegations.sql` (reconstructed; table itself applied 2026-07-31) |
 
 Note that add-date is a proxy, not proof, of when a migration was run against
 production. Several files numbered 004–009 were committed *after*
 008 and after the unnumbered ones.
 
-## Missing from the audit trail
+## Missing from the audit trail — CLOSED 2026-08-02
 
-The `draft_delegations` table **exists in production** (verified 2026-08-01 via
-the REST API) but there is **no migration file for it in this repo** — nothing
-in `supabase/migrations/` or git history creates it. It was presumably applied
-straight through the SQL editor without the SQL being committed.
+The `draft_delegations` table existed in production (applied 2026-07-31) with
+**no migration file anywhere in this repo** — nothing in `supabase/migrations/`
+or git history created it. It went straight through the SQL editor and the SQL
+was never committed.
 
-This is the failure mode the numbering convention is meant to prevent: the repo
-no longer fully describes the live schema. Recover it by dumping the table's
-definition from Supabase and committing it as `028_add_draft_delegations.sql`,
-marked as already-applied.
+This is the exact failure mode the numbering convention exists to prevent: the
+repo did not describe the live schema, and the draft code that depends on the
+table lives on `feat/draft-ux-overhaul`. Had that branch merged first, a
+rebuild-from-migrations would have produced a draft page failing against a
+table nothing creates.
+
+Closed by `028_add_draft_delegations.sql`, reconstructed from the live database
+(`information_schema.columns`, `pg_constraint`, `pg_indexes`, `pg_policies`)
+and marked already-applied. No further action needed.
+
+**If you apply schema changes through the SQL editor, commit the SQL in the
+same session.** Nothing in the toolchain will catch it later — this one was
+found only because a table appeared in the REST API that no file explained.
 
 ## Collisions
 
