@@ -16,6 +16,7 @@ import {
   ArrowLeftRight,
   type LucideIcon,
 } from 'lucide-react'
+import { APP_CONTAINER, APP_CONTENT_Y } from '@/components/layout/appContainer'
 
 interface AppShellProps {
   leagueId: string
@@ -35,8 +36,9 @@ const COLORS = {
 // One source of truth for the horizontal container, shared by the header, the
 // desktop tab bar and the content region so their left edges line up. Full-bleed
 // backgrounds, constrained contents: the coloured/bordered surfaces span the
-// window, this centres what sits on top of them.
-const CONTAINER = 'w-full max-w-[1280px] mx-auto px-4 md:px-6'
+// window, this centres what sits on top of them. Lives in layout/appContainer so
+// the leagues landing page lines up with the shell too.
+const CONTAINER = APP_CONTAINER
 
 type TabDef = {
   id: string
@@ -188,7 +190,7 @@ export function AppShell({ leagueId, leagueName, hasCup, isAdmin, children }: Ap
       </header>
 
       {/* Content — same container as the header/tab bar (one left edge). */}
-      <main className={`${CONTAINER} pt-6 pb-24 md:pb-8`}>{children}</main>
+      <main className={`${CONTAINER} ${APP_CONTENT_Y}`}>{children}</main>
 
       {/* Mobile tab bar: fixed bottom, equal-width tabs, icon over label. Keeps
           the full set including "Więcej". Unchanged from before this fix. */}

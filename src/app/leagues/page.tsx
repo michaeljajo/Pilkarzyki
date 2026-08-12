@@ -5,8 +5,9 @@ import { unstable_cache } from 'next/cache'
 import { supabaseAdmin } from '@/lib/supabase'
 import { Button } from '@/components/ui/Button'
 import { Trophy, Plus } from 'lucide-react'
-import { LeaguesGrid } from '@/components/LeaguesGrid'  // NEW IMPORT
+import { LeaguesGrid } from '@/components/LeaguesGrid'
 import { DashboardNav } from '@/components/DashboardNav'
+import { APP_CONTAINER, APP_CONTENT_Y } from '@/components/layout/appContainer'
 
 // Cached function to get or create user record
 const getUserRecord = unstable_cache(
@@ -59,8 +60,7 @@ const getUserLeagues = unstable_cache(
             name,
             season,
             is_active,
-            created_at,
-            admin_id
+            created_at
           )
         `)
         .eq('manager_id', userId),
@@ -164,90 +164,44 @@ export default async function DashboardPage() {
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
   })
 
-  // Admin nav appears only if the user administers at least one ACTIVE league.
-  const hasAdminAccess = adminLeagues?.some(l => l.is_active) ?? false
-
   return (
-    <div className="min-h-screen bg-white">
-      {/* Navigation Bar */}
-      <DashboardNav hasAdminAccess={hasAdminAccess} />
+    // Same page surface as the league shell: gray-50 behind white cards, so the
+    // landing page doesn't read as a different app from everything under it.
+    <div className="min-h-screen bg-gray-50">
+      <DashboardNav />
 
-      {/* Main Content */}
-      <main 
-        style={{ 
-          maxWidth: '1600px',  // Increased from 1400px
-          marginLeft: 'auto', 
-          marginRight: 'auto',
-          paddingLeft: '32px',  // Reduced from 48px
-          paddingRight: '32px', 
-          paddingTop: '64px', 
-          paddingBottom: '96px' 
-        }}
-      >
-        <div className="animate-fade-in-up">
-          {/* Header with Create Button */}
-          <div 
-            style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center', 
-              marginBottom: '48px' 
-            }}
-          >
-            <div>
-              <h1 
-                style={{ 
-                  fontSize: '36px', 
-                  fontWeight: 700, 
-                  color: '#111827', 
-                  lineHeight: 1.2 
-                }}
-              >
-                Moje Ligi
-              </h1>
-            </div>
+      <main className={`${APP_CONTAINER} ${APP_CONTENT_Y}`}>
+        {/* The visible "Moje Ligi" title is gone — the grid of leagues says that
+            on its own. The h1 stays for screen readers and the document outline,
+            which would otherwise have no heading at all. */}
+        <h1 className="sr-only">Moje Ligi</h1>
+
+        {/* Lone action: full-width on phones, right-aligned above the grid on
+            wider screens, where the title used to sit opposite it. */}
+        <div className="mb-6 flex">
+          <Link href="/leagues/new" className="w-full sm:ml-auto sm:w-auto">
+            <Button icon={<Plus size={18} />} fullWidth className="sm:w-auto">
+              Stwórz nową ligę
+            </Button>
+          </Link>
+        </div>
+
+        {allLeagues.length === 0 ? (
+          <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
+            <Trophy size={40} className="mx-auto mb-4 text-gray-400" />
+            <h2 className="text-base font-semibold text-gray-900 mb-1">
+              Brak Aktywnych Lig
+            </h2>
+            <p className="text-sm text-gray-600 mb-6">
+              Stwórz swoją pierwszą ligę, aby rozpocząć
+            </p>
             <Link href="/leagues/new">
-              <Button
-                size="lg"
-                icon={<Plus size={20} />}
-                className="hover-lift"
-              >
-                Stwórz nową ligę
-              </Button>
+              <Button icon={<Plus size={18} />}>Stwórz nową ligę</Button>
             </Link>
           </div>
-
-          {/* Leagues Grid - NOW USING THE NEW COMPONENT */}
-          {allLeagues.length === 0 ? (
-            <div 
-              style={{ 
-                backgroundColor: 'white', 
-                borderRadius: '16px', 
-                border: '1px solid #e5e7eb', 
-                padding: '64px', 
-                textAlign: 'center' 
-              }}
-            >
-              <Trophy size={48} style={{ margin: '0 auto 16px', color: '#9ca3af' }} />
-              <h3 style={{ fontSize: '20px', fontWeight: 600, color: '#111827', marginBottom: '8px' }}>
-                Brak Aktywnych Lig
-              </h3>
-              <p style={{ color: '#6b7280', marginBottom: '24px' }}>
-                Stwórz swoją pierwszą ligę, aby rozpocząć
-              </p>
-              <Link href="/leagues/new">
-                <Button
-                  size="lg"
-                  icon={<Plus size={20} />}
-                >
-                  Stwórz nową ligę
-                </Button>
-              </Link>
-            </div>
-          ) : (
-            <LeaguesGrid leagues={allLeagues} />
-          )}
-        </div>
+        ) : (
+          <LeaguesGrid leagues={allLeagues} />
+        )}
       </main>
     </div>
   )
