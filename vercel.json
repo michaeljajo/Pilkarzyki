@@ -16,12 +16,12 @@
   },
   "crons": [
     {
-      "path": "/api/cron/complete-gameweeks",
-      "schedule": "0 23 * * *"
+      "path": "/api/cron/apply-default-lineups",
+      "schedule": "0 1 * * *"
     },
     {
-      "path": "/api/cron/apply-default-lineups",
-      "schedule": "30 23 * * *"
+      "path": "/api/cron/complete-gameweeks",
+      "schedule": "30 1 * * *"
     }
   ]
 }

@@ -14,6 +14,17 @@
  * crosses both DST transitions; the UTC offset is therefore resolved for each
  * week individually. Adding a flat 7 × 24h instead would leave the whole
  * season after late March starting at 17:00 or 19:00 Warsaw time.
+ *
+ * The Vercel crons in `vercel.json` are coupled to these boundaries and run on
+ * UTC, which drifts an hour against Warsaw across the year:
+ *
+ *   apply-default-lineups  01:00 UTC — must fire *after* `lock_date`
+ *   complete-gameweeks     01:30 UTC — must fire *after* `end_date`
+ *
+ * Firing early is the harmful direction: it would freeze defaults into a
+ * gameweek still open, or complete one still being played. The current times
+ * clear their boundaries by ~2h at the worst point of the year. If the
+ * wall-clock times above ever move later, push the crons later to match.
  */
 
 export const LEAGUE_TIME_ZONE = 'Europe/Warsaw'
