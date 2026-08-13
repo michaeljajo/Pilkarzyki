@@ -41,16 +41,33 @@ export async function PATCH(
       return NextResponse.json({ error: 'Gameweek not found' }, { status: 404 })
     }
 
-    // Determine the final start_date to use
+    // start_date and lock_date are independent: a gameweek opens Friday 18:00
+    // and locks Saturday 00:01. Collapsing them (as this route used to) would
+    // wipe the submission window every time an admin touched a gameweek.
     const finalStartDate = start_date || existingGameweek.start_date
+    const finalLockDate = lock_date || existingGameweek.lock_date
+    const finalEndDate = end_date || existingGameweek.end_date
 
-    // Update gameweek - lock_date always equals start_date
+    if (new Date(finalLockDate) < new Date(finalStartDate)) {
+      return NextResponse.json(
+        { error: 'Blokada składu nie może wypadać przed startem kolejki.' },
+        { status: 400 }
+      )
+    }
+
+    if (new Date(finalEndDate) < new Date(finalLockDate)) {
+      return NextResponse.json(
+        { error: 'Koniec kolejki nie może wypadać przed blokadą składu.' },
+        { status: 400 }
+      )
+    }
+
     const { data, error } = await supabaseAdmin
       .from('gameweeks')
       .update({
         start_date: finalStartDate,
-        end_date: end_date || existingGameweek.end_date,
-        lock_date: finalStartDate, // Lock date always equals start date
+        end_date: finalEndDate,
+        lock_date: finalLockDate,
         is_completed: is_completed !== undefined ? is_completed : existingGameweek.is_completed,
         is_locked: is_locked !== undefined ? is_locked : existingGameweek.is_locked,
         updated_at: new Date().toISOString()

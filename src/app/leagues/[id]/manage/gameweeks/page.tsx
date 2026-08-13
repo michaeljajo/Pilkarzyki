@@ -5,6 +5,15 @@ import { useParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
+import { Modal } from '@/components/ui/Modal'
+import {
+  buildGameweekWindows,
+  defaultKickoffFriday,
+  formatCalendarDate,
+  formatInLeagueZone,
+  parseCalendarDate,
+  snapToFriday,
+} from '@/utils/gameweek-schedule'
 
 interface Gameweek {
   id: string
@@ -38,6 +47,19 @@ export default function LeagueGameweeksPage() {
   const [success, setSuccess] = useState<string | null>(null)
   const [leagueName, setLeagueName] = useState('')
   const [showDeleteSchedule, setShowDeleteSchedule] = useState(false)
+  const [showKickoff, setShowKickoff] = useState(false)
+  const [kickoffDate, setKickoffDate] = useState(() => formatCalendarDate(defaultKickoffFriday()))
+
+  // The season always opens on a Friday, so a mid-week pick snaps forward.
+  // Previewing it here (with the same helpers the API uses) means the admin
+  // sees the exact window before committing to 34 gameweeks.
+  const parsedKickoff = parseCalendarDate(kickoffDate)
+  const kickoffFriday = parsedKickoff ? snapToFriday(parsedKickoff) : null
+  const kickoffPreview = kickoffFriday ? buildGameweekWindows(kickoffFriday, 1)[0] : null
+  const kickoffWasSnapped =
+    parsedKickoff !== null &&
+    kickoffFriday !== null &&
+    formatCalendarDate(parsedKickoff) !== formatCalendarDate(kickoffFriday)
 
   const fetchGameweeks = useCallback(async () => {
     try {
@@ -80,16 +102,29 @@ export default function LeagueGameweeksPage() {
       setError('Potrzeba co najmniej 2 menedżerów, aby wygenerować terminarz.')
       return
     }
+    if (!kickoffFriday) {
+      setError('Wybierz prawidłową datę startu sezonu.')
+      return
+    }
     try {
       setScheduleBusy(true)
       setError(null)
       setSuccess(null)
-      const response = await fetch(`/api/leagues/${params.id}/schedule`, { method: 'POST' })
+      const response = await fetch(`/api/leagues/${params.id}/schedule`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ startDate: formatCalendarDate(kickoffFriday) }),
+      })
       const data = await response.json()
       if (!response.ok) {
         throw new Error(data.error || 'Nie udało się wygenerować terminarza')
       }
-      setSuccess('Terminarz wygenerowany pomyślnie.')
+      setShowKickoff(false)
+      setSuccess(
+        `Terminarz wygenerowany pomyślnie. Kolejka 1 startuje ${formatInLeagueZone(
+          buildGameweekWindows(kickoffFriday, 1)[0].startDate
+        )}.`
+      )
       await fetchGameweeks()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Nie udało się wygenerować terminarza')
@@ -149,7 +184,7 @@ export default function LeagueGameweeksPage() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          start_date: editingGameweek.lock_date, // Start date = lock date
+          start_date: editingGameweek.start_date,
           end_date: editingGameweek.end_date,
           lock_date: editingGameweek.lock_date,
           is_completed: editingGameweek.is_completed,
@@ -302,8 +337,7 @@ export default function LeagueGameweeksPage() {
                   : `Gotowe do wygenerowania ${2 * (managersCount - 1)} kolejek dla ${managersCount} menedżerów.`}
               </p>
               <Button
-                onClick={generateSchedule}
-                loading={scheduleBusy}
+                onClick={() => setShowKickoff(true)}
                 disabled={managersCount < 2}
                 size="lg"
                 className="w-full sm:w-auto"
@@ -360,6 +394,27 @@ export default function LeagueGameweeksPage() {
                         </div>
 
                         <div className="space-y-4">
+                          {/* Start Date and Time */}
+                          <div>
+                            <label className="block text-sm font-medium text-[var(--foreground-secondary)] mb-2">
+                              Start kolejki (otwarcie składów)
+                            </label>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              <input
+                                type="date"
+                                value={formatDateForInput(editingGameweek.start_date)}
+                                onChange={(e) => updateEditingDateTime('start_date', 'date', e.target.value)}
+                                className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-sm sm:text-base"
+                              />
+                              <input
+                                type="time"
+                                value={formatTimeForInput(editingGameweek.start_date)}
+                                onChange={(e) => updateEditingDateTime('start_date', 'time', e.target.value)}
+                                className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-sm sm:text-base"
+                              />
+                            </div>
+                          </div>
+
                           {/* Lock Date and Time */}
                           <div>
                             <label className="block text-sm font-medium text-[var(--foreground-secondary)] mb-2">
@@ -457,11 +512,11 @@ export default function LeagueGameweeksPage() {
                         <div className="flex-1">
                           <div className="font-semibold text-lg sm:text-xl text-[var(--foreground)]">Kolejka {gameweek.week}</div>
                           <div className="text-sm sm:text-base text-[var(--foreground-secondary)] mt-2">
-                            {new Date(gameweek.lock_date).toLocaleDateString('pl-PL')} -{' '}
-                            {new Date(gameweek.end_date).toLocaleDateString('pl-PL')}
+                            {formatInLeagueZone(new Date(gameweek.start_date))} –{' '}
+                            {formatInLeagueZone(new Date(gameweek.end_date))}
                           </div>
                           <div className="text-xs sm:text-sm text-[var(--foreground-tertiary)] mt-1">
-                            Blokada Składu: {new Date(gameweek.lock_date).toLocaleString('pl-PL')}
+                            Blokada Składu: {formatInLeagueZone(new Date(gameweek.lock_date))}
                           </div>
                         </div>
                         <div className="flex flex-row sm:flex-col gap-3 sm:gap-2 items-center sm:items-end w-full sm:w-auto">
@@ -494,6 +549,95 @@ export default function LeagueGameweeksPage() {
           )}
         </CardContent>
       </Card>
+
+      <Modal
+        isOpen={showKickoff}
+        onClose={() => setShowKickoff(false)}
+        title="Start sezonu"
+        description="Wybierz weekend, od którego ma ruszyć terminarz. Możesz wygenerować go z wyprzedzeniem."
+        footer={
+          <div className="flex flex-col sm:flex-row gap-3 justify-end">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setShowKickoff(false)}
+              disabled={scheduleBusy}
+              className="w-full sm:w-auto"
+            >
+              Anuluj
+            </Button>
+            <Button
+              type="button"
+              onClick={generateSchedule}
+              loading={scheduleBusy}
+              disabled={!kickoffFriday || managersCount < 2}
+              className="w-full sm:w-auto"
+            >
+              Generuj {2 * (managersCount - 1)} kolejek
+            </Button>
+          </div>
+        }
+      >
+        <div className="space-y-5">
+          <div>
+            <label
+              htmlFor="kickoff-date"
+              className="block text-sm font-medium text-[var(--foreground-secondary)] mb-2"
+            >
+              Data startu sezonu
+            </label>
+            <input
+              id="kickoff-date"
+              type="date"
+              value={kickoffDate}
+              onChange={(e) => setKickoffDate(e.target.value)}
+              className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-sm sm:text-base"
+            />
+            {!parsedKickoff && (
+              <p className="mt-2 text-sm text-[var(--danger)]">
+                Podaj prawidłową datę.
+              </p>
+            )}
+            {kickoffWasSnapped && (
+              <p className="mt-2 text-sm text-[var(--warning)]">
+                Kolejki zawsze startują w piątek — wybrana data została przesunięta na
+                najbliższy piątek.
+              </p>
+            )}
+          </div>
+
+          {kickoffPreview && (
+            <div className="rounded-2xl bg-[var(--background-tertiary)] p-4 sm:p-5">
+              <div className="text-sm font-semibold text-[var(--foreground)] mb-3">
+                Kolejka 1
+              </div>
+              <dl className="space-y-2 text-sm">
+                <div className="flex justify-between gap-4">
+                  <dt className="text-[var(--foreground-secondary)]">Start</dt>
+                  <dd className="text-[var(--foreground)] text-right">
+                    {formatInLeagueZone(kickoffPreview.startDate)}
+                  </dd>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <dt className="text-[var(--foreground-secondary)]">Blokada składów</dt>
+                  <dd className="text-[var(--foreground)] text-right">
+                    {formatInLeagueZone(kickoffPreview.lockDate)}
+                  </dd>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <dt className="text-[var(--foreground-secondary)]">Koniec</dt>
+                  <dd className="text-[var(--foreground)] text-right">
+                    {formatInLeagueZone(kickoffPreview.endDate)}
+                  </dd>
+                </div>
+              </dl>
+              <p className="mt-4 text-xs text-[var(--foreground-tertiary)]">
+                Kolejne kolejki powtarzają ten rytm co tydzień (czas polski).
+              </p>
+            </div>
+          )}
+        </div>
+      </Modal>
 
       <ConfirmModal
         isOpen={showDeleteSchedule}

@@ -3,6 +3,13 @@ import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { generateRoundRobinSchedule } from '@/utils/scheduling'
 import { verifyLeagueAdmin, assertLeagueMutable } from '@/lib/auth-helpers'
+import {
+  buildGameweekWindows,
+  defaultKickoffFriday,
+  formatCalendarDate,
+  parseCalendarDate,
+  snapToFriday,
+} from '@/utils/gameweek-schedule'
 
 export async function POST(
   request: NextRequest,
@@ -15,6 +22,15 @@ export async function POST(
     }
 
     const { id: leagueId } = await context.params
+
+    // Optional `{ startDate: 'YYYY-MM-DD' }`; validated further down.
+    let requestedStartDate: unknown
+    try {
+      const body = await request.json()
+      requestedStartDate = body?.startDate
+    } catch {
+      // No JSON body supplied — fall back to the default kick-off.
+    }
 
     const mutable = await assertLeagueMutable(leagueId)
     if (!mutable.ok) {
@@ -89,28 +105,37 @@ export async function POST(
       )
     }
 
+    // Kick-off weekend. Admins routinely build the schedule weeks ahead of the
+    // season, so they choose the date; we fall back to the coming Friday and
+    // snap any mid-week choice forward, because gameweek 1 always opens on a
+    // Friday. The body is optional — an empty POST still works.
+    let firstFriday = defaultKickoffFriday()
+    if (typeof requestedStartDate === 'string') {
+      const parsed = parseCalendarDate(requestedStartDate)
+      if (!parsed) {
+        return NextResponse.json(
+          { error: 'Nieprawidłowa data startu sezonu. Wymagany format: RRRR-MM-DD.' },
+          { status: 400 }
+        )
+      }
+      firstFriday = snapToFriday(parsed)
+    }
+
     // Generate round-robin schedule
     const scheduleMatches = generateRoundRobinSchedule(managerIds)
 
-    // Create simplified gameweeks (just week numbers)
-    // Add start_date, end_date, and lock_date as required by database schema
-    const gameweeksToInsert = Array.from({ length: totalGameweeks }, (_, i) => {
-      const startDate = new Date()
-      startDate.setDate(startDate.getDate() + (i * 7)) // Weekly intervals
-      const endDate = new Date(startDate)
-      endDate.setDate(endDate.getDate() + 6) // End 6 days later
-      const lockDate = new Date(startDate)
-      lockDate.setDate(lockDate.getDate() + 5) // Lock 1 day before end date
-
-      return {
+    // Every gameweek runs Friday 18:00 → Saturday 00:01 (lock) → Monday 23:59,
+    // in Polish local time across DST. See @/utils/gameweek-schedule.
+    const gameweeksToInsert = buildGameweekWindows(firstFriday, totalGameweeks).map(
+      (window) => ({
         league_id: leagueId,
-        week: i + 1,
-        start_date: startDate.toISOString(),
-        end_date: endDate.toISOString(),
-        lock_date: lockDate.toISOString(),
-        is_completed: false
-      }
-    })
+        week: window.week,
+        start_date: window.startDate.toISOString(),
+        end_date: window.endDate.toISOString(),
+        lock_date: window.lockDate.toISOString(),
+        is_completed: false,
+      })
+    )
 
 
     // Insert gameweeks
@@ -171,7 +196,10 @@ export async function POST(
           totalGameweeks,
           totalMatches: insertedMatches.length,
           managersCount: managerIds.length,
-          leagueName: league.name
+          leagueName: league.name,
+          // Echoed back so the admin can confirm which Friday we settled on
+          // after snapping.
+          firstGameweekDate: formatCalendarDate(firstFriday)
         }
       })
     } catch (error) {
