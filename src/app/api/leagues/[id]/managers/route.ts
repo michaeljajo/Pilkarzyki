@@ -259,6 +259,34 @@ export async function POST(
   }
 }
 
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+/**
+ * The managers list identifies people by Clerk ID — GET above returns
+ * `id: clerk_id || users.id` — but `squads.manager_id` is a `users.id` UUID.
+ * Accept either form and return the database id, so a Clerk ID never reaches
+ * a uuid comparison (Postgres rejects it outright with 22P02).
+ */
+async function resolveManagerDbId(managerId: string): Promise<string | null> {
+  if (UUID_PATTERN.test(managerId)) {
+    return managerId
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from('users')
+    .select('id')
+    .eq('clerk_id', managerId)
+    .maybeSingle()
+
+  if (error) {
+    logger.error('Failed to resolve manager id:', error)
+    return null
+  }
+
+  return data?.id ?? null
+}
+
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -299,15 +327,27 @@ export async function DELETE(
       return NextResponse.json({ error: 'League not found' }, { status: 404 })
     }
 
+    // The client sends the Clerk ID it got from GET; squads keys on users.id.
+    const managerDbId = await resolveManagerDbId(managerId)
+
+    if (!managerDbId) {
+      return NextResponse.json({ error: 'Manager not found in this league' }, { status: 404 })
+    }
+
     // Check if manager exists in this league
     const { data: existingSquad, error: squadError } = await supabaseAdmin
       .from('squads')
       .select('*')
       .eq('league_id', id)
-      .eq('manager_id', managerId)
-      .single()
+      .eq('manager_id', managerDbId)
+      .maybeSingle()
 
-    if (squadError || !existingSquad) {
+    if (squadError) {
+      logger.error('Error looking up manager squad:', squadError)
+      return NextResponse.json({ error: 'Failed to remove manager from league' }, { status: 500 })
+    }
+
+    if (!existingSquad) {
       return NextResponse.json({ error: 'Manager not found in this league' }, { status: 404 })
     }
 
@@ -316,7 +356,7 @@ export async function DELETE(
       .from('squads')
       .delete()
       .eq('league_id', id)
-      .eq('manager_id', managerId)
+      .eq('manager_id', managerDbId)
 
     if (deleteError) {
       console.error('Error removing manager:', deleteError)
