@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useEffect, useState } from 'react'
+import { use, useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { qualifyingPlaceholders, stageLabelPl } from '@/lib/cup-format'
 import { stageBracketSize } from '@/utils/cup-scheduling'
@@ -69,19 +69,7 @@ export default function KnockoutDrawPage({ params }: { params: Promise<{ id: str
   const [stageToDelete, setStageToDelete] = useState<string | null>(null)
   const [deleteConfirmText, setDeleteConfirmText] = useState('')
 
-  useEffect(() => {
-    loadCupData()
-  }, [leagueId])
-
-  useEffect(() => {
-    if (cupId) {
-      loadQualifiedTeams()
-      loadCupGameweeks()
-      loadStagesOverview()
-    }
-  }, [cupId])
-
-  const loadCupData = async () => {
+  const loadCupData = useCallback(async () => {
     try {
       const response = await fetch(`/api/cups?leagueId=${leagueId}`)
       const data = await response.json()
@@ -97,9 +85,9 @@ export default function KnockoutDrawPage({ params }: { params: Promise<{ id: str
       setError('Failed to load cup data')
       setIsLoading(false)
     }
-  }
+  }, [leagueId])
 
-  const loadQualifiedTeams = async () => {
+  const loadQualifiedTeams = useCallback(async () => {
     if (!cupId) return
 
     try {
@@ -112,9 +100,9 @@ export default function KnockoutDrawPage({ params }: { params: Promise<{ id: str
     } catch (err) {
       console.error('Failed to load qualified teams:', err)
     }
-  }
+  }, [cupId])
 
-  const loadCupGameweeks = async () => {
+  const loadCupGameweeks = useCallback(async () => {
     if (!cupId) return
 
     try {
@@ -128,9 +116,9 @@ export default function KnockoutDrawPage({ params }: { params: Promise<{ id: str
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [cupId])
 
-  const loadStagesOverview = async () => {
+  const loadStagesOverview = useCallback(async () => {
     if (!cupId) return
 
     try {
@@ -142,7 +130,19 @@ export default function KnockoutDrawPage({ params }: { params: Promise<{ id: str
     } catch (err) {
       console.error('Failed to load stages overview:', err)
     }
-  }
+  }, [cupId])
+
+  useEffect(() => {
+    loadCupData()
+  }, [loadCupData])
+
+  useEffect(() => {
+    if (cupId) {
+      loadQualifiedTeams()
+      loadCupGameweeks()
+      loadStagesOverview()
+    }
+  }, [cupId, loadQualifiedTeams, loadCupGameweeks, loadStagesOverview])
 
   const startCreating = (stage: string) => {
     setSelectedStage(stage)

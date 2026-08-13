@@ -214,7 +214,7 @@ export default function SquadSelection({ leagueId, isDefaultMode = false, defaul
     }
 
     fetchSquadData()
-  }, [leagueId])
+  }, [leagueId, isDefaultMode, defaultVariant])
 
   // Validate lineups whenever selected players change
   useEffect(() => {

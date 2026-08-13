@@ -1,6 +1,7 @@
 'use client'
 
 import { HTMLAttributes, forwardRef } from 'react'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { User } from 'lucide-react'
 import { cn } from '@/utils/cn'
@@ -67,10 +68,19 @@ const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
           )}
         >
           {src ? (
-            <img
+            // `fill` works because the wrapper above is sized and positioned.
+            // `unoptimized` is deliberate: src is caller-supplied and may point at
+            // any host (e.g. an identity provider's CDN), and next.config.js
+            // declares no images.remotePatterns — the optimizer would throw on an
+            // unlisted hostname. Add a remotePattern and drop this if avatars ever
+            // settle on a known host.
+            <Image
               src={src}
               alt={alt || 'Avatar'}
-              className="w-full h-full object-cover"
+              fill
+              sizes="80px"
+              unoptimized
+              className="object-cover"
             />
           ) : (
             <span className="select-none">

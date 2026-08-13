@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
@@ -111,11 +111,51 @@ export default function LeagueResultsPage({ params }: LeagueResultsPageProps) {
     resolveParams()
   }, [params])
 
+  const fetchGameweeks = useCallback(async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/gameweeks')
+      if (response.ok) {
+        const data = await response.json()
+        // Filter gameweeks for this league
+        const leagueGameweeks = data.gameweeks?.filter((gw: Gameweek) =>
+          gw.leagues?.name === leagueName || gw.league_id === leagueId
+        ) || []
+        setGameweeks(leagueGameweeks)
+      }
+    } catch (error) {
+      console.error('Failed to fetch gameweeks:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [leagueId, leagueName])
+
+  const fetchMatchData = useCallback(async () => {
+    if (!selectedGameweek) return
+
+    try {
+      setLoadingResults(true)
+      const response = await fetch(`/api/gameweeks/${selectedGameweek}/matches-with-lineups`)
+      if (response.ok) {
+        const data = await response.json()
+        setMatchData(data)
+      } else {
+        console.error('Failed to fetch match data')
+        setMatchData(null)
+      }
+    } catch (error) {
+      console.error('Failed to fetch match data:', error)
+      setMatchData(null)
+    } finally {
+      setLoadingResults(false)
+    }
+  }, [selectedGameweek])
+
   useEffect(() => {
     if (leagueId) {
       fetchGameweeks()
     }
-  }, [leagueId])
+  }, [leagueId, fetchGameweeks])
 
   // Auto-select current active gameweek when gameweeks are loaded
   useEffect(() => {
@@ -150,53 +190,13 @@ export default function LeagueResultsPage({ params }: LeagueResultsPageProps) {
     } else {
       setMatchData(null)
     }
-  }, [selectedGameweek])
+  }, [selectedGameweek, fetchMatchData])
 
   useEffect(() => {
     if (!user) {
       router.push('/sign-in')
     }
   }, [user, router])
-
-  const fetchGameweeks = async () => {
-    try {
-      setLoading(true)
-      const response = await fetch('/api/gameweeks')
-      if (response.ok) {
-        const data = await response.json()
-        // Filter gameweeks for this league
-        const leagueGameweeks = data.gameweeks?.filter((gw: Gameweek) =>
-          gw.leagues?.name === leagueName || gw.league_id === leagueId
-        ) || []
-        setGameweeks(leagueGameweeks)
-      }
-    } catch (error) {
-      console.error('Failed to fetch gameweeks:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const fetchMatchData = async () => {
-    if (!selectedGameweek) return
-
-    try {
-      setLoadingResults(true)
-      const response = await fetch(`/api/gameweeks/${selectedGameweek}/matches-with-lineups`)
-      if (response.ok) {
-        const data = await response.json()
-        setMatchData(data)
-      } else {
-        console.error('Failed to fetch match data')
-        setMatchData(null)
-      }
-    } catch (error) {
-      console.error('Failed to fetch match data:', error)
-      setMatchData(null)
-    } finally {
-      setLoadingResults(false)
-    }
-  }
 
   const getManagerDisplayName = (manager: { first_name?: string; last_name?: string; email: string; squad?: { team_name?: string } }) => {
     return getTeamOrManagerName({

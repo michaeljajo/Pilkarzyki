@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -48,12 +48,6 @@ export default function CupSchedulePage() {
   const [requiredGameweeks, setRequiredGameweeks] = useState(6) // Default estimate
   const [totalManagers, setTotalManagers] = useState(4) // Default to 4
 
-  useEffect(() => {
-    if (params.id) {
-      fetchData()
-    }
-  }, [params.id])
-
   // Clear messages after 5 seconds
   useEffect(() => {
     if (error || success) {
@@ -65,7 +59,7 @@ export default function CupSchedulePage() {
     }
   }, [error, success])
 
-  async function fetchData() {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true)
 
@@ -129,7 +123,13 @@ export default function CupSchedulePage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [params.id, router])
+
+  useEffect(() => {
+    if (params.id) {
+      fetchData()
+    }
+  }, [params.id, fetchData])
 
   function addMapping() {
     const nextCupWeek = mappings.length + 1

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { X, Save } from 'lucide-react'
@@ -44,11 +44,7 @@ export function AdminCupLineupPicker({
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
-  useEffect(() => {
-    loadSquad()
-  }, [])
-
-  const loadSquad = async () => {
+  const loadSquad = useCallback(async () => {
     setLoading(true)
     try {
       // Fetch manager's squad for the league
@@ -63,7 +59,11 @@ export function AdminCupLineupPicker({
     } finally {
       setLoading(false)
     }
-  }
+  }, [leagueId, managerId])
+
+  useEffect(() => {
+    loadSquad()
+  }, [loadSquad])
 
   const togglePlayer = (playerId: string) => {
     if (selectedPlayers.includes(playerId)) {

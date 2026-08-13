@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -39,12 +39,6 @@ export default function CupOverviewPage() {
   const [managers, setManagers] = useState<WizardManager[]>([])
   const [gameweeks, setGameweeks] = useState<WizardGameweek[]>([])
 
-  useEffect(() => {
-    if (params.id) {
-      fetchCupData()
-    }
-  }, [params.id])
-
   // Clear messages after 5 seconds
   useEffect(() => {
     if (error || success) {
@@ -56,7 +50,47 @@ export default function CupOverviewPage() {
     }
   }, [error, success])
 
-  async function fetchCupData() {
+  // Takes the freshly fetched cup rather than reading `cup` state: the caller
+  // sets that state in the same tick, so the state read here would be stale,
+  // and depending on `cup` would re-create fetchCupData on every load.
+  const fetchCupStats = useCallback(async (cupRecord: CupWithLeague) => {
+    try {
+      // Fetch group assignments
+      const groupsResponse = await fetch(`/api/cups/${cupRecord.id}/groups`)
+      const groupsData = await groupsResponse.json()
+
+      // Fetch schedule
+      const scheduleResponse = await fetch(`/api/cups/${cupRecord.id}/schedule`)
+      const scheduleData = await scheduleResponse.json()
+
+      const groups = groupsData.groups || {}
+      const groupNames = Object.keys(groups)
+      const totalManagers = groupNames.reduce((sum, groupName) => sum + groups[groupName].length, 0)
+
+      interface ScheduleGameweek {
+        matches?: Array<{ stage: string }>
+      }
+      const schedule = scheduleData.schedule || []
+      const groupStageMatches = schedule.reduce((sum: number, gw: ScheduleGameweek) =>
+        sum + (gw.matches?.filter((m) => m.stage === 'group_stage').length || 0), 0
+      )
+
+      // Expected number of groups comes from the cup's saved format.
+      const totalGroups = cupRecord.format?.groups?.count ?? Object.keys(groups).length
+
+      setStats({
+        totalManagers,
+        groupsAssigned: groupNames.length,
+        totalGroups,
+        scheduleGenerated: schedule.length > 0,
+        groupStageMatches
+      })
+    } catch (err) {
+      console.error('Failed to fetch cup stats:', err)
+    }
+  }, [])
+
+  const fetchCupData = useCallback(async () => {
     try {
       setLoading(true)
 
@@ -66,7 +100,7 @@ export default function CupOverviewPage() {
 
       if (cupResponse.ok && cupData.cup) {
         setCup(cupData.cup)
-        await fetchCupStats(cupData.cup.id)
+        await fetchCupStats(cupData.cup)
       } else {
         setCup(null)
         setStats(null)
@@ -85,44 +119,13 @@ export default function CupOverviewPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [params.id, fetchCupStats])
 
-  async function fetchCupStats(cupId: string) {
-    try {
-      // Fetch group assignments
-      const groupsResponse = await fetch(`/api/cups/${cupId}/groups`)
-      const groupsData = await groupsResponse.json()
-
-      // Fetch schedule
-      const scheduleResponse = await fetch(`/api/cups/${cupId}/schedule`)
-      const scheduleData = await scheduleResponse.json()
-
-      const groups = groupsData.groups || {}
-      const groupNames = Object.keys(groups)
-      const totalManagers = groupNames.reduce((sum, groupName) => sum + groups[groupName].length, 0)
-
-      interface ScheduleGameweek {
-        matches?: Array<{ stage: string }>
-      }
-      const schedule = scheduleData.schedule || []
-      const groupStageMatches = schedule.reduce((sum: number, gw: ScheduleGameweek) =>
-        sum + (gw.matches?.filter((m) => m.stage === 'group_stage').length || 0), 0
-      )
-
-      // Expected number of groups comes from the cup's saved format.
-      const totalGroups = cup?.format?.groups?.count ?? Object.keys(groups).length
-
-      setStats({
-        totalManagers,
-        groupsAssigned: groupNames.length,
-        totalGroups,
-        scheduleGenerated: schedule.length > 0,
-        groupStageMatches
-      })
-    } catch (err) {
-      console.error('Failed to fetch cup stats:', err)
+  useEffect(() => {
+    if (params.id) {
+      fetchCupData()
     }
-  }
+  }, [params.id, fetchCupData])
 
   async function deleteCup() {
     if (!cup || !confirm(`Czy na pewno usunąć puchar „${cup.name}”? Usunięte zostaną wszystkie dane pucharu: grupy, mecze i składy. Tej operacji nie można cofnąć.`)) {

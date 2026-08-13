@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import { CupGroupTable } from '@/components/CupGroupTable'
@@ -131,19 +131,7 @@ export default function CupStandingsPage({ params }: CupStandingsPageProps) {
     resolveParams()
   }, [params])
 
-  useEffect(() => {
-    if (cupId) {
-      fetchCupData()
-    }
-  }, [cupId])
-
-  useEffect(() => {
-    if (!user) {
-      router.push('/sign-in')
-    }
-  }, [user, router])
-
-  const fetchCupData = async () => {
+  const fetchCupData = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -172,7 +160,19 @@ export default function CupStandingsPage({ params }: CupStandingsPageProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [cupId])
+
+  useEffect(() => {
+    if (cupId) {
+      fetchCupData()
+    }
+  }, [cupId, fetchCupData])
+
+  useEffect(() => {
+    if (!user) {
+      router.push('/sign-in')
+    }
+  }, [user, router])
 
   // Determine which view to show based on cup stage
   const showGroupStage = cupStandingsData?.cup.stage === 'group_stage'

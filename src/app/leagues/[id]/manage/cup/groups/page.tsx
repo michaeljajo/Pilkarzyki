@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -44,12 +44,6 @@ export default function CupGroupsPage() {
   const [success, setSuccess] = useState<string | null>(null)
   const [draggedManager, setDraggedManager] = useState<Manager | null>(null)
 
-  useEffect(() => {
-    if (params.id) {
-      fetchData()
-    }
-  }, [params.id])
-
   // Clear messages after 5 seconds
   useEffect(() => {
     if (error || success) {
@@ -61,7 +55,7 @@ export default function CupGroupsPage() {
     }
   }, [error, success])
 
-  async function fetchData() {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true)
 
@@ -146,7 +140,13 @@ export default function CupGroupsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [params.id, router])
+
+  useEffect(() => {
+    if (params.id) {
+      fetchData()
+    }
+  }, [params.id, fetchData])
 
   function handleDragStart(e: React.DragEvent, manager: Manager, sourceGroup: string | null) {
     setDraggedManager(manager)

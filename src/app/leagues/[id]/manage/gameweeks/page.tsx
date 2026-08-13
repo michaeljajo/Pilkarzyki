@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -39,13 +39,7 @@ export default function LeagueGameweeksPage() {
   const [leagueName, setLeagueName] = useState('')
   const [showDeleteSchedule, setShowDeleteSchedule] = useState(false)
 
-  useEffect(() => {
-    if (params.id) {
-      fetchGameweeks()
-    }
-  }, [params.id])
-
-  async function fetchGameweeks() {
+  const fetchGameweeks = useCallback(async () => {
     try {
       setLoading(true)
       const [gwRes, managersRes, leagueRes] = await Promise.all([
@@ -73,7 +67,13 @@ export default function LeagueGameweeksPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [params.id])
+
+  useEffect(() => {
+    if (params.id) {
+      fetchGameweeks()
+    }
+  }, [params.id, fetchGameweeks])
 
   async function generateSchedule() {
     if (managersCount < 2) {

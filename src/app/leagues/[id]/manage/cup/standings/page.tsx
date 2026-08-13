@@ -64,16 +64,6 @@ export default function AdminCupStandingsPage() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
-  useEffect(() => {
-    fetchCupId()
-  }, [leagueId])
-
-  useEffect(() => {
-    if (cupId) {
-      fetchCupStandings()
-    }
-  }, [cupId])
-
   // Clear messages after 5 seconds
   useEffect(() => {
     if (error || success) {
@@ -85,7 +75,7 @@ export default function AdminCupStandingsPage() {
     }
   }, [error, success])
 
-  const fetchCupId = async () => {
+  const fetchCupId = useCallback(async () => {
     try {
       const cupResponse = await fetch(`/api/cups?leagueId=${leagueId}`)
       if (cupResponse.ok) {
@@ -105,7 +95,11 @@ export default function AdminCupStandingsPage() {
       setError('Błąd podczas pobierania danych pucharu')
       setLoading(false)
     }
-  }
+  }, [leagueId])
+
+  useEffect(() => {
+    fetchCupId()
+  }, [fetchCupId])
 
   const fetchCupStandings = useCallback(async () => {
     try {
@@ -127,6 +121,12 @@ export default function AdminCupStandingsPage() {
       setLoading(false)
     }
   }, [cupId])
+
+  useEffect(() => {
+    if (cupId) {
+      fetchCupStandings()
+    }
+  }, [cupId, fetchCupStandings])
 
   const recalculateStandings = async () => {
     if (!cupId) return

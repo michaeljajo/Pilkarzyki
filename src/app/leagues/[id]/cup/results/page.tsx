@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import { CupGameweekSelector } from '@/components/CupGameweekSelector'
@@ -144,11 +144,32 @@ export default function CupResultsPage({ params }: CupResultsPageProps) {
     resolveParams()
   }, [params])
 
+  const fetchCupResults = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const response = await fetch(`/api/cups/${cupId}/results`)
+
+      if (response.ok) {
+        const data = await response.json()
+        setCupData(data)
+      } else {
+        const errorData = await response.json().catch(() => ({}))
+        setError(errorData.error || 'Nie udało się pobrać wyników pucharu')
+      }
+    } catch (error) {
+      console.error('Failed to fetch cup results:', error)
+      setError('Błąd podczas pobierania wyników pucharu')
+    } finally {
+      setLoading(false)
+    }
+  }, [cupId])
+
   useEffect(() => {
     if (cupId) {
       fetchCupResults()
     }
-  }, [cupId])
+  }, [cupId, fetchCupResults])
 
   // Auto-select current active gameweek when gameweeks are loaded
   useEffect(() => {
@@ -179,27 +200,6 @@ export default function CupResultsPage({ params }: CupResultsPageProps) {
       router.push('/sign-in')
     }
   }, [user, router])
-
-  const fetchCupResults = async () => {
-    try {
-      setLoading(true)
-      setError(null)
-      const response = await fetch(`/api/cups/${cupId}/results`)
-
-      if (response.ok) {
-        const data = await response.json()
-        setCupData(data)
-      } else {
-        const errorData = await response.json().catch(() => ({}))
-        setError(errorData.error || 'Nie udało się pobrać wyników pucharu')
-      }
-    } catch (error) {
-      console.error('Failed to fetch cup results:', error)
-      setError('Błąd podczas pobierania wyników pucharu')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const selectedGameweekData = cupData?.gameweeks.find(gw => gw.id === selectedGameweek)
 

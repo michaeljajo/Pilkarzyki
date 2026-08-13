@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -40,13 +40,7 @@ export default function LeaguePlayersPage() {
     position: 'Forward' as Position
   })
 
-  useEffect(() => {
-    if (params.id) {
-      fetchPlayers()
-    }
-  }, [params.id])
-
-  async function fetchPlayers() {
+  const fetchPlayers = useCallback(async () => {
     try {
       setLoading(true)
       const response = await fetch(`/api/leagues/${params.id}/players`)
@@ -62,7 +56,13 @@ export default function LeaguePlayersPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [params.id])
+
+  useEffect(() => {
+    if (params.id) {
+      fetchPlayers()
+    }
+  }, [params.id, fetchPlayers])
 
   function handleEditClick(player: Player) {
     setEditingPlayer(player)

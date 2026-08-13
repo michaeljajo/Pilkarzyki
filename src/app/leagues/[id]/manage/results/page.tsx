@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { GameweekMatchData, MatchWithLineups, PlayerWithResult } from '@/types'
@@ -58,21 +58,10 @@ export default function KolejkaPage() {
   const [showFinish, setShowFinish] = useState(false)
   const [finishMissing, setFinishMissing] = useState<string[]>([])
 
-  useEffect(() => {
-    fetchGameweeks()
-    fetchCup()
-  }, [leagueId])
-
-  useEffect(() => {
-    if (selectedGameweek) {
-      fetchMatchData().then(() => fetchCupMatches())
-    } else {
-      setMatchData(null)
-      setCupGameweeks([])
-      setPlayerGoals({})
-      setPlayerHasPlayed({})
-    }
-  }, [selectedGameweek, cup])
+  // Guards the one-time landing on the active gameweek. Reading `selectedGameweek`
+  // here instead would put it in fetchGameweeks' deps, and since fetchGameweeks
+  // sets it, the load effect would re-run itself.
+  const hasAutoSelected = useRef(false)
 
   const gw = gameweeks.find((g) => g.id === selectedGameweek)
   const state = deriveGameweekState(gw)
@@ -81,7 +70,7 @@ export default function KolejkaPage() {
   const canFinish = state === 'locked'
   const hasCup = cupGameweeks.length > 0
 
-  const fetchGameweeks = async () => {
+  const fetchGameweeks = useCallback(async () => {
     try {
       const response = await fetch('/api/gameweeks')
       if (response.ok) {
@@ -91,7 +80,8 @@ export default function KolejkaPage() {
           .sort((a: KolejkaGameweek, b: KolejkaGameweek) => a.week - b.week)
         setGameweeks(leagueGameweeks)
 
-        if (!selectedGameweek && leagueGameweeks.length > 0) {
+        if (!hasAutoSelected.current && leagueGameweeks.length > 0) {
+          hasAutoSelected.current = true
           const active = leagueGameweeks.find((g) => !g.is_completed) ?? leagueGameweeks[leagueGameweeks.length - 1]
           setSelectedGameweek(active.id)
           // Land on the tab that matches where the work is.
@@ -103,9 +93,9 @@ export default function KolejkaPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [leagueId])
 
-  const fetchCup = async () => {
+  const fetchCup = useCallback(async () => {
     try {
       const response = await fetch(`/api/cups?leagueId=${leagueId}`)
       if (response.ok) {
@@ -115,9 +105,9 @@ export default function KolejkaPage() {
     } catch (error) {
       console.error('Failed to fetch cup:', error)
     }
-  }
+  }, [leagueId])
 
-  const fetchMatchData = async () => {
+  const fetchMatchData = useCallback(async () => {
     if (!selectedGameweek) return
     try {
       setLoading(true)
@@ -146,40 +136,11 @@ export default function KolejkaPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [selectedGameweek])
 
-  const fetchCupMatches = async () => {
-    if (!cup || !selectedGameweek) return
-    try {
-      const response = await fetch(`/api/cups/${cup.id}/results`)
-      if (response.ok) {
-        const data = await response.json()
-        const matching: CupGameweek[] = (data.gameweeks || []).filter(
-          (cgw: CupGameweek) => cgw.gameweek?.id === selectedGameweek
-        )
-        setCupGameweeks(matching)
-
-        matching.forEach((cgw) => {
-          cgw.matches?.forEach((match) => {
-            ;[...(match.home_lineup?.players || []), ...(match.away_lineup?.players || [])].forEach(
-              (player: PlayerWithResult) => {
-                setPlayerGoals((prev) => ({ ...prev, [player.id]: player.goals_scored || 0 }))
-                setPlayerHasPlayed((prev) => ({ ...prev, [player.id]: player.has_played || false }))
-              }
-            )
-          })
-        })
-
-        for (const cgw of matching) {
-          if (isKnockoutDecider(cgw)) await fetchEtPenaltyLineups(cgw.id, cgw.matches)
-        }
-      }
-    } catch (error) {
-      console.error('Failed to fetch cup matches:', error)
-    }
-  }
-
-  const fetchEtPenaltyLineups = async (cupGameweekId: string, matches: MatchWithLineups[]) => {
+  // Works purely from its arguments and functional state updates, so it needs no
+  // deps and stays referentially stable for fetchCupMatches below.
+  const fetchEtPenaltyLineups = useCallback(async (cupGameweekId: string, matches: MatchWithLineups[]) => {
     try {
       const managerIds = new Set<string>()
       matches.forEach((m) => {
@@ -216,7 +177,54 @@ export default function KolejkaPage() {
     } catch (error) {
       console.error('Failed to fetch ET/penalty lineups:', error)
     }
-  }
+  }, [])
+
+  const fetchCupMatches = useCallback(async () => {
+    if (!cup || !selectedGameweek) return
+    try {
+      const response = await fetch(`/api/cups/${cup.id}/results`)
+      if (response.ok) {
+        const data = await response.json()
+        const matching: CupGameweek[] = (data.gameweeks || []).filter(
+          (cgw: CupGameweek) => cgw.gameweek?.id === selectedGameweek
+        )
+        setCupGameweeks(matching)
+
+        matching.forEach((cgw) => {
+          cgw.matches?.forEach((match) => {
+            ;[...(match.home_lineup?.players || []), ...(match.away_lineup?.players || [])].forEach(
+              (player: PlayerWithResult) => {
+                setPlayerGoals((prev) => ({ ...prev, [player.id]: player.goals_scored || 0 }))
+                setPlayerHasPlayed((prev) => ({ ...prev, [player.id]: player.has_played || false }))
+              }
+            )
+          })
+        })
+
+        for (const cgw of matching) {
+          if (isKnockoutDecider(cgw)) await fetchEtPenaltyLineups(cgw.id, cgw.matches)
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch cup matches:', error)
+    }
+  }, [cup, selectedGameweek, fetchEtPenaltyLineups])
+
+  useEffect(() => {
+    fetchGameweeks()
+    fetchCup()
+  }, [fetchGameweeks, fetchCup])
+
+  useEffect(() => {
+    if (selectedGameweek) {
+      fetchMatchData().then(() => fetchCupMatches())
+    } else {
+      setMatchData(null)
+      setCupGameweeks([])
+      setPlayerGoals({})
+      setPlayerHasPlayed({})
+    }
+  }, [selectedGameweek, cup, fetchMatchData, fetchCupMatches])
 
   const handleGoalsChange = (playerId: string, value: string) => {
     let goals = 0
