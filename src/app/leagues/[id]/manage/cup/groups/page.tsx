@@ -1,7 +1,9 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { generateGroupNames, resolveGroupSizes } from '@/utils/cup-scheduling'
+import type { CupFormat } from '@/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Alert } from '@/components/ui/Alert'
@@ -34,15 +36,40 @@ function getManagerDisplayName(manager: Manager): string {
 export default function CupGroupsPage() {
   const params = useParams()
   const router = useRouter()
-  const [cup, setCup] = useState<{ id: string; name: string; league_id: string } | null>(null)
+  const [cup, setCup] = useState<{ id: string; name: string; league_id: string; format?: CupFormat } | null>(null)
   const [allManagers, setAllManagers] = useState<Manager[]>([])
   const [groups, setGroups] = useState<GroupAssignment>({})
+  /**
+   * How many managers belong in each group, in group order (A, B, C…).
+   *
+   * Derived from the cup's saved format, never from the manager count. This
+   * page used to compute `managerCount / 4` and reject anything that was not
+   * 4/8/16/32 — a rule migration 027 replaced with the configurable format,
+   * but which survived here and blocked an 18-manager cup that the format
+   * (two_groups_of_nine) handles perfectly well.
+   *
+   * Sizes are per group rather than a single number because a format can be
+   * uneven: 18 into 4 groups is [5, 5, 4, 4].
+   */
+  const [groupSizes, setGroupSizes] = useState<number[]>([])
   const [unassignedManagers, setUnassignedManagers] = useState<Manager[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [draggedManager, setDraggedManager] = useState<Manager | null>(null)
+
+  /** Expected size per group name, e.g. { A: 9, B: 9 }. */
+  const expectedByGroup = useMemo(() => {
+    const names = generateGroupNames(groupSizes.length)
+    return Object.fromEntries(names.map((name, i) => [name, groupSizes[i]])) as Record<string, number>
+  }, [groupSizes])
+
+  /** Every group the same size? Only then can the UI state one number. */
+  const uniformGroupSize = useMemo(
+    () => (groupSizes.length > 0 && groupSizes.every(s => s === groupSizes[0]) ? groupSizes[0] : null),
+    [groupSizes]
+  )
 
   // Clear messages after 5 seconds
   useEffect(() => {
@@ -82,14 +109,26 @@ export default function CupGroupsPage() {
       const managers: Manager[] = managersData.managers || []
       setAllManagers(managers)
 
-      // Initialize groups based on manager count
-      const managerCount = managers.length
-      const groupCount = managerCount === 4 ? 2 : managerCount / 4
-
-      if (![1, 2, 4, 8].includes(groupCount)) {
-        setError(`Invalid manager count (${managerCount}). Cup requires exactly 4, 8, 16, or 32 managers.`)
+      // Group shape comes from the cup's saved format. Any manager count the
+      // format can seat is valid — there is no longer a 4/8/16/32 rule.
+      const format = cupData.cup.format as CupFormat | undefined
+      if (!format?.groups?.count) {
+        setError('Ten puchar nie ma zapisanego formatu grup. Ustaw format w konfiguracji pucharu.')
         return
       }
+
+      const sizes = resolveGroupSizes(managers.length, format)
+      const seats = sizes.reduce((a, b) => a + b, 0)
+      if (seats !== managers.length) {
+        setError(
+          `Format przewiduje ${seats} miejsc w grupach, a liga ma ${managers.length} menedżerów. ` +
+            'Popraw format pucharu.'
+        )
+        return
+      }
+
+      setGroupSizes(sizes)
+      const groupCount = sizes.length
 
       // Fetch existing group assignments
       const groupsResponse = await fetch(`/api/cups/${cupData.cup.id}/groups`)
@@ -126,9 +165,7 @@ export default function CupGroupsPage() {
       } else {
         // Initialize empty groups
         const initialGroups: GroupAssignment = {}
-        const groupNames = Array.from({ length: groupCount }, (_, i) =>
-          String.fromCharCode(65 + i) // A, B, C, D, ...
-        )
+        const groupNames = generateGroupNames(groupCount)
         groupNames.forEach(name => {
           initialGroups[name] = []
         })
@@ -210,17 +247,17 @@ export default function CupGroupsPage() {
         return
       }
 
-      // Determine expected group size (2 for 4-team cups, 4 for all others)
-      const expectedGroupSize = allManagers.length === 4 ? 2 : 4
-
-      // Validate each group has correct number of managers
+      // Each group must match the size its format implies. Sizes can differ
+      // between groups, so compare per group rather than against one number.
       const invalidGroups = Object.entries(groups).filter(
-        ([_, managers]) => managers.length !== expectedGroupSize
+        ([name, managers]) => managers.length !== expectedByGroup[name]
       )
 
       if (invalidGroups.length > 0) {
-        const groupNames = invalidGroups.map(([name]) => name).join(', ')
-        setError(`Each group must have exactly ${expectedGroupSize} managers. Invalid groups: ${groupNames}`)
+        const detail = invalidGroups
+          .map(([name, managers]) => `${name}: ${managers.length}/${expectedByGroup[name] ?? '?'}`)
+          .join(', ')
+        setError(`Nieprawidłowa liczba menedżerów w grupach — ${detail}`)
         return
       }
 
@@ -254,18 +291,16 @@ export default function CupGroupsPage() {
     // Shuffle managers
     const shuffled = [...allManagers].sort(() => Math.random() - 0.5)
 
-    // Determine managers per group (2 for 4-team cups, 4 for all others)
-    const managersPerGroup = allManagers.length === 4 ? 2 : 4
-
-    // Distribute evenly across groups
+    // Walk the shuffled list, taking each group its own share. A running
+    // offset is what allows uneven formats such as [5, 5, 4, 4].
     const newGroups: GroupAssignment = {}
     const groupNames = Object.keys(groups)
+    let offset = 0
 
     groupNames.forEach((groupName, groupIndex) => {
-      newGroups[groupName] = shuffled.slice(
-        groupIndex * managersPerGroup,
-        (groupIndex + 1) * managersPerGroup
-      )
+      const size = groupSizes[groupIndex] ?? 0
+      newGroups[groupName] = shuffled.slice(offset, offset + size)
+      offset += size
     })
 
     setGroups(newGroups)
@@ -348,7 +383,7 @@ export default function CupGroupsPage() {
             Przypisanie do Grup
           </h1>
           <p className="text-xl text-[var(--foreground-secondary)]">
-            Przeciągnij i upuść menedżerów do grup po {allManagers.length === 4 ? '2' : '4'}
+            Przeciągnij i upuść menedżerów do grup{uniformGroupSize ? ` po ${uniformGroupSize}` : ''}
           </p>
         </div>
         <div className="flex gap-3">
@@ -427,14 +462,14 @@ export default function CupGroupsPage() {
           >
             <Card
               className={`hover-lift ${
-                groups[groupName].length === (allManagers.length === 4 ? 2 : 4)
+                groups[groupName].length === expectedByGroup[groupName]
                   ? 'border-[var(--success)]/40'
                   : 'border-[var(--navy-border)]/30'
               }`}
             >
               <CardHeader
                 className={
-                  groups[groupName].length === (allManagers.length === 4 ? 2 : 4)
+                  groups[groupName].length === expectedByGroup[groupName]
                     ? 'bg-[var(--success)]/5'
                     : ''
                 }
@@ -447,11 +482,11 @@ export default function CupGroupsPage() {
                     Grupa {groupName}
                   </CardTitle>
                   <span className={`text-sm font-semibold ${
-                    groups[groupName].length === (allManagers.length === 4 ? 2 : 4)
+                    groups[groupName].length === expectedByGroup[groupName]
                       ? 'text-[var(--success)]'
                       : 'text-[var(--warning)]'
                   }`}>
-                    {groups[groupName].length} / {allManagers.length === 4 ? 2 : 4}
+                    {groups[groupName].length} / {expectedByGroup[groupName] ?? '?'}
                   </span>
                 </div>
               </CardHeader>
