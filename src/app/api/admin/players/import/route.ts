@@ -101,8 +101,14 @@ export async function POST(request: NextRequest) {
     // previous row-at-a-time SELECT+INSERT was two per row (~10k), which blew
     // through the 30s function limit (vercel.json) and left a PARTIAL import
     // behind, since there is no transaction spanning the loop.
-    const dedupeKey = (name: string, surname: string) =>
-      `${name.toLowerCase()}|${surname.toLowerCase()}`
+    // Club is part of the identity, not just the name. A ten-league pool has
+    // genuinely distinct players who share a name -- two different Arthurs, one
+    // at Leverkusen and one at Juventus -- and keying on the name alone dropped
+    // the second one. Including the club keeps them both while still collapsing
+    // a real duplicate (the same player listed twice at the same club) and
+    // still making a re-import after a failed run a no-op.
+    const dedupeKey = (name: string, surname: string, club: string) =>
+      `${name.toLowerCase()}|${surname.toLowerCase()}|${club.toLowerCase()}`
 
     // Every player already in this league, so the duplicate check costs one
     // paged read instead of one query per row. Supabase caps a select at 1000
@@ -113,7 +119,7 @@ export async function POST(request: NextRequest) {
     for (let from = 0; ; from += PAGE) {
       const { data: page, error: existingError } = await supabaseAdmin
         .from('players')
-        .select('name, surname')
+        .select('name, surname, club')
         .eq('league_id', leagueId)
         .range(from, from + PAGE - 1)
 
@@ -123,7 +129,7 @@ export async function POST(request: NextRequest) {
           { status: 500 }
         )
       }
-      for (const p of page ?? []) existingKeys.add(dedupeKey(p.name ?? '', p.surname ?? ''))
+      for (const p of page ?? []) existingKeys.add(dedupeKey(p.name ?? '', p.surname ?? '', p.club ?? ''))
       if (!page || page.length < PAGE) break
     }
 
@@ -173,11 +179,13 @@ export async function POST(request: NextRequest) {
         continue
       }
 
-      // Matches the old behaviour: already in the league, or named identically
-      // to an earlier row in this same file, is skipped rather than inserted.
-      const key = dedupeKey(firstName, surname)
+      // Already in the league, or the same player at the same club appearing
+      // twice in this file, is skipped rather than inserted.
+      const key = dedupeKey(firstName, surname, club)
       if (existingKeys.has(key)) {
-        result.errors.push(`Wiersz ${rowNum}: Zawodnik "${firstName} ${surname}" już istnieje w lidze ${leagueName}`)
+        result.errors.push(
+          `Wiersz ${rowNum}: Zawodnik "${firstName} ${surname}" (${club}) już istnieje w lidze ${leagueName}`
+        )
         result.skipped++
         continue
       }
