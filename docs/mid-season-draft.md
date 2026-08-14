@@ -1,5 +1,12 @@
 # Mid-Season Draft Feature
 
+> **Before running an upload**, read
+> [Known Issues — Mid-Season Draft Upload](./known-issues-draft-upload.md).
+> Two open defects affect this path: player identity is matched by name only
+> (so namesakes can be transferred in place of each other), and the upload is
+> not transactional (so a mid-run failure leaves the league half-migrated).
+> Take a database snapshot first.
+
 ## Overview
 
 The mid-season draft feature allows admins to process player reassignments during the season while preserving historical data integrity. This ensures that past results and goals remain attributed to the correct manager at the time they occurred.
