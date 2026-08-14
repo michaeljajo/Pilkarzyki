@@ -6,7 +6,28 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { fetchAllRows } from '@/lib/fetch-all-rows'
 import * as XLSX from 'xlsx'
+
+interface ExportManager {
+  id: string
+  email: string | null
+  first_name: string | null
+  last_name: string | null
+}
+
+interface ExportPlayerRow {
+  id: string
+  name: string
+  surname: string | null
+  position: string
+  club: string | null
+  football_league: string | null
+  manager_id: string | null
+  // PostgREST returns the embedded row as an object, but types it as an array
+  // for to-many relationships — the reader below handles both.
+  users: ExportManager | ExportManager[] | null
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -47,33 +68,34 @@ export async function GET(request: NextRequest) {
 
     const leagueName = league.name
 
-    // Get all players in this league with their current manager assignments
-    const { data: players, error: playersError } = await supabaseAdmin
-      .from('players')
-      .select(`
-        id,
-        name,
-        surname,
-        position,
-        club,
-        football_league,
-        manager_id,
-        users:manager_id (
+    // Get all players in this league with their current manager assignments.
+    // Paged: an unpaged select silently stops at 1000 rows, which would have
+    // exported a fifth of a full ~5000-player pool as if it were the whole
+    // thing. The `id` tiebreaker keeps the sort total so no row is dropped or
+    // duplicated across page boundaries.
+    const players = await fetchAllRows<ExportPlayerRow>((from, to) =>
+      supabaseAdmin
+        .from('players')
+        .select(`
           id,
-          email,
-          first_name,
-          last_name
-        )
-      `)
-      .eq('league_id', leagueId)
-      .order('name', { ascending: true })
-
-    if (playersError) {
-      return NextResponse.json({
-        error: 'Failed to fetch players',
-        details: playersError.message
-      }, { status: 500 })
-    }
+          name,
+          surname,
+          position,
+          club,
+          football_league,
+          manager_id,
+          users:manager_id (
+            id,
+            email,
+            first_name,
+            last_name
+          )
+        `)
+        .eq('league_id', leagueId)
+        .order('name', { ascending: true })
+        .order('id', { ascending: true })
+        .range(from, to)
+    )
 
     // Get squad/team name for each manager
     const { data: squads, error: squadsError } = await supabaseAdmin

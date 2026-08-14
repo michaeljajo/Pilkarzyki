@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { resolveDraftAccess } from '@/lib/draft-helpers'
+import { fetchAllRows } from '@/lib/fetch-all-rows'
 
 /**
  * Consolidated snapshot for the mid-season draft screen. Returns the latest
@@ -56,11 +57,18 @@ export async function GET(
       email: s.users?.email || '',
     }))
 
-    const { data: players } = await supabaseAdmin
-      .from('players')
-      .select('id, name, surname, club, football_league, position, manager_id')
-      .eq('league_id', leagueId)
-      .order('surname', { ascending: true })
+    // Paged: an unpaged select silently stops at 1000 rows and a full pool is
+    // ~5000. The `id` tiebreaker keeps the sort total, otherwise rows shift
+    // between pages and get both duplicated and dropped.
+    const players = await fetchAllRows((from, to) =>
+      supabaseAdmin
+        .from('players')
+        .select('id, name, surname, club, football_league, position, manager_id')
+        .eq('league_id', leagueId)
+        .order('surname', { ascending: true })
+        .order('id', { ascending: true })
+        .range(from, to)
+    )
 
     const drops = draft
       ? (await supabaseAdmin

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { resolveDraftAccess } from '@/lib/draft-helpers'
+import { fetchAllRows } from '@/lib/fetch-all-rows'
 
 // Consolidated draft snapshot. Called on load and re-fetched by clients on any
 // realtime event, so it is the single source of truth for the draft screen and
@@ -79,12 +80,19 @@ export async function GET(
       email: s.users?.email || '',
     }))
 
-    // Player pool for the league.
-    const { data: players } = await supabaseAdmin
-      .from('players')
-      .select('id, name, surname, club, football_league, position')
-      .eq('league_id', leagueId)
-      .order('surname', { ascending: true })
+    // Player pool for the league. Paged: a full pool is ~5000 and an unpaged
+    // select silently stops at 1000, so the board would show a fifth of it.
+    // The `id` tiebreaker keeps the sort total, otherwise rows shift between
+    // pages and get both duplicated and dropped.
+    const players = await fetchAllRows((from, to) =>
+      supabaseAdmin
+        .from('players')
+        .select('id, name, surname, club, football_league, position')
+        .eq('league_id', leagueId)
+        .order('surname', { ascending: true })
+        .order('id', { ascending: true })
+        .range(from, to)
+    )
 
     // All confirmed picks for this draft.
     const picks = draft
