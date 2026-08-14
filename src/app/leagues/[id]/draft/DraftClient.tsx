@@ -145,6 +145,10 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
   // indicator so a silent socket is visible on screen instead of looking like
   // a draft where nobody is picking.
   const [realtimeOk, setRealtimeOk] = useState(false)
+  // Why a background refresh is failing, or null while it is healthy. The
+  // board stays on screen showing the last good data; this only warns that it
+  // may have stopped moving, and says what to do about it.
+  const [refreshFailing, setRefreshFailing] = useState<string | null>(null)
   // The channel takes a moment to open, and a warning that appears on every
   // load and then vanishes is just noise. Only start telling the truth about
   // the socket once it has had a fair chance to connect.
@@ -171,12 +175,40 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
   // for nothing. Compare first, set only on a real change.
   const snapSigRef = useRef('')
   const msgSigRef = useRef('')
+  // One snapshot request at a time. Polling every 4s against a request that
+  // has gone slow would otherwise stack requests on top of each other and make
+  // the slowness worse.
+  const snapInFlight = useRef(false)
+  const msgInFlight = useRef(false)
 
-  const fetchSnapshot = useCallback(async () => {
+  /**
+   * @param background true for the poll and for realtime-driven refetches.
+   *
+   * A background refresh that fails must never take the draft off the screen.
+   * It reports upward instead, the board keeps showing the last good data, and
+   * the next successful poll clears it. Only the very first load -- where there
+   * is nothing to show yet -- is allowed to fail fatally.
+   */
+  const fetchSnapshot = useCallback(async (background = false) => {
+    if (background && snapInFlight.current) return
+    snapInFlight.current = true
     try {
       const res = await fetch(`/api/leagues/${leagueId}/draft`, { cache: 'no-store' })
       if (!res.ok) {
+        // An expired Clerk session comes back from the middleware as a
+        // redirect, not as JSON, so there is usually no body.error to show.
+        // That is the one failure a reload genuinely fixes, so name it instead
+        // of blaming the connection and leaving the user guessing.
         const body = await res.json().catch(() => ({}))
+        const expired = res.status === 401 || res.status === 403
+        if (background && snapSigRef.current) {
+          setRefreshFailing(
+            expired
+              ? 'Sesja wygasła — odśwież stronę, aby wrócić do draftu.'
+              : 'Brak połączenia z serwerem — dane mogą być nieaktualne.'
+          )
+          return
+        }
         setError(body.error || 'Nie udało się wczytać draftu.')
         return
       }
@@ -187,14 +219,22 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
         setSnap(data)
       }
       setError(null)
+      setRefreshFailing(null)
     } catch {
+      if (background && snapSigRef.current) {
+        setRefreshFailing('Brak połączenia z serwerem — dane mogą być nieaktualne.')
+        return
+      }
       setError('Nie udało się wczytać draftu.')
     } finally {
+      snapInFlight.current = false
       setLoading(false)
     }
   }, [leagueId])
 
-  const fetchMessages = useCallback(async () => {
+  const fetchMessages = useCallback(async (background = false) => {
+    if (background && msgInFlight.current) return
+    msgInFlight.current = true
     try {
       const res = await fetch(`/api/leagues/${leagueId}/draft/messages`, { cache: 'no-store' })
       if (res.ok) {
@@ -207,14 +247,16 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
         }
       }
     } catch {
-      // non-fatal
+      // non-fatal: the snapshot poll is what reports a broken connection
+    } finally {
+      msgInFlight.current = false
     }
   }, [leagueId])
 
   // Initial load
   useEffect(() => {
     fetchSnapshot()
-    fetchMessages()
+    fetchMessages(true)
   }, [fetchSnapshot, fetchMessages])
 
   // Notifications permission
@@ -232,16 +274,16 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
     const channel = supabase
       .channel(`draft-${draftId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'drafts', filter: `id=eq.${draftId}` }, () => {
-        fetchSnapshot()
+        fetchSnapshot(true)
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'draft_picks', filter: `draft_id=eq.${draftId}` }, () => {
-        fetchSnapshot()
+        fetchSnapshot(true)
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'draft_delegations', filter: `draft_id=eq.${draftId}` }, () => {
-        fetchSnapshot()
+        fetchSnapshot(true)
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'draft_messages', filter: `draft_id=eq.${draftId}` }, () => {
-        fetchMessages()
+        fetchMessages(true)
       })
       // subscribe() used to be called bare, which swallowed the reason a
       // channel never opened. The socket can fail for reasons the code cannot
@@ -271,8 +313,8 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
 
     const refetch = () => {
       if (document.visibilityState !== 'visible') return
-      fetchSnapshot()
-      fetchMessages()
+      fetchSnapshot(true)
+      fetchMessages(true)
     }
     const onWake = () => {
       if (document.visibilityState === 'visible') refetch()
@@ -396,7 +438,7 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
         return false
       }
       if (successMsg) toast.success(successMsg)
-      await fetchSnapshot()
+      await fetchSnapshot(true)
       return true
     } catch {
       toast.error('Błąd połączenia.')
@@ -429,7 +471,7 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
         return false
       }
       toast.success(delegateUserId ? 'Zastępca wyznaczony.' : 'Zastępstwo odwołane.')
-      await fetchSnapshot()
+      await fetchSnapshot(true)
       return true
     } catch {
       toast.error('Błąd połączenia.')
@@ -456,7 +498,7 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
         return false
       }
       toast.success('Dodano zawodnika.')
-      await fetchSnapshot()
+      await fetchSnapshot(true)
       return true
     } catch {
       toast.error('Błąd połączenia.')
@@ -480,7 +522,7 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
         return false
       }
       toast.success('Zapisano zmiany zawodnika.')
-      await fetchSnapshot()
+      await fetchSnapshot(true)
       return true
     } catch {
       toast.error('Błąd połączenia.')
@@ -502,7 +544,7 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
         const data = await res.json().catch(() => ({}))
         toast.error(data.error || 'Nie udało się wysłać wiadomości.')
       } else {
-        fetchMessages()
+        fetchMessages(true)
       }
     } catch {
       toast.error('Nie udało się wysłać wiadomości.')
@@ -524,7 +566,12 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
   if (loading) {
     return <div className="py-16 text-center text-gray-500">Wczytywanie draftu…</div>
   }
-  if (error) {
+  // Only fatal when there is no draft to fall back on. Once the board has
+  // loaded it stays up: a refresh that fails mid-draft is reported in place
+  // (see the notice above the board) rather than replacing everything, which
+  // used to wipe the screen on a single blocked request and needed a manual
+  // reload to come back.
+  if (error && !snap) {
     return <div className="py-16 text-center text-red-600">{error}</div>
   }
   if (!snap || !snap.draft) {
@@ -619,13 +666,18 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
       {/* LIVE / FINISHED — shared board */}
       {(status === 'live' || status === 'finished') && (
         <>
-        {/* Only ever rendered when the live socket is down, so a working draft
-            looks exactly as it did before. */}
-        {status === 'live' && !realtimeOk && graceElapsed && (
+        {/* Two different problems, so two different messages. A failing
+            refresh is the serious one -- the board is frozen and needs the
+            user to act -- so it wins and the milder notice is suppressed. */}
+        {status === 'live' && refreshFailing ? (
+          <div className="mb-3 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800">
+            Brak połączenia z serwerem — dane mogą być nieaktualne. Odśwież stronę, jeśli to nie ustąpi.
+          </div>
+        ) : status === 'live' && !realtimeOk && graceElapsed ? (
           <div className="mb-3 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-800">
             Połączenie na żywo nieaktywne — odświeżam automatycznie co {POLL_INTERVAL_MS / 1000} s.
           </div>
-        )}
+        ) : null}
         <DraftLiveBoard
           roundLabel={`Runda ${snap.draft.round} z ${snap.draft.total_rounds}`}
           status={status as 'live' | 'finished'}
