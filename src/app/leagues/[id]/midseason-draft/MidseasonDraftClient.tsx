@@ -262,6 +262,13 @@ export default function MidseasonDraftClient({ leagueId }: { leagueId: string })
   const status = draft?.status ?? null
   const myManagerId = managers.find((m) => m.squadId === access.mySquadId)?.managerId ?? null
 
+  // Only the rest of the current round is knowable here. Mid-season rebuilds
+  // the next round from whoever still has quota left, so guessing pick_order[0]
+  // would name a manager who may have finished — better to show nothing.
+  const nextSquadId = draft?.status === 'live' && (draft.current_queue?.length || 0) > 1
+    ? draft.current_queue[1]
+    : null
+
   const handleSetDelegate = async (squadId: string, delegateUserId: string | null) => {
     try {
       const res = await fetch(`/api/leagues/${leagueId}/draft-delegation`, {
@@ -354,6 +361,7 @@ export default function MidseasonDraftClient({ leagueId }: { leagueId: string })
           managers={managers}
           onClockSquadId={snap.onTheClockSquadId}
           onClockManagerId={snap.onTheClockManagerId}
+          nextSquadId={nextSquadId}
           isAdmin={access.isAdmin}
           myTurn={access.myTurn}
           delegations={snap.delegations || []}

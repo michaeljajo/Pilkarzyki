@@ -238,6 +238,18 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
   }, [snap?.managers])
 
   const onClockManager = snap ? managersByManagerId.get(snap.onTheClockManagerId || '') : undefined
+
+  // Who picks after the current manager. The queue holds the remainder of the
+  // current round; when it runs out the next round restarts from pick_order.
+  // Past the final round there is no next pick, so show nothing rather than
+  // wrapping around to the top of the order.
+  const nextSquadId = useMemo(() => {
+    const draft = snap?.draft
+    if (!draft || draft.status !== 'live') return null
+    const queue = draft.current_queue || []
+    if (queue.length > 1) return queue[1]
+    return draft.round < draft.total_rounds ? draft.pick_order?.[0] ?? null : null
+  }, [snap?.draft])
   const status = snap?.draft?.status
   const isAdmin = !!snap?.access.isAdmin
   const myTurn = !!snap?.access.myTurn
@@ -536,6 +548,7 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
           managers={snap.managers}
           onClockSquadId={snap.onTheClockSquadId}
           onClockManagerId={snap.onTheClockManagerId}
+          nextSquadId={nextSquadId}
           isAdmin={isAdmin}
           myTurn={myTurn}
           delegations={snap.delegations || []}

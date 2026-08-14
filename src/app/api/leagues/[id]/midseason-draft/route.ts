@@ -57,6 +57,23 @@ export async function GET(
       email: s.users?.email || '',
     }))
 
+    // Present squads in draft order. The squads table has no meaningful order
+    // of its own, so without this the roster listed managers however Postgres
+    // happened to return them — which bears no relation to who picks next and
+    // made the panel unreadable as a running order. Squads missing from
+    // pick_order (and every squad before the draft starts, when it is empty)
+    // fall to the end, sorted by name so the list is at least stable.
+    const pickOrder: string[] = Array.isArray(draft?.pick_order) ? draft!.pick_order : []
+    const orderIndex = new Map(pickOrder.map((squadId, i) => [squadId, i]))
+    const displayName = (m: (typeof managers)[number]) =>
+      m.teamName || [m.firstName, m.lastName].filter(Boolean).join(' ').trim() || m.email || ''
+    managers.sort((a, b) => {
+      const ai = orderIndex.get(a.squadId) ?? Number.MAX_SAFE_INTEGER
+      const bi = orderIndex.get(b.squadId) ?? Number.MAX_SAFE_INTEGER
+      if (ai !== bi) return ai - bi
+      return displayName(a).localeCompare(displayName(b), 'pl')
+    })
+
     // Paged: an unpaged select silently stops at 1000 rows and a full pool is
     // ~5000. The `id` tiebreaker keeps the sort total, otherwise rows shift
     // between pages and get both duplicated and dropped.

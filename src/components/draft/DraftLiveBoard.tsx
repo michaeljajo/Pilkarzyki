@@ -174,6 +174,8 @@ interface DraftLiveBoardProps {
   managers: BoardManager[]
   onClockSquadId: string | null
   onClockManagerId: string | null
+  /** Squad that picks after the one on the clock — shown in the header. */
+  nextSquadId?: string | null
   isAdmin: boolean
   myTurn: boolean
   /** Active stand-ins for this draft; drives the "acting for" mode. */
@@ -229,6 +231,7 @@ export function DraftLiveBoard({
   managers,
   onClockSquadId,
   onClockManagerId,
+  nextSquadId,
   isAdmin,
   myTurn,
   delegations,
@@ -348,7 +351,28 @@ export function DraftLiveBoard({
     setFilters(EMPTY_PLAYER_FILTERS)
   }
 
+  const managersBySquad = useMemo(() => {
+    const map = new Map<string, BoardManager>()
+    managers.forEach((m) => map.set(m.squadId, m))
+    return map
+  }, [managers])
+
+  const playersById = useMemo(() => {
+    const map = new Map<string, BoardPlayer>()
+    players.forEach((p) => map.set(p.id, p))
+    return map
+  }, [players])
+
   const onClockManager = managersByManagerId.get(onClockManagerId || '')
+  const nextManager = nextSquadId ? managersBySquad.get(nextSquadId) : undefined
+
+  // The most recent pick, for the "who just took whom" line.
+  const lastPick = useMemo(
+    () => picks.reduce<BoardPick | null>((best, p) => (!best || p.pick_number > best.pick_number ? p : best), null),
+    [picks]
+  )
+  const lastPickPlayer = lastPick ? playersById.get(lastPick.player_id) : undefined
+  const lastPickManager = lastPick ? managersBySquad.get(lastPick.squad_id) : undefined
 
   // Whose turn it is decides this, never the viewer: a stand-in can only pick
   // while the squad they cover is actually on the clock, and their own turn
@@ -389,14 +413,59 @@ export function DraftLiveBoard({
 
       <div className="shrink-0 flex flex-wrap items-start justify-between gap-3">
         {status === 'live' ? (
-          <p className="min-w-0 truncate text-gray-600 md:whitespace-normal">
-            <span className="md:hidden">{roundLabel} · Teraz: </span>
-            <span className="hidden md:inline">{roundLabel} · Teraz wybiera: </span>
-            <span className="font-semibold text-gray-900">{managerName(onClockManager)}</span>
-            {onClockDelegate && (
-              <span className="ml-2 text-amber-700">(zastępstwo: {managerName(onClockDelegate)})</span>
+          /* Chronological: what just happened, what is happening, what is next.
+             The middle line stays the loud one — it is the only one anybody has
+             to act on. Each line is ordinary inline text rather than flex
+             children, so it wraps as a sentence instead of breaking into a
+             column of fragments on a narrow screen. */
+          <div className="min-w-0 space-y-0.5">
+            {lastPick && (
+              <p className="hidden md:block text-sm text-gray-500">
+                Poprzedni wybór:{' '}
+                <span className="font-medium text-gray-700">{managerName(lastPickManager)}</span>
+                {' — '}
+                <span className="font-medium text-gray-700">
+                  {lastPickPlayer ? `${lastPickPlayer.name} ${lastPickPlayer.surname}`.trim() : '—'}
+                </span>
+                {lastPickPlayer?.club && <> · {lastPickPlayer.club}</>}
+                {lastPickPlayer && (
+                  <>
+                    {' '}
+                    <LeagueFlag league={lastPickPlayer.football_league} height={11} />
+                  </>
+                )}
+                {lastPickPlayer && <> · {positionLabel(lastPickPlayer.position)}</>}
+              </p>
             )}
-          </p>
+
+            <p className="text-gray-600 truncate md:whitespace-normal">
+              <span className="md:hidden">{roundLabel} · Teraz: </span>
+              <span className="hidden md:inline">{roundLabel} · Teraz wybiera: </span>
+              <span className="text-lg font-bold text-gray-900">{managerName(onClockManager)}</span>
+              {onClockDelegate && (
+                <span className="ml-2 text-amber-700">(zastępstwo: {managerName(onClockDelegate)})</span>
+              )}
+            </p>
+
+            {/* Phone: previous and next collapse into one truncated line —
+                three wrapping sentences ate half the screen above the pool. */}
+            <p className="md:hidden text-xs text-gray-500 truncate">
+              {lastPickPlayer && (
+                <>
+                  ← {`${lastPickPlayer.name} ${lastPickPlayer.surname}`.trim()} ({managerName(lastPickManager)})
+                </>
+              )}
+              {lastPickPlayer && nextManager && ' · '}
+              {nextManager && <>→ {managerName(nextManager)}</>}
+            </p>
+
+            {nextManager && (
+              <p className="hidden md:block text-sm text-gray-500">
+                Następny wybiera:{' '}
+                <span className="font-medium text-gray-700">{managerName(nextManager)}</span>
+              </p>
+            )}
+          </div>
         ) : (
           <p className="text-gray-600">Draft zakończony</p>
         )}
