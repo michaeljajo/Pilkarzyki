@@ -47,24 +47,6 @@ function PlayerLine({ player }: { player: Player }) {
   )
 }
 
-/** A labelled sub-list (used for the two "żelazny skład" selections). */
-function PlayerLineList({ label, players }: { label: string; players: Player[] }) {
-  return (
-    <div>
-      <p className="text-[11px] font-semibold text-[#6B7280]">{label}</p>
-      {players.length === 0 ? (
-        <p className="mt-0.5 text-[11px] text-[#6B7280]">brak</p>
-      ) : (
-        <ul className="mt-0.5 space-y-0.5">
-          {players.map((p) => (
-            <PlayerLine key={p.id} player={p} />
-          ))}
-        </ul>
-      )}
-    </div>
-  )
-}
-
 interface Manager {
   id: string
   first_name?: string
@@ -225,13 +207,6 @@ export default function SquadsPage({ params }: SquadsPageProps) {
                             ))}
                           </ul>
 
-                          <PlayerLineList label="Żelazny skład ligowy" players={squad.defaultLineup} />
-                          {squadsData.hasCup && (
-                            <PlayerLineList
-                              label="Żelazny skład pucharowy"
-                              players={squad.defaultCupLineup}
-                            />
-                          )}
                         </div>
                       )}
                     </div>
