@@ -1,8 +1,10 @@
 'use client'
 
 import { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
+import { ListChecks, MessageSquare, SlidersHorizontal, Users, type LucideIcon } from 'lucide-react'
 import { LeagueFlag } from '@/components/ui/LeagueFlag'
 import { FilterCombo } from '@/components/ui/FilterCombo'
+import { Modal } from '@/components/ui/Modal'
 import {
   POSITION_LABEL_PL,
   positionLabel,
@@ -90,9 +92,11 @@ function Roster({
     })
 
   return (
-    <div className="rounded-xl border border-gray-200 p-4">
-      <h2 className="text-lg font-semibold text-gray-900 mb-3">Składy</h2>
-      <div className="space-y-3 max-h-[420px] overflow-auto">
+    /* Phone: fills whatever height its tab panel hands it, so only the list of
+       squads scrolls. Fixed cap from md, where it is a sidebar again. */
+    <div className="rounded-xl border border-gray-200 p-4 flex flex-col flex-1 min-h-0 md:block md:flex-none">
+      <h2 className="shrink-0 text-lg font-semibold text-gray-900 mb-3">Składy</h2>
+      <div className="flex-1 min-h-0 space-y-3 overflow-auto overscroll-contain md:max-h-[420px] md:flex-none">
         {managers.map((m) => {
           const mp = picksBySquad.get(m.squadId) || []
           const onClock = m.squadId === onClockSquadId
@@ -171,6 +175,15 @@ interface DraftLiveBoardProps {
   ) => Promise<boolean>
 }
 
+type MobileTab = 'pool' | 'chat' | 'roster'
+
+/** Phone-only sections, in bar order. "Czat" is dropped when there is no chat. */
+const MOBILE_TABS: { id: MobileTab; label: string; Icon: LucideIcon }[] = [
+  { id: 'pool', label: 'Draft', Icon: Users },
+  { id: 'chat', label: 'Czat', Icon: MessageSquare },
+  { id: 'roster', label: 'Składy', Icon: ListChecks },
+]
+
 const POSITION_OPTIONS_PL = ['Bramkarz', 'Obrońca', 'Pomocnik', 'Napastnik']
 const POSITION_EN_BY_PL: Record<string, string> = {
   Bramkarz: 'Goalkeeper',
@@ -203,6 +216,12 @@ export function DraftLiveBoard({
   const [search, setSearch] = useState('')
   const [filters, setFilters] = useState<PlayerFilters>(EMPTY_PLAYER_FILTERS)
   const [pending, setPending] = useState<string | null>(null)
+
+  // Phone only: pool, chat and rosters are peers reached from a bottom bar
+  // instead of being stacked into one very long scroll behind a thousand
+  // players. Ignored from md up, where they all fit on screen at once.
+  const [mobileTab, setMobileTab] = useState<MobileTab>('pool')
+  const [showFilters, setShowFilters] = useState(false)
 
   const [showAdd, setShowAdd] = useState(false)
   const [addForm, setAddForm] = useState({ fullName: '', footballLeague: '', club: '', position: 'Napastnik' })
@@ -289,6 +308,9 @@ export function DraftLiveBoard({
   )
 
   const filtersActive = Boolean(search) || hasActiveFilters(filters)
+  // Badge on the phone's Filtry button — the dropdowns themselves are behind a
+  // sheet there, so this is the only sign that any are set.
+  const activeFilterCount = Object.values(filters).filter(Boolean).length
   const clearFilters = () => {
     setSearch('')
     setFilters(EMPTY_PLAYER_FILTERS)
@@ -297,17 +319,24 @@ export function DraftLiveBoard({
   const onClockManager = managersByManagerId.get(onClockManagerId || '')
 
   return (
-    <div className="space-y-6">
+    /* Phone: the screen is exactly one viewport tall and never scrolls as a
+       whole — only the player list and the chat log scroll, inside themselves.
+       The height budget is dvh (so Safari's collapsing URL bar is handled) minus
+       the 4rem takeover header and the 1rem top padding of <main>; the tab bar is
+       the last flex item, so it lands on the viewport edge without any magic
+       numbers. From md this reverts to ordinary page flow. */
+    <div className="flex flex-col h-[calc(100dvh-5rem)] overflow-hidden space-y-4 md:h-auto md:block md:overflow-visible md:space-y-6">
       {status === 'live' && myTurn && (
-        <div className="rounded-xl bg-[#29544D] text-white px-6 py-4 text-center text-xl font-bold shadow-lg animate-pulse">
+        <div className="shrink-0 rounded-xl bg-[#29544D] text-white px-6 py-2.5 text-center text-lg font-bold shadow-lg animate-pulse md:py-4 md:text-xl">
           TWOJA KOLEJ!
         </div>
       )}
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="shrink-0 flex flex-wrap items-center justify-between gap-3">
         {status === 'live' ? (
-          <p className="text-gray-600">
-            {roundLabel} · Teraz wybiera:{' '}
+          <p className="min-w-0 truncate text-gray-600 md:whitespace-normal">
+            <span className="md:hidden">{roundLabel} · Teraz: </span>
+            <span className="hidden md:inline">{roundLabel} · Teraz wybiera: </span>
             <span className="font-semibold text-gray-900">{managerName(onClockManager)}</span>
           </p>
         ) : (
@@ -316,45 +345,92 @@ export function DraftLiveBoard({
         {canAdd && (
           <button
             onClick={() => setShowAdd(true)}
-            className="text-sm whitespace-nowrap px-3 py-2 rounded-md bg-[#29544D] text-white hover:bg-[#1f423c]"
+            className="shrink-0 text-sm whitespace-nowrap px-3 py-2 rounded-md bg-[#29544D] text-white hover:bg-[#1f423c]"
           >
-            + Dodaj zawodnika
+            <span className="md:hidden">+ Dodaj</span>
+            <span className="hidden md:inline">+ Dodaj zawodnika</span>
           </button>
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left: player pool */}
-        <div className="lg:col-span-2 space-y-4">
+      {/* Two columns only from xl. At lg the pool column resolved to ~696px,
+          which the name column had to share with 565px of fixed metadata columns
+          — it got the ~80px left over and every player read as "Fr…". Below xl
+          the pool takes the full width and chat/rosters stack underneath it. */}
+      <div className="flex-1 min-h-0 grid grid-cols-1 xl:grid-cols-3 gap-6">
+        {/* Left: player pool. On a phone it is a flex column that hands all the
+            leftover height to the list, so the list scrolls and the page does
+            not. */}
+        <div
+          className={`${
+            mobileTab === 'pool' ? 'flex' : 'hidden md:block'
+          } flex-col min-h-0 space-y-4 md:block xl:col-span-2`}
+        >
           {isAdmin && status === 'live' && (
-            <div className="flex flex-wrap gap-2 p-3 rounded-lg bg-amber-50 border border-amber-200">
-              <span className="text-sm font-medium text-amber-800 self-center mr-2">Panel administratora:</span>
+            <div className="shrink-0 flex flex-wrap gap-2 p-3 rounded-lg bg-amber-50 border border-amber-200">
+              {/* The label is a heading for a two-button row; on a phone it only
+                  forces the buttons onto a second line, so it waits for md. */}
+              <span className="hidden md:inline text-sm font-medium text-amber-800 self-center mr-2">
+                Panel administratora:
+              </span>
               <button
                 onClick={onSkip}
                 disabled={submitting}
-                className="text-sm whitespace-nowrap px-3 py-1.5 rounded-md bg-amber-600 text-white hover:bg-amber-700 disabled:opacity-50"
+                className="flex-1 md:flex-none text-sm whitespace-nowrap px-3 py-1.5 rounded-md bg-amber-600 text-white hover:bg-amber-700 disabled:opacity-50"
               >
                 Pomiń kolejkę
               </button>
               <button
                 onClick={onUndo}
                 disabled={submitting || picks.length === 0}
-                className="text-sm whitespace-nowrap px-3 py-1.5 rounded-md bg-gray-700 text-white hover:bg-gray-800 disabled:opacity-50"
+                className="flex-1 md:flex-none text-sm whitespace-nowrap px-3 py-1.5 rounded-md bg-gray-700 text-white hover:bg-gray-800 disabled:opacity-50"
               >
-                Cofnij ostatni wybór
+                <span className="md:hidden">Cofnij wybór</span>
+                <span className="hidden md:inline">Cofnij ostatni wybór</span>
               </button>
-              <span className="text-xs text-amber-700 self-center">
+              {/* Instructional, not actionable — costs two lines on a phone above
+                  the thing it describes, so it waits for the room. */}
+              <span className="hidden sm:inline text-xs text-amber-700 self-center">
                 Aby wybrać za nieobecnego menedżera, kliknij zawodnika i użyj „Wybierz za menedżera”.
               </span>
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+          {/* Phone: one row — search plus a Filtry button that opens a sheet.
+              Three dropdowns inline cost three whole lines above the pool. */}
+          <div className="shrink-0 flex gap-2 md:hidden">
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Szukaj zawodnika"
-              className="px-3 py-2 text-sm border border-gray-300 rounded-md sm:col-span-2 lg:col-span-1"
+              className="flex-1 min-w-0 px-3 py-2 text-sm bg-white border border-gray-300 rounded-md"
+            />
+            <button
+              type="button"
+              onClick={() => setShowFilters(true)}
+              className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-2 text-sm rounded-md border ${
+                activeFilterCount > 0
+                  ? 'border-[#29544D] text-[#29544D] bg-[#29544D]/5 font-medium'
+                  : 'border-gray-300 text-gray-700'
+              }`}
+            >
+              <SlidersHorizontal size={16} />
+              Filtry
+              {activeFilterCount > 0 && (
+                <span className="ml-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[#29544D] text-white text-[11px]">
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* Desktop keeps everything inline. */}
+          <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-2">
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Szukaj zawodnika"
+              className="px-3 py-2 text-sm border border-gray-300 rounded-md col-span-2 lg:col-span-1"
             />
             <FilterCombo
               label="Liga"
@@ -380,7 +456,7 @@ export function DraftLiveBoard({
           </div>
 
           {filtersActive && (
-            <div className="flex flex-wrap items-center justify-between gap-2 -mt-2">
+            <div className="shrink-0 flex flex-wrap items-center justify-between gap-2 -mt-2">
               <span className="text-xs text-gray-500">
                 Zawodnicy: {filteredPlayers.length} z {poolPlayers.length}
               </span>
@@ -394,116 +470,232 @@ export function DraftLiveBoard({
             </div>
           )}
 
-          <div className="border border-gray-200 rounded-lg overflow-hidden">
-            <div className="max-h-[560px] overflow-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 sticky top-0 z-10">
-                  <tr className="text-left text-gray-600">
-                    <th className="px-3 py-2 font-medium">Imię i Nazwisko</th>
-                    <th className="px-3 py-2 font-medium">Liga</th>
-                    <th className="px-3 py-2 font-medium">Klub</th>
-                    <th className="px-3 py-2 font-medium">Pozycja</th>
-                    <th className="px-3 py-2 font-medium"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredPlayers.map((p) => {
-                    const pick = pickByPlayer.get(p.id)
-                    const picked = !!pick
-                    const pickedBy = pick ? managersByManagerId.get(pick.manager_id) : undefined
-                    const isPending = pending === p.id
-                    const canPick = status === 'live' && !picked && (myTurn || isAdmin)
-                    return (
-                      <tr
-                        key={p.id}
-                        className={`border-t border-gray-100 ${
-                          picked ? 'bg-gray-50 text-gray-400' : isPending ? 'bg-[#29544D]/5' : 'hover:bg-gray-50'
-                        } ${canPick ? 'cursor-pointer' : ''}`}
-                        onClick={() => {
-                          if (!canPick) return
-                          setPending(isPending ? null : p.id)
-                        }}
-                      >
-                        <td className={`px-3 py-2 font-medium ${picked ? 'line-through' : ''}`}>{`${p.name} ${p.surname}`.trim()}</td>
-                        <td className="px-3 py-2">{p.football_league || '—'}</td>
-                        <td className="px-3 py-2">{p.club || '—'}</td>
-                        <td className="px-3 py-2">{positionLabel(p.position)}</td>
-                        <td className="px-3 py-2 text-right whitespace-nowrap">
-                          <span className="inline-flex items-center gap-1 justify-end">
-                          {canEdit && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                openEdit(p)
-                              }}
-                              title="Edytuj dane zawodnika"
-                              className="px-2 py-1 rounded border border-gray-300 text-gray-600 text-xs hover:bg-gray-50"
-                            >
-                              ✎
-                            </button>
-                          )}
-                          {picked ? (
-                            <span className="text-xs italic">Wybrany przez {managerName(pickedBy)}</span>
-                          ) : isPending ? (
-                            <span className="inline-flex gap-1" onClick={(e) => e.stopPropagation()}>
-                              {myTurn && (
-                                <button
-                                  onClick={() => onConfirmPick(p.id)}
-                                  disabled={submitting}
-                                  title="Potwierdź"
-                                  className="px-5 py-1 min-w-[56px] rounded bg-[#29544D] text-white hover:bg-[#1f423c] disabled:opacity-50"
-                                >
-                                  ✓
-                                </button>
-                              )}
-                              {isAdmin && !myTurn && (
-                                <button
-                                  onClick={() => onAdminPick(p.id)}
-                                  disabled={submitting}
-                                  className="px-2 py-1 rounded bg-amber-600 text-white text-xs hover:bg-amber-700 disabled:opacity-50"
-                                >
-                                  Wybierz za {managerName(onClockManager)}
-                                </button>
-                              )}
-                              <button
-                                onClick={() => setPending(null)}
-                                title="Anuluj"
-                                className="px-5 py-1 min-w-[56px] rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
-                              >
-                                ✕
-                              </button>
-                            </span>
-                          ) : null}
-                          </span>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                  {filteredPlayers.length === 0 && (
-                    <tr>
-                      <td colSpan={5} className="px-3 py-8 text-center text-gray-400">
-                        Brak zawodników pasujących do filtrów.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+          {/* The pool is a list, not a <table>. Below md each player is a
+              two-line card (name + action on top, league/club/position
+              underneath); from md the same nodes lay out as columns via
+              `md:contents` + `md:order`, so a phone never side-scrolls and there
+              is still exactly one DOM node per player — duplicating the markup
+              per breakpoint would double a list that runs to thousands of rows. */}
+          <div className="flex-1 min-h-0 flex flex-col border border-gray-200 rounded-lg overflow-hidden md:block md:flex-none">
+            <div className="hidden md:flex items-center gap-3 px-3 py-2 bg-gray-50 border-b border-gray-200 text-sm font-medium text-gray-600">
+              <span className="flex-1 min-w-[150px]">Imię i Nazwisko</span>
+              <span className="w-[104px] shrink-0">Liga</span>
+              <span className="w-[140px] shrink-0">Klub</span>
+              <span className="w-[92px] shrink-0">Pozycja</span>
+              <span className="w-[150px] shrink-0" aria-hidden />
             </div>
+            {/* The only scroller on the phone screen: fills the leftover height
+                rather than a fixed cap, so exactly as many players fit as there
+                is room for. The desktop cap stays. */}
+            <ul className="flex-1 min-h-0 overflow-y-auto overscroll-contain text-sm md:max-h-[560px] md:flex-none">
+              {filteredPlayers.map((p) => {
+                const pick = pickByPlayer.get(p.id)
+                const picked = !!pick
+                const pickedBy = pick ? managersByManagerId.get(pick.manager_id) : undefined
+                const isPending = pending === p.id
+                const canPick = status === 'live' && !picked && (myTurn || isAdmin)
+                return (
+                  <li
+                    key={p.id}
+                    className={`flex flex-col gap-1 px-3 py-2.5 border-t border-gray-100 md:flex-row md:items-center md:gap-3 md:py-2 ${
+                      picked ? 'bg-gray-50 text-gray-400' : isPending ? 'bg-[#29544D]/5' : 'hover:bg-gray-50'
+                    } ${canPick ? 'cursor-pointer' : ''}`}
+                    onClick={() => {
+                      if (!canPick) return
+                      setPending(isPending ? null : p.id)
+                    }}
+                  >
+                    {/* Phone: first line. From md these two become columns 1 and 5. */}
+                    <div className="flex flex-wrap items-center justify-between gap-2 md:contents">
+                      <span className={`min-w-0 truncate font-medium md:order-1 md:flex-1 md:min-w-[150px] ${picked ? 'line-through' : ''}`}>
+                        {`${p.name} ${p.surname}`.trim()}
+                      </span>
+                      {/* While confirming, the controls take a full line of their
+                          own on a phone: squeezed beside the name they clipped
+                          "Wybierz za <menedżer>" to an unreadable stub. */}
+                      <span
+                        className={`flex items-center justify-end gap-1 md:order-5 md:w-[150px] md:mt-0 md:shrink-0 ${
+                          isPending ? 'w-full mt-1' : 'shrink-0'
+                        }`}
+                      >
+                        {canEdit && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              openEdit(p)
+                            }}
+                            title="Edytuj dane zawodnika"
+                            aria-label="Edytuj dane zawodnika"
+                            className="shrink-0 px-2 py-1 rounded border border-gray-300 text-gray-600 text-xs hover:bg-gray-50"
+                          >
+                            ✎
+                          </button>
+                        )}
+                        {picked ? (
+                          // Capped and truncated: this label used to set the
+                          // table's min-content width and pushed the board into
+                          // horizontal scroll on a long manager name.
+                          <span
+                            className="text-xs italic truncate max-w-[120px] md:max-w-[150px]"
+                            title={`Wybrany przez ${managerName(pickedBy)}`}
+                          >
+                            Wybrany przez {managerName(pickedBy)}
+                          </span>
+                        ) : isPending ? (
+                          <span className="flex w-full items-center gap-1 md:w-auto" onClick={(e) => e.stopPropagation()}>
+                            {myTurn && (
+                              <button
+                                onClick={() => onConfirmPick(p.id)}
+                                disabled={submitting}
+                                title="Potwierdź"
+                                aria-label="Potwierdź wybór"
+                                className="flex-1 md:flex-none px-4 py-2 min-h-[40px] md:min-h-[36px] md:min-w-[52px] rounded bg-[#29544D] text-white font-medium hover:bg-[#1f423c] disabled:opacity-50"
+                              >
+                                ✓ <span className="md:hidden">Wybierz</span>
+                              </button>
+                            )}
+                            {isAdmin && !myTurn && (
+                              <button
+                                onClick={() => onAdminPick(p.id)}
+                                disabled={submitting}
+                                className="flex-1 md:flex-none min-w-0 px-2 py-2 min-h-[40px] md:min-h-[36px] rounded bg-amber-600 text-white text-xs hover:bg-amber-700 disabled:opacity-50"
+                              >
+                                <span className="block truncate">Wybierz za {managerName(onClockManager)}</span>
+                              </button>
+                            )}
+                            <button
+                              onClick={() => setPending(null)}
+                              title="Anuluj"
+                              aria-label="Anuluj"
+                              className="shrink-0 px-4 py-2 min-h-[40px] md:min-h-[36px] min-w-[52px] rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
+                            >
+                              ✕
+                            </button>
+                          </span>
+                        ) : null}
+                      </span>
+                    </div>
+
+                    {/* Phone: second line. From md these become columns 2–4. */}
+                    <div className="flex items-center gap-x-2 text-xs text-gray-500 md:contents">
+                      <span className="inline-flex items-center gap-1.5 md:order-2 md:w-[104px] md:shrink-0 md:text-sm">
+                        <LeagueFlag league={p.football_league} height={11} />
+                        {p.football_league || '—'}
+                      </span>
+                      <span className="md:hidden" aria-hidden>·</span>
+                      <span className="truncate md:order-3 md:w-[140px] md:shrink-0 md:text-sm">{p.club || '—'}</span>
+                      <span className="md:hidden" aria-hidden>·</span>
+                      <span className="whitespace-nowrap md:order-4 md:w-[92px] md:shrink-0 md:text-sm">
+                        {positionLabel(p.position)}
+                      </span>
+                    </div>
+                  </li>
+                )
+              })}
+              {filteredPlayers.length === 0 && (
+                <li className="px-3 py-8 text-center text-gray-400">Brak zawodników pasujących do filtrów.</li>
+              )}
+            </ul>
           </div>
         </div>
 
-        {/* Right: optional chat + roster */}
-        <div className="space-y-6">
-          {sideTop}
-          <Roster
-            managers={managers}
-            picks={picks}
-            players={players}
-            onClockSquadId={onClockSquadId}
-            slotCount={slotCount}
-          />
+        {/* Right: chat + rosters. On a phone these are peer tabs rather than a
+            continuation of the scroll below thousands of players. */}
+        <div className="min-h-0 flex flex-col space-y-6 md:block">
+          {sideTop && (
+            <div className={`${mobileTab === 'chat' ? 'flex' : 'hidden md:block'} flex-1 min-h-0 flex-col`}>
+              {sideTop}
+            </div>
+          )}
+          <div className={`${mobileTab === 'roster' ? 'flex' : 'hidden md:block'} flex-1 min-h-0 flex-col`}>
+            <Roster
+              managers={managers}
+              picks={picks}
+              players={players}
+              onClockSquadId={onClockSquadId}
+              slotCount={slotCount}
+            />
+          </div>
         </div>
       </div>
+
+      {/* Phone-only bottom navigation between the three panels. Mirrors the app's
+          own mobile tab bar, which this takeover route otherwise loses. In normal
+          flow as the last flex item rather than fixed, so it sits on the viewport
+          edge without the content reserving a guessed height for it. The negative
+          margin cancels <main>'s px-4 for a full-bleed bar. */}
+      <nav
+        className="md:hidden shrink-0 -mx-4 bg-white border-t border-gray-200 flex"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+        aria-label="Sekcje draftu"
+      >
+        {MOBILE_TABS.filter((t) => t.id !== 'chat' || !!sideTop).map(({ id, label, Icon }) => {
+          const active = mobileTab === id
+          return (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setMobileTab(id)}
+              aria-current={active ? 'page' : undefined}
+              className={`flex-1 min-h-[56px] flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium ${
+                active ? 'text-[#29544D]' : 'text-gray-500'
+              }`}
+            >
+              <Icon size={20} strokeWidth={active ? 2.4 : 2} />
+              {label}
+            </button>
+          )
+        })}
+      </nav>
+
+      {/* Filter sheet (phone) */}
+      <Modal
+        isOpen={showFilters}
+        onClose={() => setShowFilters(false)}
+        title="Filtry"
+        description="Zawęź listę zawodników."
+      >
+        <div className="space-y-3">
+          <FilterCombo
+            label="Liga"
+            value={filters.league}
+            options={options.league}
+            onChange={(v) => setFilter('league', v)}
+          />
+          <FilterCombo
+            label="Klub"
+            value={filters.club}
+            options={options.club}
+            onChange={(v) => setFilter('club', v)}
+          />
+          <FilterCombo
+            label="Pozycja"
+            value={filters.position ? positionLabel(filters.position) : ''}
+            options={options.position.map(positionLabel)}
+            onChange={(pl) => {
+              const en = Object.keys(POSITION_LABEL_PL).find((k) => POSITION_LABEL_PL[k] === pl) || ''
+              setFilter('position', en)
+            }}
+          />
+          <div className="flex gap-2 pt-1">
+            <button
+              type="button"
+              onClick={clearFilters}
+              disabled={!filtersActive}
+              className="flex-1 px-3 py-2.5 text-sm rounded-md border border-gray-300 text-gray-700 disabled:opacity-40"
+            >
+              Wyczyść
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowFilters(false)}
+              className="flex-1 px-3 py-2.5 text-sm rounded-md bg-[#29544D] text-white"
+            >
+              Pokaż {filteredPlayers.length}
+            </button>
+          </div>
+        </div>
+      </Modal>
 
       {/* Add player (admin) */}
       {showAdd && (

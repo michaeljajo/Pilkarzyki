@@ -32,7 +32,9 @@ export function DraftChat({
   }, [messages])
 
   return (
-    <div className="rounded-xl border border-gray-200 p-4 flex flex-col h-[360px]">
+    /* Phone: fills whatever height its tab panel hands it, so the log grows to
+       the screen and only the messages scroll. Fixed 360px box from md up. */
+    <div className="rounded-xl border border-gray-200 p-4 flex flex-col flex-1 min-h-0 md:flex-none md:h-[360px]">
       <h2 className="text-lg font-semibold text-gray-900 mb-3">Czat</h2>
       <div className="flex-1 overflow-auto space-y-2 pr-1">
         {messages.map((m) => (

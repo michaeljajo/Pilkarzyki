@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowLeft } from 'lucide-react'
 import { supabaseAdmin } from '@/lib/supabase'
+import { APP_CONTAINER } from '@/components/layout/appContainer'
 import { verifyLeagueAdmin } from '@/lib/auth-helpers'
 import MidseasonDraftClient from './MidseasonDraftClient'
 
@@ -48,7 +49,7 @@ export default async function MidseasonDraftPage({ params }: Props) {
     <div className="min-h-screen bg-white">
       {/* Takeover header: full-screen, no tab bar, with a single explicit exit. */}
       <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
-        <div className="max-w-[1100px] mx-auto h-16 px-4 flex items-center justify-between gap-3">
+        <div className={`${APP_CONTAINER} h-16 flex items-center justify-between gap-3`}>
           <div className="flex items-center gap-2 min-w-0">
             <Image src="/pilkarzyki-logo.png" alt="Piłkarzyki" width={120} height={30} priority />
             <span className="text-gray-400">/</span>
@@ -64,7 +65,11 @@ export default async function MidseasonDraftPage({ params }: Props) {
         </div>
       </header>
 
-      <main className="max-w-[1100px] mx-auto px-4 py-8">
+      {/* Phone: 1rem above, none below — the board is sized to exactly one
+          viewport (see DraftLiveBoard) and ends in its own tab bar, which
+          must meet the bottom edge. The height budget there assumes this
+          pt-4 and the h-16 header above. */}
+      <main className={`${APP_CONTAINER} pt-4 pb-0 md:py-8`}>
         <MidseasonDraftClient leagueId={leagueId} />
       </main>
     </div>
