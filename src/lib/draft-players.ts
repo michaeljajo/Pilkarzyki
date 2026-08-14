@@ -27,6 +27,27 @@ export function resolvePosition(raw: string): Position | null {
   return POSITION_MAP[normalizeKey(raw)] ?? null
 }
 
+/** English position enum -> Polish label, for display. */
+export const POSITION_LABEL_PL: Record<string, string> = {
+  Goalkeeper: 'Bramkarz',
+  Defender: 'Obrońca',
+  Midfielder: 'Pomocnik',
+  Forward: 'Napastnik',
+}
+
+/** Polish label for a position, falling back to the raw value. */
+export function positionLabel(pos: string): string {
+  return POSITION_LABEL_PL[pos] || pos
+}
+
+/**
+ * Lowercase + strip diacritics, so searching "zielinski" matches "Zieliński".
+ * Shared by the draft board and the admin player list so both filter alike.
+ */
+export function foldText(value: string): string {
+  return normalizeKey(value)
+}
+
 /** Splits a full name into { name, surname } — first token is the first name. */
 export function splitFullName(full: string): { name: string; surname: string } {
   const parts = full.trim().split(/\s+/)

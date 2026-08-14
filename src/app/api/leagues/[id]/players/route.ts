@@ -30,33 +30,47 @@ export async function GET(
       )
     }
 
-    // Fetch all players for this league with their manager information
-    // Note: players.league is a TEXT field containing league name, not a foreign key
-    const { data: players, error } = await supabaseAdmin
-      .from('players')
-      .select(`
-        id,
-        name,
-        surname,
-        position,
-        club,
-        league,
-        football_league,
-        manager:users!players_manager_id_fkey (
+    // Fetch all players for this league with their manager information.
+    // Note: players.league is a TEXT field containing league name, not a foreign key.
+    //
+    // Supabase caps a select at 1000 rows, and a full draft pool is ~5000, so
+    // page explicitly. Without this the admin screen silently showed the first
+    // 1000 players and gave no sign the rest existed.
+    const PAGE = 1000
+    const players: unknown[] = []
+    for (let from = 0; ; from += PAGE) {
+      const { data: page, error } = await supabaseAdmin
+        .from('players')
+        .select(`
           id,
-          first_name,
-          last_name
-        )
-      `)
-      .eq('league_id', leagueId)
-      .order('name', { ascending: true })
+          name,
+          surname,
+          position,
+          club,
+          league,
+          football_league,
+          manager:users!players_manager_id_fkey (
+            id,
+            first_name,
+            last_name
+          )
+        `)
+        .eq('league_id', leagueId)
+        .order('name', { ascending: true })
+        .order('surname', { ascending: true })
+        .order('id', { ascending: true })
+        .range(from, from + PAGE - 1)
 
-    if (error) {
-      console.error('Error fetching players:', error)
-      return NextResponse.json(
-        { error: 'Failed to fetch players' },
-        { status: 500 }
-      )
+      if (error) {
+        console.error('Error fetching players:', error)
+        return NextResponse.json(
+          { error: 'Failed to fetch players' },
+          { status: 500 }
+        )
+      }
+
+      players.push(...(page ?? []))
+      if (!page || page.length < PAGE) break
     }
 
     return NextResponse.json({ players })

@@ -2,6 +2,8 @@
 
 import { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { LeagueFlag } from '@/components/ui/LeagueFlag'
+import { FilterCombo } from '@/components/ui/FilterCombo'
+import { POSITION_LABEL_PL, positionLabel, foldText } from '@/lib/draft-players'
 
 // Shared presentational board for the live/finished draft, matching the
 // pre-season draft screen exactly. Used by the mid-season draft so the two look
@@ -31,103 +33,10 @@ export interface BoardPick {
   pick_number: number
 }
 
-const POSITION_PL: Record<string, string> = {
-  Goalkeeper: 'Bramkarz',
-  Defender: 'Obrońca',
-  Midfielder: 'Pomocnik',
-  Forward: 'Napastnik',
-}
-function positionLabel(pos: string): string {
-  return POSITION_PL[pos] || pos
-}
-function fold(value: string): string {
-  return value.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '')
-}
 function managerName(m: BoardManager | undefined | null): string {
   if (!m) return '—'
   const full = [m.firstName, m.lastName].filter(Boolean).join(' ').trim()
   return m.teamName || full || m.email || 'Menedżer'
-}
-
-function FilterCombo({
-  label,
-  value,
-  options,
-  onChange,
-}: {
-  label: string
-  value: string
-  options: string[]
-  onChange: (v: string) => void
-}) {
-  const [open, setOpen] = useState(false)
-  const [query, setQuery] = useState('')
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    function onClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', onClick)
-    return () => document.removeEventListener('mousedown', onClick)
-  }, [])
-
-  const filtered = useMemo(() => {
-    const q = fold(query)
-    return options.filter((o) => !q || fold(o).includes(q)).slice(0, 100)
-  }, [options, query])
-
-  return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center justify-between gap-2 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white hover:border-gray-400"
-      >
-        <span className={value ? 'text-gray-900' : 'text-gray-500'}>{value || label}</span>
-        <span className="text-gray-400">▾</span>
-      </button>
-      {open && (
-        <div className="absolute z-20 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-64 overflow-auto">
-          <div className="p-2 sticky top-0 bg-white border-b border-gray-100">
-            <input
-              autoFocus
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={`Szukaj ${label.toLowerCase()}...`}
-              className="w-full px-2 py-1 text-sm border border-gray-300 rounded"
-            />
-          </div>
-          <button
-            type="button"
-            onClick={() => {
-              onChange('')
-              setOpen(false)
-              setQuery('')
-            }}
-            className="w-full text-left px-3 py-2 text-sm text-gray-500 hover:bg-gray-50"
-          >
-            Wszystkie
-          </button>
-          {filtered.map((o) => (
-            <button
-              key={o}
-              type="button"
-              onClick={() => {
-                onChange(o)
-                setOpen(false)
-                setQuery('')
-              }}
-              className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 ${o === value ? 'font-semibold text-[#29544D]' : 'text-gray-800'}`}
-            >
-              {o}
-            </button>
-          ))}
-          {filtered.length === 0 && <div className="px-3 py-2 text-sm text-gray-400">Brak wyników</div>}
-        </div>
-      )}
-    </div>
-  )
 }
 
 function Roster({
@@ -353,9 +262,9 @@ export function DraftLiveBoard({
   }
 
   const filteredPlayers = useMemo(() => {
-    const q = fold(search)
+    const q = foldText(search)
     return poolPlayers.filter((p) => {
-      if (q && !fold(`${p.name} ${p.surname}`).includes(q)) return false
+      if (q && !foldText(`${p.name} ${p.surname}`).includes(q)) return false
       if (fLeague && p.football_league !== fLeague) return false
       if (fClub && p.club !== fClub) return false
       if (fPosition && p.position !== fPosition) return false
@@ -432,7 +341,7 @@ export function DraftLiveBoard({
               value={fPosition ? positionLabel(fPosition) : ''}
               options={distinct((p) => p.position).map(positionLabel)}
               onChange={(pl) => {
-                const en = Object.keys(POSITION_PL).find((k) => POSITION_PL[k] === pl) || ''
+                const en = Object.keys(POSITION_LABEL_PL).find((k) => POSITION_LABEL_PL[k] === pl) || ''
                 setFPosition(en)
               }}
             />

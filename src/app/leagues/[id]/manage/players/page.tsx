@@ -1,13 +1,19 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
+import { FilterCombo } from '@/components/ui/FilterCombo'
 import Link from 'next/link'
 import { Edit2 } from 'lucide-react'
-import { splitFullName } from '@/lib/draft-players'
+import {
+  splitFullName,
+  positionLabel,
+  POSITION_LABEL_PL,
+  foldText,
+} from '@/lib/draft-players'
 
 type Position = 'Goalkeeper' | 'Defender' | 'Midfielder' | 'Forward'
 
@@ -39,6 +45,39 @@ export default function LeaguePlayersPage() {
     footballLeague: '',
     position: 'Forward' as Position
   })
+
+  // Same filter set as the draft board: a ~5000-player pool is unusable without
+  // it. Filtering happens client-side over the full list, so the counts in the
+  // header always reflect the whole league, not a page of it.
+  const [search, setSearch] = useState('')
+  const [fLeague, setFLeague] = useState('')
+  const [fClub, setFClub] = useState('')
+  const [fPosition, setFPosition] = useState('')
+
+  const distinct = useCallback(
+    (selector: (p: Player) => string | null | undefined) => {
+      const set = new Set<string>()
+      players.forEach((p) => {
+        const v = selector(p)
+        if (v) set.add(v)
+      })
+      return Array.from(set).sort((a, b) => a.localeCompare(b, 'pl'))
+    },
+    [players]
+  )
+
+  const filteredPlayers = useMemo(() => {
+    const q = foldText(search)
+    return players.filter((p) => {
+      if (q && !foldText(`${p.name} ${p.surname}`).includes(q)) return false
+      if (fLeague && p.football_league !== fLeague) return false
+      if (fClub && p.club !== fClub) return false
+      if (fPosition && p.position !== fPosition) return false
+      return true
+    })
+  }, [players, search, fLeague, fClub, fPosition])
+
+  const hasFilters = Boolean(search || fLeague || fClub || fPosition)
 
   const fetchPlayers = useCallback(async () => {
     try {
@@ -159,7 +198,24 @@ export default function LeaguePlayersPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Zawodnicy ({players.length})</CardTitle>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <CardTitle>
+              Zawodnicy ({hasFilters ? `${filteredPlayers.length} z ${players.length}` : players.length})
+            </CardTitle>
+            {hasFilters && (
+              <button
+                onClick={() => {
+                  setSearch('')
+                  setFLeague('')
+                  setFClub('')
+                  setFPosition('')
+                }}
+                className="text-sm text-gray-600 hover:text-gray-900 underline"
+              >
+                Wyczyść filtry
+              </button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {players.length === 0 ? (
@@ -171,9 +227,46 @@ export default function LeaguePlayersPage() {
             </div>
           ) : (
             <>
+              {/* Same filter row as the draft board */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Szukaj zawodnika"
+                  className="px-3 py-2 text-sm border border-gray-300 rounded-md sm:col-span-2 lg:col-span-1"
+                />
+                <FilterCombo
+                  label="Liga"
+                  value={fLeague}
+                  options={distinct((p) => p.football_league)}
+                  onChange={setFLeague}
+                />
+                <FilterCombo
+                  label="Klub"
+                  value={fClub}
+                  options={distinct((p) => p.club)}
+                  onChange={setFClub}
+                />
+                <FilterCombo
+                  label="Pozycja"
+                  value={fPosition ? positionLabel(fPosition) : ''}
+                  options={distinct((p) => p.position).map(positionLabel)}
+                  onChange={(pl) => {
+                    const en = Object.keys(POSITION_LABEL_PL).find((k) => POSITION_LABEL_PL[k] === pl) || ''
+                    setFPosition(en)
+                  }}
+                />
+              </div>
+
+              {filteredPlayers.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  Brak zawodników spełniających kryteria
+                </div>
+              )}
+
               {/* Mobile Card View */}
               <div className="block sm:hidden space-y-3">
-                {players.map((player) => (
+                {filteredPlayers.map((player) => (
                   <div key={player.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                     <div className="flex justify-between items-start mb-2">
                       <div className="font-semibold text-base text-gray-900">
@@ -198,7 +291,7 @@ export default function LeaguePlayersPage() {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-500">Pozycja:</span>
-                        <span className="text-gray-900 font-medium">{player.position}</span>
+                        <span className="text-gray-900 font-medium">{positionLabel(player.position)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-500">Menedżer:</span>
@@ -213,59 +306,44 @@ export default function LeaguePlayersPage() {
                 ))}
               </div>
 
-              {/* Desktop Table View */}
-              <div className="hidden sm:block overflow-x-auto">
-                <div className="inline-block min-w-full align-middle">
-                  <div className="overflow-hidden shadow-sm ring-1 ring-black ring-opacity-5 rounded-lg">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Imię i Nazwisko
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Klub
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Liga
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Pozycja
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Menedżer
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Akcje
-                          </th>
+              {/* Desktop Table View — same structure as the draft board:
+                  scroll container with a sticky header, so a 5000-row pool
+                  stays navigable instead of pushing the page height. */}
+              {filteredPlayers.length > 0 && (
+                <div className="hidden sm:block border border-gray-200 rounded-lg overflow-hidden">
+                  <div className="max-h-[560px] overflow-auto">
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-50 sticky top-0 z-10">
+                        <tr className="text-left text-gray-600">
+                          <th className="px-3 py-2 font-medium">Imię i Nazwisko</th>
+                          <th className="px-3 py-2 font-medium">Liga</th>
+                          <th className="px-3 py-2 font-medium">Klub</th>
+                          <th className="px-3 py-2 font-medium">Pozycja</th>
+                          <th className="px-3 py-2 font-medium">Menedżer</th>
+                          <th className="px-3 py-2 font-medium"></th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {players.map((player) => (
-                          <tr key={player.id} className="hover:bg-gray-50 transition-colors">
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                              {player.name} {player.surname}
+                      <tbody>
+                        {filteredPlayers.map((player) => (
+                          <tr key={player.id} className="border-t border-gray-100 hover:bg-gray-50">
+                            <td className="px-3 py-2 font-medium text-gray-900">
+                              {`${player.name} ${player.surname}`.trim()}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {player.club}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {player.football_league || '-'}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {player.position}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="px-3 py-2">{player.football_league || '—'}</td>
+                            <td className="px-3 py-2">{player.club || '—'}</td>
+                            <td className="px-3 py-2">{positionLabel(player.position)}</td>
+                            <td className="px-3 py-2">
                               {player.manager
                                 ? `${player.manager.first_name} ${player.manager.last_name}`
                                 : 'Nieprzypisany'}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            <td className="px-3 py-2 text-right whitespace-nowrap">
                               <button
                                 onClick={() => handleEditClick(player)}
-                                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-md transition-colors"
+                                title="Edytuj dane zawodnika"
+                                className="inline-flex items-center gap-1 px-2 py-1 rounded border border-gray-300 text-gray-600 text-xs hover:bg-gray-50"
                               >
-                                <Edit2 size={16} />
+                                <Edit2 size={14} />
                                 Edytuj
                               </button>
                             </td>
@@ -275,7 +353,7 @@ export default function LeaguePlayersPage() {
                     </table>
                   </div>
                 </div>
-              </div>
+              )}
             </>
           )}
         </CardContent>
