@@ -55,3 +55,86 @@ export function splitFullName(full: string): { name: string; surname: string } {
   const surname = parts.length > 1 ? parts.slice(1).join(' ') : ''
   return { name, surname }
 }
+
+// ---------------------------------------------------------------------------
+// Player list filters (draft board + admin player list)
+// ---------------------------------------------------------------------------
+
+/** Minimum shape a row needs to be filtered by league / club / position. */
+export interface FilterablePlayer {
+  club?: string | null
+  football_league?: string | null
+  position: string
+}
+
+export interface PlayerFilters {
+  league: string
+  club: string
+  position: string
+}
+
+export type PlayerFilterKey = keyof PlayerFilters
+
+export const EMPTY_PLAYER_FILTERS: PlayerFilters = { league: '', club: '', position: '' }
+
+export function hasActiveFilters(filters: PlayerFilters): boolean {
+  return Boolean(filters.league || filters.club || filters.position)
+}
+
+const FIELD_OF: Record<PlayerFilterKey, (p: FilterablePlayer) => string | null> = {
+  league: (p) => p.football_league ?? null,
+  club: (p) => p.club ?? null,
+  position: (p) => p.position ?? null,
+}
+
+const FILTER_KEYS: PlayerFilterKey[] = ['league', 'club', 'position']
+
+/** True when a player satisfies every set filter (empty string = "all"). */
+export function matchesPlayerFilters(p: FilterablePlayer, filters: PlayerFilters): boolean {
+  return FILTER_KEYS.every((key) => !filters[key] || FIELD_OF[key](p) === filters[key])
+}
+
+function distinctSorted(pool: FilterablePlayer[], read: (p: FilterablePlayer) => string | null): string[] {
+  const set = new Set<string>()
+  pool.forEach((p) => {
+    const v = read(p)
+    if (v) set.add(v)
+  })
+  return Array.from(set).sort((a, b) => a.localeCompare(b, 'pl'))
+}
+
+/**
+ * Options for one filter, narrowed by the *other* active filters — picking the
+ * league "Anglia" leaves only English clubs in the club dropdown. The dimension's
+ * own selection is ignored so its current value never disappears from its list.
+ */
+export function playerFilterOptions(
+  pool: FilterablePlayer[],
+  filters: PlayerFilters,
+  key: PlayerFilterKey
+): string[] {
+  const others: PlayerFilters = { ...filters, [key]: '' }
+  return distinctSorted(
+    pool.filter((p) => matchesPlayerFilters(p, others)),
+    FIELD_OF[key]
+  )
+}
+
+/**
+ * Applies a filter change, dropping any *other* selection it strands (choosing
+ * league "Hiszpania" while club "Arsenal" is set). Without this the list would
+ * silently go empty for a reason the user cannot see. The filter just touched
+ * always wins.
+ */
+export function reconcilePlayerFilters(
+  pool: FilterablePlayer[],
+  next: PlayerFilters,
+  changed: PlayerFilterKey
+): PlayerFilters {
+  const result = { ...next }
+  for (const key of FILTER_KEYS) {
+    if (key === changed || !result[key]) continue
+    if (!pool.some((p) => matchesPlayerFilters(p, result))) result[key] = ''
+  }
+  return result
+}

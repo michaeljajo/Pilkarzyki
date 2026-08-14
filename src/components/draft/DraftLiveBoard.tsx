@@ -3,7 +3,18 @@
 import { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { LeagueFlag } from '@/components/ui/LeagueFlag'
 import { FilterCombo } from '@/components/ui/FilterCombo'
-import { POSITION_LABEL_PL, positionLabel, foldText } from '@/lib/draft-players'
+import {
+  POSITION_LABEL_PL,
+  positionLabel,
+  foldText,
+  EMPTY_PLAYER_FILTERS,
+  hasActiveFilters,
+  matchesPlayerFilters,
+  playerFilterOptions,
+  reconcilePlayerFilters,
+  type PlayerFilterKey,
+  type PlayerFilters,
+} from '@/lib/draft-players'
 
 // Shared presentational board for the live/finished draft, matching the
 // pre-season draft screen exactly. Used by the mid-season draft so the two look
@@ -190,9 +201,7 @@ export function DraftLiveBoard({
   onEditPlayer,
 }: DraftLiveBoardProps) {
   const [search, setSearch] = useState('')
-  const [fLeague, setFLeague] = useState('')
-  const [fClub, setFClub] = useState('')
-  const [fPosition, setFPosition] = useState('')
+  const [filters, setFilters] = useState<PlayerFilters>(EMPTY_PLAYER_FILTERS)
   const [pending, setPending] = useState<string | null>(null)
 
   const [showAdd, setShowAdd] = useState(false)
@@ -252,25 +261,38 @@ export function DraftLiveBoard({
     [players, poolIds]
   )
 
-  const distinct = (selector: (p: BoardPlayer) => string | null) => {
-    const set = new Set<string>()
-    poolPlayers.forEach((p) => {
-      const v = selector(p)
-      if (v) set.add(v)
-    })
-    return Array.from(set).sort((a, b) => a.localeCompare(b, 'pl'))
-  }
-
-  const filteredPlayers = useMemo(() => {
+  // The dropdowns narrow each other, so they read from the search-matched pool
+  // rather than the raw one — "Anglia" then only lists English clubs.
+  const searchedPlayers = useMemo(() => {
     const q = foldText(search)
-    return poolPlayers.filter((p) => {
-      if (q && !foldText(`${p.name} ${p.surname}`).includes(q)) return false
-      if (fLeague && p.football_league !== fLeague) return false
-      if (fClub && p.club !== fClub) return false
-      if (fPosition && p.position !== fPosition) return false
-      return true
-    })
-  }, [poolPlayers, search, fLeague, fClub, fPosition])
+    if (!q) return poolPlayers
+    return poolPlayers.filter((p) => foldText(`${p.name} ${p.surname}`).includes(q))
+  }, [poolPlayers, search])
+
+  // Memoised: the pool runs to thousands of rows and the board re-renders on
+  // every realtime pick.
+  const options = useMemo(
+    () => ({
+      league: playerFilterOptions(searchedPlayers, filters, 'league'),
+      club: playerFilterOptions(searchedPlayers, filters, 'club'),
+      position: playerFilterOptions(searchedPlayers, filters, 'position'),
+    }),
+    [searchedPlayers, filters]
+  )
+
+  const setFilter = (key: PlayerFilterKey, value: string) =>
+    setFilters((prev) => reconcilePlayerFilters(searchedPlayers, { ...prev, [key]: value }, key))
+
+  const filteredPlayers = useMemo(
+    () => searchedPlayers.filter((p) => matchesPlayerFilters(p, filters)),
+    [searchedPlayers, filters]
+  )
+
+  const filtersActive = Boolean(search) || hasActiveFilters(filters)
+  const clearFilters = () => {
+    setSearch('')
+    setFilters(EMPTY_PLAYER_FILTERS)
+  }
 
   const onClockManager = managersByManagerId.get(onClockManagerId || '')
 
@@ -334,18 +356,43 @@ export function DraftLiveBoard({
               placeholder="Szukaj zawodnika"
               className="px-3 py-2 text-sm border border-gray-300 rounded-md sm:col-span-2 lg:col-span-1"
             />
-            <FilterCombo label="Liga" value={fLeague} options={distinct((p) => p.football_league)} onChange={setFLeague} />
-            <FilterCombo label="Klub" value={fClub} options={distinct((p) => p.club)} onChange={setFClub} />
+            <FilterCombo
+              label="Liga"
+              value={filters.league}
+              options={options.league}
+              onChange={(v) => setFilter('league', v)}
+            />
+            <FilterCombo
+              label="Klub"
+              value={filters.club}
+              options={options.club}
+              onChange={(v) => setFilter('club', v)}
+            />
             <FilterCombo
               label="Pozycja"
-              value={fPosition ? positionLabel(fPosition) : ''}
-              options={distinct((p) => p.position).map(positionLabel)}
+              value={filters.position ? positionLabel(filters.position) : ''}
+              options={options.position.map(positionLabel)}
               onChange={(pl) => {
                 const en = Object.keys(POSITION_LABEL_PL).find((k) => POSITION_LABEL_PL[k] === pl) || ''
-                setFPosition(en)
+                setFilter('position', en)
               }}
             />
           </div>
+
+          {filtersActive && (
+            <div className="flex flex-wrap items-center justify-between gap-2 -mt-2">
+              <span className="text-xs text-gray-500">
+                Zawodnicy: {filteredPlayers.length} z {poolPlayers.length}
+              </span>
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="text-sm text-gray-600 hover:text-gray-900 underline"
+              >
+                Wyczyść filtry
+              </button>
+            </div>
+          )}
 
           <div className="border border-gray-200 rounded-lg overflow-hidden">
             <div className="max-h-[560px] overflow-auto">
