@@ -68,7 +68,21 @@ export default function LeaguePlayersImportPage() {
         body: formData,
       })
 
-      const data = await response.json()
+      // A platform-level failure (function timeout, gateway error) returns an
+      // HTML page, not JSON. Parsing that blindly threw a SyntaxError whose
+      // browser wording ("The string did not match the expected pattern")
+      // told the admin nothing about what actually went wrong.
+      const body = await response.text()
+      let data: { error?: string; result?: { imported?: number; skipped?: number } }
+      try {
+        data = JSON.parse(body)
+      } catch {
+        throw new Error(
+          `Serwer zwrócił nieoczekiwaną odpowiedź (HTTP ${response.status}). ` +
+          'Jeśli plik jest duży, import mógł przekroczyć limit czasu — ' +
+          'sprawdź listę zawodników przed ponowną próbą.'
+        )
+      }
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to import players')

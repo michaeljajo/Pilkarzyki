@@ -96,89 +96,132 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Process each row
+    // A full draft pool is ~5000 rows. Validating and de-duplicating in memory
+    // and inserting in chunks keeps this to roughly a dozen round-trips; the
+    // previous row-at-a-time SELECT+INSERT was two per row (~10k), which blew
+    // through the 30s function limit (vercel.json) and left a PARTIAL import
+    // behind, since there is no transaction spanning the loop.
+    const dedupeKey = (name: string, surname: string) =>
+      `${name.toLowerCase()}|${surname.toLowerCase()}`
+
+    // Every player already in this league, so the duplicate check costs one
+    // paged read instead of one query per row. Supabase caps a select at 1000
+    // rows by default, so page explicitly rather than silently seeing a prefix
+    // and re-inserting everyone past it.
+    const existingKeys = new Set<string>()
+    const PAGE = 1000
+    for (let from = 0; ; from += PAGE) {
+      const { data: page, error: existingError } = await supabaseAdmin
+        .from('players')
+        .select('name, surname')
+        .eq('league_id', leagueId)
+        .range(from, from + PAGE - 1)
+
+      if (existingError) {
+        return NextResponse.json(
+          { error: `Nie udało się odczytać istniejących zawodników: ${existingError.message}` },
+          { status: 500 }
+        )
+      }
+      for (const p of page ?? []) existingKeys.add(dedupeKey(p.name ?? '', p.surname ?? ''))
+      if (!page || page.length < PAGE) break
+    }
+
+    type PendingPlayer = {
+      name: string
+      surname: string
+      league: string
+      league_id: string
+      position: string
+      club: string
+      football_league: string | null
+      manager_id: null
+      total_goals: number
+    }
+    const pending: PendingPlayer[] = []
+
     for (let i = 0; i < jsonData.length; i++) {
       const row = jsonData[i]
       const rowNum = i + 2 // Excel row number (1-indexed + header row)
 
-      try {
-        const fullName = String(row['Imię i Nazwisko'] ?? '').trim()
-        const club = String(row['Klub'] ?? '').trim()
-        const rawPosition = String(row['Pozycja'] ?? '').trim()
+      const fullName = String(row['Imię i Nazwisko'] ?? '').trim()
+      const club = String(row['Klub'] ?? '').trim()
+      const rawPosition = String(row['Pozycja'] ?? '').trim()
 
-        // Validate required fields
-        if (!fullName || !club || !rawPosition) {
-          result.errors.push(`Wiersz ${rowNum}: Brak wymaganych pól (Imię i Nazwisko, Klub, Pozycja)`)
-          result.skipped++
-          continue
-        }
-
-        // Split the full name into first name + surname.
-        const { name: firstName, surname } = splitFullName(fullName)
-        if (!firstName) {
-          result.errors.push(`Wiersz ${rowNum}: Nieprawidłowe imię i nazwisko`)
-          result.skipped++
-          continue
-        }
-
-        // Map/validate position (Goalkeeper is not supported).
-        const position = resolvePosition(rawPosition)
-        if (!position) {
-          result.errors.push(
-            `Wiersz ${rowNum}: Nieprawidłowa pozycja "${rawPosition}". Dozwolone: ${ALLOWED_POSITIONS_PL}`
-          )
-          result.skipped++
-          continue
-        }
-
-        const footballLeague = row['Liga'] ? String(row['Liga']).trim() || null : null
-
-        // Check if player already exists in this league
-        const { data: existingPlayer } = await supabaseAdmin
-          .from('players')
-          .select('id')
-          .eq('name', firstName)
-          .eq('surname', surname)
-          .eq('league_id', leagueId)
-          .maybeSingle()
-
-        if (existingPlayer) {
-          result.errors.push(`Wiersz ${rowNum}: Zawodnik "${firstName} ${surname}" już istnieje w lidze ${leagueName}`)
-          result.skipped++
-          continue
-        }
-
-        // Insert player UNASSIGNED (manager_id null). The draft assigns managers.
-        // SAFEGUARD: always use leagueName from the target league to prevent
-        // cross-league data.
-        const { data: player, error: playerError } = await supabaseAdmin
-          .from('players')
-          .insert({
-            name: firstName,
-            surname,
-            league: leagueName,
-            league_id: leagueId, // CRITICAL: scopes the player to THIS league
-            position,
-            club,
-            football_league: footballLeague,
-            manager_id: null,
-            total_goals: 0
-          })
-          .select()
-          .single()
-
-        if (playerError) {
-          result.errors.push(`Wiersz ${rowNum}: Nie udało się utworzyć zawodnika - ${playerError.message}`)
-          result.skipped++
-          continue
-        }
-
-        result.details.players.push(player)
-        result.imported++
-      } catch (error) {
-        result.errors.push(`Wiersz ${rowNum}: Nieoczekiwany błąd - ${error instanceof Error ? error.message : 'Nieznany błąd'}`)
+      // Validate required fields
+      if (!fullName || !club || !rawPosition) {
+        result.errors.push(`Wiersz ${rowNum}: Brak wymaganych pól (Imię i Nazwisko, Klub, Pozycja)`)
         result.skipped++
+        continue
       }
+
+      // Split the full name into first name + surname.
+      const { name: firstName, surname } = splitFullName(fullName)
+      if (!firstName) {
+        result.errors.push(`Wiersz ${rowNum}: Nieprawidłowe imię i nazwisko`)
+        result.skipped++
+        continue
+      }
+
+      // Map/validate position (Goalkeeper is not supported).
+      const position = resolvePosition(rawPosition)
+      if (!position) {
+        result.errors.push(
+          `Wiersz ${rowNum}: Nieprawidłowa pozycja "${rawPosition}". Dozwolone: ${ALLOWED_POSITIONS_PL}`
+        )
+        result.skipped++
+        continue
+      }
+
+      // Matches the old behaviour: already in the league, or named identically
+      // to an earlier row in this same file, is skipped rather than inserted.
+      const key = dedupeKey(firstName, surname)
+      if (existingKeys.has(key)) {
+        result.errors.push(`Wiersz ${rowNum}: Zawodnik "${firstName} ${surname}" już istnieje w lidze ${leagueName}`)
+        result.skipped++
+        continue
+      }
+      existingKeys.add(key)
+
+      const footballLeague = row['Liga'] ? String(row['Liga']).trim() || null : null
+
+      // Insert player UNASSIGNED (manager_id null). The draft assigns managers.
+      // SAFEGUARD: always use leagueName from the target league to prevent
+      // cross-league data.
+      pending.push({
+        name: firstName,
+        surname,
+        league: leagueName,
+        league_id: leagueId, // CRITICAL: scopes the player to THIS league
+        position,
+        club,
+        football_league: footballLeague,
+        manager_id: null,
+        total_goals: 0
+      })
+    }
+
+    const CHUNK = 500
+    for (let from = 0; from < pending.length; from += CHUNK) {
+      const chunk = pending.slice(from, from + CHUNK)
+      const { data: inserted, error: playerError } = await supabaseAdmin
+        .from('players')
+        .insert(chunk)
+        .select('id')
+
+      if (playerError) {
+        // Report the spreadsheet rows this chunk covers, not the chunk index —
+        // the row numbers are what the admin can actually act on.
+        result.errors.push(
+          `Nie udało się zaimportować ${chunk.length} zawodników ` +
+          `(${chunk[0].name} ${chunk[0].surname} ...) - ${playerError.message}`
+        )
+        result.skipped += chunk.length
+        continue
+      }
+
+      result.details.players.push(...(inserted ?? []))
+      result.imported += inserted?.length ?? chunk.length
     }
 
     return NextResponse.json({
