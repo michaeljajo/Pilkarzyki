@@ -7,7 +7,7 @@ numeric prefixes no longer uniquely order them (see Collisions below).
 ## Convention going forward
 
 `NNN_description.sql`, strictly sequential, one number per migration, never
-reused. The next free number is **032**.
+reused. The next free number is **034**.
 
 **Check every branch before picking a number**, not just your own —
 `git ls-tree --name-only <branch> -- supabase/migrations/`. Unmerged branches
@@ -60,7 +60,9 @@ Reconstructed from `git log --diff-filter=A`:
 | 2026-07-27 | `026_add_midseason_draft.sql` |
 | 2026-07-28 | `027_add_cup_format.sql` |
 | 2026-08-02 | `028_add_draft_delegations.sql` (reconstructed; table itself applied 2026-07-31) |
-| 2026-08-02 | `031_players_league_id.sql` — **NOT YET APPLIED**, run before deploying the league-isolation code |
+| 2026-08-02 | `031_players_league_id.sql` — **APPLIED** (was recorded here as not yet applied; confirmed live 2026-08-14, `players.league_id` is populated and correct for all 5,092 WNC players) |
+| 2026-08-13 | `032_draft_delegation_functions.sql` — applied; see CLAIM in CLAUDE.md, do not re-run |
+| 2026-08-14 | `033_league_validation_by_id.sql` — applied by hand mid-draft to unblock the WNC draft and lineup saving |
 
 029 and 030 are taken by `feat/draft-ux-overhaul` (`029_skip_keeps_pick_order`,
 `030_add_public_leagues`), which is why the players change is numbered 031.

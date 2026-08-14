@@ -64,3 +64,6 @@ supabase/.temp/
 # (per-machine permissions), scheduled-task locks and worktrees. All local to a
 # checkout, none of it shared.
 .claude/
+
+# Point-in-time draft backups (scripts/backup-draft.js) — local snapshots, not source.
+/draft-backups/
