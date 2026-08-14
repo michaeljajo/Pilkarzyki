@@ -12,6 +12,33 @@ import { Position, PlayerImport } from '@/types'
 import { validateTeamName, formatTeamName } from '@/utils/team-name-resolver'
 import { createPlayerTransfer, validateTransferDate, getNextTransferDate } from '@/utils/transfer-resolver'
 import { assertLeagueMutable, verifyLeagueAdmin } from '@/lib/auth-helpers'
+import { fetchAllRows } from '@/lib/fetch-all-rows'
+
+interface ExistingPlayerRow {
+  id: string
+  name: string
+  surname: string | null
+  position: string
+  manager_id: string | null
+  club: string | null
+  football_league: string | null
+}
+
+interface AssignedPlayerManager {
+  id: string
+  first_name: string | null
+  last_name: string | null
+  email: string | null
+}
+
+interface AssignedPlayerRow {
+  id: string
+  name: string
+  surname: string | null
+  manager_id: string | null
+  // PostgREST types an embedded row as an array; the reader below handles both.
+  users: AssignedPlayerManager | AssignedPlayerManager[] | null
+}
 
 interface DraftResult {
   success: boolean
@@ -165,19 +192,30 @@ export async function POST(request: NextRequest) {
       last_name: user.lastName || ''
     }))
 
-    // Get all existing players in this league to detect transfers
-    const { data: existingPlayers } = await supabaseAdmin
-      .from('players')
-      .select(`
-        id,
-        name,
-        surname,
-        position,
-        manager_id,
-        club,
-        football_league
-      `)
-      .eq('league_id', leagueId)
+    // Get all existing players in this league to detect transfers.
+    //
+    // Paged, and this one matters: the pool runs to ~5000 and an unpaged select
+    // silently returns 1000 of them, in no particular order (there was no
+    // ORDER BY, so it was an arbitrary subset rather than a stable prefix).
+    // Every uploaded player who happened to fall outside that subset looked
+    // brand new, so the upload created a duplicate row for them instead of
+    // recording a transfer. The `id` order makes the paging total.
+    const existingPlayers = await fetchAllRows<ExistingPlayerRow>((from, to) =>
+      supabaseAdmin
+        .from('players')
+        .select(`
+          id,
+          name,
+          surname,
+          position,
+          manager_id,
+          club,
+          football_league
+        `)
+        .eq('league_id', leagueId)
+        .order('id', { ascending: true })
+        .range(from, to)
+    )
 
     const existingPlayersMap = new Map(
       existingPlayers?.map(p => [`${p.name}|${p.surname}`, p]) || []
@@ -509,23 +547,35 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Find players in this league who have a manager but are NOT in the uploaded file
-    const { data: allLeaguePlayers } = await supabaseAdmin
-      .from('players')
-      .select(`
-        id,
-        name,
-        surname,
-        manager_id,
-        users:manager_id (
+    // Find players in this league who have a manager but are NOT in the uploaded
+    // file.
+    //
+    // Paged for the same reason as above, though this set is far smaller — only
+    // assigned players, so a squad-size multiple of the manager count (~128 in
+    // the largest league today, against the 1000 cap). The cap is still wrong
+    // and the failure would be silent and destructive if it were ever reached:
+    // a truncated sweep leaves players assigned that the upload says should not
+    // be, and the run reports success.
+    const allLeaguePlayers = await fetchAllRows<AssignedPlayerRow>((from, to) =>
+      supabaseAdmin
+        .from('players')
+        .select(`
           id,
-          first_name,
-          last_name,
-          email
-        )
-      `)
-      .eq('league_id', leagueId)
-      .not('manager_id', 'is', null) // Only players currently assigned to a manager
+          name,
+          surname,
+          manager_id,
+          users:manager_id (
+            id,
+            first_name,
+            last_name,
+            email
+          )
+        `)
+        .eq('league_id', leagueId)
+        .not('manager_id', 'is', null) // Only players currently assigned to a manager
+        .order('id', { ascending: true })
+        .range(from, to)
+    )
 
     // Check each assigned player - if not in file, unassign them
     for (const player of allLeaguePlayers || []) {
@@ -534,10 +584,12 @@ export async function POST(request: NextRequest) {
       if (!playersInFile.has(playerKey)) {
         // This player is NOT in the uploaded file - they should be unassigned
         const oldManager = Array.isArray(player.users) ? player.users[0] : player.users
+        // `|| 'Unknown'` on the email too: it is nullable, so a manager with
+        // neither a full name nor an email put a literal null in the report.
         const oldManagerName = oldManager
           ? (oldManager.first_name && oldManager.last_name
             ? `${oldManager.first_name} ${oldManager.last_name}`
-            : oldManager.email)
+            : oldManager.email || 'Unknown')
           : 'Unknown'
 
         // Create transfer to NULL (unassigned)
