@@ -8,22 +8,24 @@
 -- them, reconstructed from that branch's 028.
 --
 -- ---------------------------------------------------------------------
--- APPARENTLY ALREADY APPLIED IN PRODUCTION — verified 2026-08-14.
+-- ALREADY APPLIED IN PRODUCTION — fully verified 2026-08-14.
 --
--- Probing the live database showed `draft_set_delegation`,
--- `draft_clear_delegation` and `draft_picks.picked_by_user_id` all present, so
--- these were created by hand at the same time as the table in 028 and, like
--- it, never committed. This file closes that gap so a fresh environment
--- rebuilt from migrations matches production.
+-- Do NOT run it. Every statement below is a confirmed no-op against the live
+-- database. Like the table in 028, all of this was created by hand on
+-- 2026-07-31 and never committed; this file exists so a fresh environment
+-- rebuilt from migrations matches production, not to be applied.
 --
--- CAVEAT: the body of `draft_make_pick` could not be introspected through the
--- API, so whether the live one carries the delegate branch is unconfirmed.
--- The audit column it is the only writer of does exist, which is good evidence
--- it does. Running this file settles it either way — every statement is
--- idempotent (IF NOT EXISTS / CREATE OR REPLACE), and the replacement is a
--- strict superset of the 022 version: byte-identical behaviour for the
--- ordinary case (caller owns the squad on the clock), with a delegate branch
--- added. If delegated picks fail with NOT_YOUR_TURN, this is why — run it.
+-- How each part was verified:
+--   * draft_set_delegation, draft_clear_delegation — called with an all-zero
+--     draft id, which raises DRAFT_NOT_FOUND before writing anything. Both
+--     returned that, so both exist.
+--   * draft_picks.picked_by_user_id — selected successfully.
+--   * draft_make_pick — `SELECT prosrc FROM pg_proc WHERE proname =
+--     'draft_make_pick'` compared against the body below: byte-identical,
+--     delegate branch included.
+--
+-- Every statement is idempotent (IF NOT EXISTS / CREATE OR REPLACE), so
+-- running it anyway is harmless — but there is nothing for it to do.
 -- ---------------------------------------------------------------------
 --
 -- Applies to BOTH draft kinds — the table is keyed by draft_id, and the
