@@ -6,6 +6,8 @@ import toast from 'react-hot-toast'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { DraftLiveBoard } from '@/components/draft/DraftLiveBoard'
 import { DraftChat, DraftChatMessage } from '@/components/draft/DraftChat'
+import { DelegationPanel } from '@/components/draft/DelegationPanel'
+import { type Delegation, resolveActingForSquadId } from '@/lib/draft-delegations'
 
 // ----------------------------------------------------------------------------
 // Types
@@ -55,9 +57,16 @@ interface Snapshot {
   managers: ManagerRow[]
   players: PlayerRow[]
   picks: PickRow[]
+  delegations: Delegation[]
   onTheClockSquadId: string | null
   onTheClockManagerId: string | null
-  access: { isAdmin: boolean; isManager: boolean; mySquadId: string | null; myTurn: boolean }
+  access: {
+    isAdmin: boolean
+    isManager: boolean
+    mySquadId: string | null
+    myUserId: string | null
+    myTurn: boolean
+  }
 }
 
 // ----------------------------------------------------------------------------
@@ -189,6 +198,9 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'draft_picks', filter: `draft_id=eq.${draftId}` }, () => {
         fetchSnapshot()
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'draft_delegations', filter: `draft_id=eq.${draftId}` }, () => {
+        fetchSnapshot()
+      })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'draft_messages', filter: `draft_id=eq.${draftId}` }, () => {
         fetchMessages()
       })
@@ -211,27 +223,6 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
   }, [snap?.draft?.status, snap?.managers])
 
   // Turn notification: fire when myTurn transitions false -> true.
-  useEffect(() => {
-    const myTurn = !!snap?.access.myTurn
-    if (myTurn && !prevMyTurn.current) {
-      playTurnChime()
-      if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-        try {
-          new Notification('TWOJA KOLEJ!', { body: 'Wybierz zawodnika w drafcie.' })
-        } catch {
-          // ignore
-        }
-      }
-    }
-    prevMyTurn.current = myTurn
-  }, [snap?.access.myTurn])
-
-  const requestNotifications = async () => {
-    if (typeof window === 'undefined' || !('Notification' in window)) return
-    const perm = await Notification.requestPermission()
-    setNotifStatus(perm)
-  }
-
   // Derived data ------------------------------------------------------------
 
   const managersBySquad = useMemo(() => {
@@ -250,6 +241,48 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
   const status = snap?.draft?.status
   const isAdmin = !!snap?.access.isAdmin
   const myTurn = !!snap?.access.myTurn
+
+  // The squad I am standing in for right now, if any (only while it is on the
+  // clock). Authorisation is the RPC's job; this only drives the UI.
+  const actingForSquadId =
+    status === 'live'
+      ? resolveActingForSquadId({
+          delegations: snap?.delegations || [],
+          onClockSquadId: snap?.onTheClockSquadId,
+          myUserId: snap?.access.myUserId,
+          mySquadId: snap?.access.mySquadId,
+        })
+      : null
+  const actingForName = actingForSquadId
+    ? managerName(managersBySquad.get(actingForSquadId))
+    : ''
+
+  // Fires when it becomes my move — my own turn, or the turn of a squad I am
+  // standing in for.
+  useEffect(() => {
+    const mine = !!snap?.access.myTurn
+    const myMove = mine || !!actingForName
+    if (myMove && !prevMyTurn.current) {
+      playTurnChime()
+      if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+        try {
+          new Notification(mine ? 'TWOJA KOLEJ!' : 'KOLEJ ZASTĘPSTWA!', {
+            body: mine ? 'Wybierz zawodnika w drafcie.' : `Wybierz zawodnika za: ${actingForName}.`,
+          })
+        } catch {
+          // ignore
+        }
+      }
+    }
+    prevMyTurn.current = myMove
+  }, [snap?.access.myTurn, actingForName])
+
+  const requestNotifications = async () => {
+    if (typeof window === 'undefined' || !('Notification' in window)) return
+    const perm = await Notification.requestPermission()
+    setNotifStatus(perm)
+  }
+
 
   // Actions -----------------------------------------------------------------
 
@@ -290,6 +323,27 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
     await doAction('skip', {}, 'Pominięto kolejkę.')
   }
   const handleUndo = () => doAction('undo', {}, 'Cofnięto ostatni wybór.')
+
+  const handleSetDelegate = async (squadId: string, delegateUserId: string | null) => {
+    try {
+      const res = await fetch(`/api/leagues/${leagueId}/draft-delegation`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kind: 'preseason', squadId, delegateUserId }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        toast.error(data.error || 'Nie udało się zapisać zastępstwa.')
+        return false
+      }
+      toast.success(delegateUserId ? 'Zastępca wyznaczony.' : 'Zastępstwo odwołane.')
+      await fetchSnapshot()
+      return true
+    } catch {
+      toast.error('Błąd połączenia.')
+      return false
+    }
+  }
 
   // Add / edit handlers passed to the shared board (which owns the modals).
   const onAddPlayerBoard = async (form: {
@@ -385,6 +439,20 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
     return <div className="py-16 text-center text-gray-500">Brak draftu dla tej ligi.</div>
   }
 
+  // Shared between the setup header and the board's action bar, so the opt-in
+  // has exactly one definition wherever it happens to be shown.
+  const notifyButton =
+    status !== 'finished' && notifStatus !== 'granted' && notifStatus !== 'unsupported' ? (
+      <button
+        onClick={requestNotifications}
+        title="Włącz powiadomienia, aby wiedzieć, kiedy nadejdzie Twoja kolej"
+        className="text-sm whitespace-nowrap px-3 py-2 rounded-md border border-[#29544D] text-[#29544D] hover:bg-[#29544D]/5"
+      >
+        <span className="md:hidden">🔔</span>
+        <span className="hidden md:inline">🔔 Włącz powiadomienia</span>
+      </button>
+    ) : null
+
   return (
     <div className="space-y-6">
       {/* Turn banner */}
@@ -394,26 +462,20 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
         </div>
       )}
 
-      {/* Header / status */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Draft</h1>
-          {status === 'setup' && <p className="text-gray-600">Oczekiwanie na rozpoczęcie draftu</p>}
+      {/* No page title while the board is up: the takeover header already reads
+          "Draft — <liga>", and on a phone a second "Draft" heading plus its own
+          button row cost ~100px off a screen the board sizes to exactly one
+          viewport — enough to push the bottom tab bar out of sight. During
+          setup there is no board yet, so the status line still needs a home. */}
+      {status === 'setup' && (
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Draft</h1>
+            <p className="text-gray-600">Oczekiwanie na rozpoczęcie draftu</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">{notifyButton}</div>
         </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Notification opt-in */}
-          {status !== 'finished' && notifStatus !== 'granted' && notifStatus !== 'unsupported' && (
-            <button
-              onClick={requestNotifications}
-              title="Włącz powiadomienia, aby wiedzieć, kiedy nadejdzie Twoja kolej"
-              className="text-sm whitespace-nowrap px-3 py-2 rounded-md border border-[#29544D] text-[#29544D] hover:bg-[#29544D]/5"
-            >
-              🔔 Włącz powiadomienia
-            </button>
-          )}
-        </div>
-      </div>
+      )}
 
       {/* FINISHED banner + proceed CTA */}
       {status === 'finished' && (
@@ -435,6 +497,20 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
             </a>
           )}
         </div>
+      )}
+
+      {/* Stand-ins are nominated before the draft starts, so the full card only
+          appears during setup. Once live it survives as the admin's
+          "Zarządzaj zastępstwami" button inside the board's action bar. */}
+      {status === 'setup' && (
+        <DelegationPanel
+          managers={snap.managers}
+          delegations={snap.delegations || []}
+          mySquadId={snap.access.mySquadId}
+          myUserId={snap.access.myUserId}
+          isAdmin={isAdmin}
+          onSetDelegate={handleSetDelegate}
+        />
       )}
 
       {/* SETUP (admin) */}
@@ -462,6 +538,9 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
           onClockManagerId={snap.onTheClockManagerId}
           isAdmin={isAdmin}
           myTurn={myTurn}
+          delegations={snap.delegations || []}
+          myUserId={snap.access.myUserId}
+          mySquadId={snap.access.mySquadId}
           submitting={submitting}
           onConfirmPick={(playerId) => doAction('pick', { playerId })}
           onAdminPick={(playerId) => doAction('admin-pick', { playerId })}
@@ -470,6 +549,22 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
           slotCount={() => snap.draft!.squad_size}
           onAddPlayer={onAddPlayerBoard}
           onEditPlayer={onEditPlayerBoard}
+          actions={
+            <>
+              {notifyButton}
+              {status === 'live' && (
+                <DelegationPanel
+                  managers={snap.managers}
+                  delegations={snap.delegations || []}
+                  mySquadId={snap.access.mySquadId}
+                  myUserId={snap.access.myUserId}
+                  isAdmin={isAdmin}
+                  variant="adminOnly"
+                  onSetDelegate={handleSetDelegate}
+                />
+              )}
+            </>
+          }
           sideTop={
             <DraftChat messages={messages} value={chatInput} onChange={setChatInput} onSend={sendMessage} />
           }

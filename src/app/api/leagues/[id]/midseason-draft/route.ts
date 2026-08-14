@@ -85,6 +85,18 @@ export async function GET(
           .order('pick_number', { ascending: true })).data || []
       : []
 
+    // Active stand-ins: who may pick for whom while a manager is away.
+    const delegationRows = draft
+      ? (await supabaseAdmin
+          .from('draft_delegations')
+          .select('delegator_squad_id, delegate_user_id')
+          .eq('draft_id', draft.id)).data || []
+      : []
+    const delegations = delegationRows.map((d) => ({
+      delegatorSquadId: d.delegator_squad_id,
+      delegateUserId: d.delegate_user_id,
+    }))
+
     const queue: string[] = Array.isArray(draft?.current_queue) ? draft!.current_queue : []
     const onTheClockSquadId = queue.length > 0 ? queue[0] : null
     const onTheClockManager = managers.find((m) => m.squadId === onTheClockSquadId) || null
@@ -98,12 +110,14 @@ export async function GET(
       players: players || [],
       drops,
       picks,
+      delegations,
       onTheClockSquadId,
       onTheClockManagerId: onTheClockManager?.managerId || null,
       access: {
         isAdmin: access.isAdmin,
         isManager: access.isManager,
         mySquadId: access.squadId,
+        myUserId: access.userInternalId || null,
         myTurn,
       },
     })

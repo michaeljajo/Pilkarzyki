@@ -56,6 +56,29 @@ export async function resolveDraftAccess(
   }
 }
 
+export type DraftKind = 'preseason' | 'midseason'
+
+/**
+ * Resolves the league's draft of a given kind. A league has at most one
+ * pre-season draft, but may accumulate several mid-season ones — the latest is
+ * the live one, matching what the mid-season routes already do.
+ */
+export async function resolveDraftIdByKind(
+  leagueId: string,
+  kind: DraftKind
+): Promise<string | null> {
+  const { data } = await supabaseAdmin
+    .from('drafts')
+    .select('id')
+    .eq('league_id', leagueId)
+    .eq('kind', kind)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  return data?.id ?? null
+}
+
 /**
  * Maps a Postgres/Supabase error raised by the draft RPC functions to a Polish
  * user-facing message and an HTTP status.
@@ -88,6 +111,14 @@ export function draftErrorToResponse(error: { message?: string; code?: string })
       message: 'Nie można pominąć ostatniego menedżera w rundzie — wybierz za niego.',
     },
     NOTHING_TO_UNDO: { status: 409, message: 'Brak wyborów do cofnięcia.' },
+    // Raised by draft_set_delegation (032).
+    DRAFT_FINISHED: { status: 409, message: 'Draft został zakończony.' },
+    SQUAD_NOT_IN_LEAGUE: { status: 400, message: 'Ten menedżer nie należy do tej ligi.' },
+    SELF_DELEGATION: { status: 400, message: 'Nie możesz wyznaczyć samego siebie na zastępcę.' },
+    DELEGATE_NOT_IN_LEAGUE: {
+      status: 400,
+      message: 'Zastępcą może być tylko menedżer z tej ligi.',
+    },
   }
 
   for (const key of Object.keys(map)) {

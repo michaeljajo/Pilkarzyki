@@ -5,6 +5,8 @@ import { createClient } from '@supabase/supabase-js'
 import toast from 'react-hot-toast'
 import { Check, Trophy } from 'lucide-react'
 import { DraftLiveBoard } from '@/components/draft/DraftLiveBoard'
+import { DelegationPanel } from '@/components/draft/DelegationPanel'
+import { type Delegation } from '@/lib/draft-delegations'
 import { DraftChat, DraftChatMessage } from '@/components/draft/DraftChat'
 
 interface DraftRow {
@@ -44,9 +46,16 @@ interface Snapshot {
   players: PlayerRow[]
   drops: DropRow[]
   picks: PickRow[]
+  delegations: Delegation[]
   onTheClockSquadId: string | null
   onTheClockManagerId: string | null
-  access: { isAdmin: boolean; isManager: boolean; mySquadId: string | null; myTurn: boolean }
+  access: {
+    isAdmin: boolean
+    isManager: boolean
+    mySquadId: string | null
+    myUserId: string | null
+    myTurn: boolean
+  }
 }
 
 function managerName(m: ManagerRow | undefined): string {
@@ -114,6 +123,7 @@ export default function MidseasonDraftClient({ leagueId }: { leagueId: string })
       channel
         .on('postgres_changes', { event: '*', schema: 'public', table: 'draft_picks', filter: `draft_id=eq.${draftId}` }, () => fetchSnapshot())
         .on('postgres_changes', { event: '*', schema: 'public', table: 'draft_drops', filter: `draft_id=eq.${draftId}` }, () => fetchSnapshot())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'draft_delegations', filter: `draft_id=eq.${draftId}` }, () => fetchSnapshot())
         .on('postgres_changes', { event: '*', schema: 'public', table: 'draft_messages', filter: `draft_id=eq.${draftId}` }, () => fetchMessages())
     }
     channel.subscribe()
@@ -251,6 +261,27 @@ export default function MidseasonDraftClient({ leagueId }: { leagueId: string })
   const { draft, managers, players, drops, picks, access } = snap
   const status = draft?.status ?? null
   const myManagerId = managers.find((m) => m.squadId === access.mySquadId)?.managerId ?? null
+
+  const handleSetDelegate = async (squadId: string, delegateUserId: string | null) => {
+    try {
+      const res = await fetch(`/api/leagues/${leagueId}/draft-delegation`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kind: 'midseason', squadId, delegateUserId }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        toast.error(data.error || 'Nie udało się zapisać zastępstwa.')
+        return false
+      }
+      toast.success(delegateUserId ? 'Zastępca wyznaczony.' : 'Zastępstwo odwołane.')
+      await fetchSnapshot()
+      return true
+    } catch {
+      toast.error('Błąd połączenia.')
+      return false
+    }
+  }
   const pickedIds = new Set(picks.map((p) => p.player_id))
 
   return (
@@ -276,6 +307,20 @@ export default function MidseasonDraftClient({ leagueId }: { leagueId: string })
               : 'Poczekaj, aż administrator rozpocznie draft.'}
           </p>
         </div>
+      )}
+
+      {/* Stand-ins are nominated while the draft is still being set up; once
+          picking starts the card gives way to the admin button in the board's
+          action bar. */}
+      {draft && status !== 'finished' && status !== 'live' && (
+        <DelegationPanel
+          managers={managers}
+          delegations={snap.delegations || []}
+          mySquadId={access.mySquadId}
+          myUserId={access.myUserId}
+          isAdmin={access.isAdmin}
+          onSetDelegate={handleSetDelegate}
+        />
       )}
 
       {/* DROPS phase — managers tick their releases here; the admin closes the
@@ -311,11 +356,25 @@ export default function MidseasonDraftClient({ leagueId }: { leagueId: string })
           onClockManagerId={snap.onTheClockManagerId}
           isAdmin={access.isAdmin}
           myTurn={access.myTurn}
+          delegations={snap.delegations || []}
+          myUserId={access.myUserId}
+          mySquadId={access.mySquadId}
           submitting={busy}
           onConfirmPick={(playerId) => post('/action', { action: 'pick', playerId })}
           onAdminPick={(playerId) => post('/action', { action: 'admin-pick', playerId })}
           onSkip={() => post('/action', { action: 'skip' })}
           onUndo={() => post('/action', { action: 'undo' })}
+          actions={
+            <DelegationPanel
+              managers={managers}
+              delegations={snap.delegations || []}
+              mySquadId={access.mySquadId}
+              myUserId={access.myUserId}
+              isAdmin={access.isAdmin}
+              variant="adminOnly"
+              onSetDelegate={handleSetDelegate}
+            />
+          }
           slotCount={(sid) => picks.filter((p) => p.squad_id === sid).length + (draft.pick_quotas[sid] || 0)}
           onAddPlayer={addPlayer}
           onEditPlayer={editPlayer}

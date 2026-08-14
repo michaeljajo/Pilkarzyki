@@ -5,6 +5,7 @@ import { ListChecks, MessageSquare, SlidersHorizontal, Users, type LucideIcon } 
 import { LeagueFlag } from '@/components/ui/LeagueFlag'
 import { FilterCombo } from '@/components/ui/FilterCombo'
 import { Modal } from '@/components/ui/Modal'
+import { type Delegation, delegateForSquad, resolveActingForSquadId } from '@/lib/draft-delegations'
 import {
   POSITION_LABEL_PL,
   positionLabel,
@@ -46,7 +47,7 @@ export interface BoardPick {
   pick_number: number
 }
 
-function managerName(m: BoardManager | undefined | null): string {
+export function managerName(m: BoardManager | undefined | null): string {
   if (!m) return '—'
   const full = [m.firstName, m.lastName].filter(Boolean).join(' ').trim()
   return m.teamName || full || m.email || 'Menedżer'
@@ -58,12 +59,14 @@ function Roster({
   players,
   onClockSquadId,
   slotCount,
+  delegations,
 }: {
   managers: BoardManager[]
   picks: BoardPick[]
   players: BoardPlayer[]
   onClockSquadId: string | null
   slotCount: (squadId: string) => number
+  delegations: Delegation[]
 }) {
   const playersById = useMemo(() => {
     const map = new Map<string, BoardPlayer>()
@@ -81,6 +84,17 @@ function Roster({
     map.forEach((arr) => arr.sort((a, b) => a.pick_number - b.pick_number))
     return map
   }, [picks])
+
+  const managersByManagerId = useMemo(() => {
+    const map = new Map<string, BoardManager>()
+    managers.forEach((m) => map.set(m.managerId, m))
+    return map
+  }, [managers])
+
+  const delegateOf = (squadId: string) => {
+    const id = delegateForSquad(delegations, squadId)
+    return id ? managersByManagerId.get(id) : undefined
+  }
 
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
   const toggle = (squadId: string) =>
@@ -114,6 +128,11 @@ function Roster({
                 <span className="flex items-center gap-1.5 font-medium text-gray-900">
                   <span className={`text-gray-400 transition-transform ${isOpen ? 'rotate-90' : ''}`}>▸</span>
                   {managerName(m)}
+                  {delegateOf(m.squadId) && (
+                    <span className="text-xs font-normal text-amber-700">
+                      zast.: {managerName(delegateOf(m.squadId))}
+                    </span>
+                  )}
                 </span>
                 <span className="text-xs text-gray-500">
                   {mp.length}/{slotCount(m.squadId)}
@@ -157,6 +176,12 @@ interface DraftLiveBoardProps {
   onClockManagerId: string | null
   isAdmin: boolean
   myTurn: boolean
+  /** Active stand-ins for this draft; drives the "acting for" mode. */
+  delegations?: Delegation[]
+  /** Viewer's internal user id and squad — needed to tell whether the squad on
+   *  the clock is one they are standing in for. */
+  myUserId?: string | null
+  mySquadId?: string | null
   submitting: boolean
   onConfirmPick: (playerId: string) => void
   onAdminPick: (playerId: string) => void
@@ -166,6 +191,9 @@ interface DraftLiveBoardProps {
   slotCount: (squadId: string) => number
   /** Optional right-column content above the roster (e.g. chat). */
   sideTop?: ReactNode
+  /** Extra controls for the action bar beside the round summary, so the screen
+   *  has one row of buttons instead of a staircase of right-aligned ones. */
+  actions?: ReactNode
   /** Admin: add a free-agent player to the pool live. Renders the button+modal when set. */
   onAddPlayer?: (form: { fullName: string; footballLeague: string; club: string; position: string }) => Promise<boolean>
   /** Admin: edit a player's details live (e.g. a last-minute transfer). Renders a row action when set. */
@@ -203,6 +231,9 @@ export function DraftLiveBoard({
   onClockManagerId,
   isAdmin,
   myTurn,
+  delegations,
+  myUserId,
+  mySquadId,
   submitting,
   onConfirmPick,
   onAdminPick,
@@ -210,6 +241,7 @@ export function DraftLiveBoard({
   onUndo,
   slotCount,
   sideTop,
+  actions,
   onAddPlayer,
   onEditPlayer,
 }: DraftLiveBoardProps) {
@@ -318,6 +350,20 @@ export function DraftLiveBoard({
 
   const onClockManager = managersByManagerId.get(onClockManagerId || '')
 
+  // Whose turn it is decides this, never the viewer: a stand-in can only pick
+  // while the squad they cover is actually on the clock, and their own turn
+  // stays an ordinary pick. Authorisation itself lives in draft_make_pick.
+  const actingForSquadId =
+    status === 'live'
+      ? resolveActingForSquadId({ delegations, onClockSquadId, myUserId, mySquadId })
+      : null
+  const actingForName = actingForSquadId
+    ? managerName(managers.find((m) => m.squadId === actingForSquadId))
+    : ''
+
+  const onClockDelegateId = delegateForSquad(delegations, onClockSquadId)
+  const onClockDelegate = onClockDelegateId ? managersByManagerId.get(onClockDelegateId) : undefined
+
   return (
     /* Phone: the screen is exactly one viewport tall and never scrolls as a
        whole — only the player list and the chat log scroll, inside themselves.
@@ -332,25 +378,43 @@ export function DraftLiveBoard({
         </div>
       )}
 
-      <div className="shrink-0 flex flex-wrap items-center justify-between gap-3">
+      {actingForSquadId && (
+        <div className="shrink-0 rounded-xl bg-amber-500 text-white px-6 py-2.5 text-center text-base font-bold shadow-lg md:text-lg">
+          WYBIERASZ ZA: {actingForName.toUpperCase()}
+          <span className="block text-sm font-normal opacity-90">
+            Zastępstwo — zawodnik trafi do składu tego menedżera.
+          </span>
+        </div>
+      )}
+
+      <div className="shrink-0 flex flex-wrap items-start justify-between gap-3">
         {status === 'live' ? (
           <p className="min-w-0 truncate text-gray-600 md:whitespace-normal">
             <span className="md:hidden">{roundLabel} · Teraz: </span>
             <span className="hidden md:inline">{roundLabel} · Teraz wybiera: </span>
             <span className="font-semibold text-gray-900">{managerName(onClockManager)}</span>
+            {onClockDelegate && (
+              <span className="ml-2 text-amber-700">(zastępstwo: {managerName(onClockDelegate)})</span>
+            )}
           </p>
         ) : (
           <p className="text-gray-600">Draft zakończony</p>
         )}
-        {canAdd && (
-          <button
-            onClick={() => setShowAdd(true)}
-            className="shrink-0 text-sm whitespace-nowrap px-3 py-2 rounded-md bg-[#29544D] text-white hover:bg-[#1f423c]"
-          >
-            <span className="md:hidden">+ Dodaj</span>
-            <span className="hidden md:inline">+ Dodaj zawodnika</span>
-          </button>
-        )}
+        {/* One action bar for the whole screen, so extra controls (e.g. the
+            admin's "Zarządzaj zastępstwami") sit in a row rather than each
+            taking a right-aligned line of its own. */}
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          {actions}
+          {canAdd && (
+            <button
+              onClick={() => setShowAdd(true)}
+              className="text-sm whitespace-nowrap px-3 py-2 rounded-md bg-[#29544D] text-white hover:bg-[#1f423c]"
+            >
+              <span className="md:hidden">+ Dodaj</span>
+              <span className="hidden md:inline">+ Dodaj zawodnika</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Two columns only from xl. At lg the pool column resolved to ~696px,
@@ -493,7 +557,7 @@ export function DraftLiveBoard({
                 const picked = !!pick
                 const pickedBy = pick ? managersByManagerId.get(pick.manager_id) : undefined
                 const isPending = pending === p.id
-                const canPick = status === 'live' && !picked && (myTurn || isAdmin)
+                const canPick = status === 'live' && !picked && (myTurn || !!actingForSquadId || isAdmin)
                 return (
                   <li
                     key={p.id}
@@ -554,7 +618,21 @@ export function DraftLiveBoard({
                                 ✓ <span className="md:hidden">Wybierz</span>
                               </button>
                             )}
-                            {isAdmin && !myTurn && (
+                            {/* Stand-in: the ordinary pick endpoint — the
+                                delegation is authorised server-side in
+                                draft_make_pick. The manager's name stays in the
+                                label at every width; truncating it hid who the
+                                pick was actually for. */}
+                            {actingForSquadId && !myTurn && (
+                              <button
+                                onClick={() => onConfirmPick(p.id)}
+                                disabled={submitting}
+                                className="flex-1 md:flex-none min-w-0 px-2 py-2 min-h-[40px] md:min-h-[36px] rounded bg-amber-500 text-white text-xs font-medium hover:bg-amber-600 disabled:opacity-50"
+                              >
+                                <span className="block truncate">Wybierz za {actingForName}</span>
+                              </button>
+                            )}
+                            {isAdmin && !myTurn && !actingForSquadId && (
                               <button
                                 onClick={() => onAdminPick(p.id)}
                                 disabled={submitting}
@@ -614,6 +692,7 @@ export function DraftLiveBoard({
               players={players}
               onClockSquadId={onClockSquadId}
               slotCount={slotCount}
+              delegations={delegations || []}
             />
           </div>
         </div>
@@ -655,7 +734,12 @@ export function DraftLiveBoard({
         title="Filtry"
         description="Zawęź listę zawodników."
       >
-        <div className="space-y-3">
+        {/* Tall on purpose. Each dropdown opens as an absolutely-positioned list
+            inside this panel, so a panel sized to its three collapsed inputs
+            clipped the options to about one visible row. The floor gives the
+            open list its full height; the actions sit at the bottom rather than
+            floating directly under the inputs. */}
+        <div className="flex flex-col min-h-[60vh] md:min-h-0 space-y-3">
           <FilterCombo
             label="Liga"
             value={filters.league}
@@ -677,7 +761,7 @@ export function DraftLiveBoard({
               setFilter('position', en)
             }}
           />
-          <div className="flex gap-2 pt-1">
+          <div className="flex gap-2 pt-1 mt-auto">
             <button
               type="button"
               onClick={clearFilters}
