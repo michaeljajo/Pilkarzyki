@@ -9,6 +9,14 @@ import { DraftChat, DraftChatMessage } from '@/components/draft/DraftChat'
 import { DelegationPanel } from '@/components/draft/DelegationPanel'
 import { type Delegation, resolveActingForSquadId } from '@/lib/draft-delegations'
 
+// How often to re-check the draft when realtime has not pushed anything. Fast
+// enough that a pick lands before the next manager is confused, cheap enough
+// for a full room: ~16 clients on a diffed snapshot is a few requests a second.
+const POLL_INTERVAL_MS = 4000
+
+// Grace period before the "live connection down" notice is allowed to appear.
+const REALTIME_GRACE_MS = 8000
+
 // ----------------------------------------------------------------------------
 // Types
 // ----------------------------------------------------------------------------
@@ -133,6 +141,19 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
   const [notifStatus, setNotifStatus] = useState<NotificationPermission | 'unsupported'>('unsupported')
   const prevMyTurn = useRef(false)
 
+  // Whether the realtime channel is actually open. Drives the live/refresh
+  // indicator so a silent socket is visible on screen instead of looking like
+  // a draft where nobody is picking.
+  const [realtimeOk, setRealtimeOk] = useState(false)
+  // The channel takes a moment to open, and a warning that appears on every
+  // load and then vanishes is just noise. Only start telling the truth about
+  // the socket once it has had a fair chance to connect.
+  const [graceElapsed, setGraceElapsed] = useState(false)
+  useEffect(() => {
+    const t = setTimeout(() => setGraceElapsed(true), REALTIME_GRACE_MS)
+    return () => clearTimeout(t)
+  }, [])
+
   const supabase = useMemo(
     () =>
       createClient(
@@ -143,6 +164,14 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
     []
   )
 
+  // The snapshot is polled as well as pushed (see the polling effect below), so
+  // it arrives far more often than it actually changes. Committing an
+  // unchanged snapshot would hand DraftLiveBoard fresh array identities every
+  // few seconds and re-render the whole board -- including the player pool --
+  // for nothing. Compare first, set only on a real change.
+  const snapSigRef = useRef('')
+  const msgSigRef = useRef('')
+
   const fetchSnapshot = useCallback(async () => {
     try {
       const res = await fetch(`/api/leagues/${leagueId}/draft`, { cache: 'no-store' })
@@ -152,7 +181,11 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
         return
       }
       const data: Snapshot = await res.json()
-      setSnap(data)
+      const sig = JSON.stringify(data)
+      if (sig !== snapSigRef.current) {
+        snapSigRef.current = sig
+        setSnap(data)
+      }
       setError(null)
     } catch {
       setError('Nie udało się wczytać draftu.')
@@ -166,7 +199,12 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
       const res = await fetch(`/api/leagues/${leagueId}/draft/messages`, { cache: 'no-store' })
       if (res.ok) {
         const data = await res.json()
-        setMessages(data.messages || [])
+        const next = data.messages || []
+        const sig = JSON.stringify(next)
+        if (sig !== msgSigRef.current) {
+          msgSigRef.current = sig
+          setMessages(next)
+        }
       }
     } catch {
       // non-fatal
@@ -188,6 +226,7 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
 
   // Realtime subscriptions -> refetch on any change
   const draftId = snap?.draft?.id
+  const draftStatus = snap?.draft?.status
   useEffect(() => {
     if (!draftId) return
     const channel = supabase
@@ -204,12 +243,53 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'draft_messages', filter: `draft_id=eq.${draftId}` }, () => {
         fetchMessages()
       })
-      .subscribe()
+      // subscribe() used to be called bare, which swallowed the reason a
+      // channel never opened. The socket can fail for reasons the code cannot
+      // see -- a proxy refusing the upgrade, a missing anon key in the
+      // deployed env, a sleeping laptop dropping the connection -- and the
+      // screen simply went quiet. Say so, and let the poll below carry it.
+      .subscribe((status, err) => {
+        setRealtimeOk(status === 'SUBSCRIBED')
+        if (status !== 'SUBSCRIBED') {
+          console.warn(`[draft] realtime channel ${status}`, err ?? '')
+        }
+      })
 
     return () => {
       supabase.removeChannel(channel)
     }
   }, [supabase, draftId, fetchSnapshot, fetchMessages])
+
+  // Safety net. Realtime is the fast path, not the only path: whenever it is
+  // down the draft has to keep moving anyway, so poll while the draft is open
+  // and this tab is actually on screen. Snapshots are diffed before they are
+  // committed, so a poll that finds nothing new costs one request and no
+  // re-render. Hidden tabs are skipped and caught up on the way back, which
+  // also covers a laptop waking from sleep with a dead socket.
+  useEffect(() => {
+    if (!draftId || draftStatus === 'finished') return
+
+    const refetch = () => {
+      if (document.visibilityState !== 'visible') return
+      fetchSnapshot()
+      fetchMessages()
+    }
+    const onWake = () => {
+      if (document.visibilityState === 'visible') refetch()
+    }
+
+    const interval = setInterval(refetch, POLL_INTERVAL_MS)
+    document.addEventListener('visibilitychange', onWake)
+    window.addEventListener('focus', onWake)
+    window.addEventListener('online', onWake)
+
+    return () => {
+      clearInterval(interval)
+      document.removeEventListener('visibilitychange', onWake)
+      window.removeEventListener('focus', onWake)
+      window.removeEventListener('online', onWake)
+    }
+  }, [draftId, draftStatus, fetchSnapshot, fetchMessages])
 
   // Initialise the admin order from the manager list once (setup phase).
   useEffect(() => {
@@ -467,12 +547,10 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
 
   return (
     <div className="space-y-6">
-      {/* Turn banner */}
-      {status === 'live' && myTurn && (
-        <div className="rounded-xl bg-[#29544D] text-white px-6 py-4 text-center text-xl font-bold shadow-lg animate-pulse">
-          TWOJA KOLEJ!
-        </div>
-      )}
+      {/* The turn banner lives in DraftLiveBoard, not here. It used to be in
+          both, so it rendered twice. The board's copy is the one to keep: it is
+          sized for the phone layout and counted in the one-viewport height
+          budget, whereas this one sat outside the board and pushed it down. */}
 
       {/* No page title while the board is up: the takeover header already reads
           "Draft — <liga>", and on a phone a second "Draft" heading plus its own
@@ -540,6 +618,14 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
 
       {/* LIVE / FINISHED — shared board */}
       {(status === 'live' || status === 'finished') && (
+        <>
+        {/* Only ever rendered when the live socket is down, so a working draft
+            looks exactly as it did before. */}
+        {status === 'live' && !realtimeOk && graceElapsed && (
+          <div className="mb-3 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+            Połączenie na żywo nieaktywne — odświeżam automatycznie co {POLL_INTERVAL_MS / 1000} s.
+          </div>
+        )}
         <DraftLiveBoard
           roundLabel={`Runda ${snap.draft.round} z ${snap.draft.total_rounds}`}
           status={status as 'live' | 'finished'}
@@ -582,6 +668,7 @@ export function DraftClient({ leagueId }: { leagueId: string }) {
             <DraftChat messages={messages} value={chatInput} onChange={setChatInput} onSend={sendMessage} />
           }
         />
+        </>
       )}
 
       {/* Confirmations */}
