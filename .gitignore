@@ -27,6 +27,10 @@
 /node_modules *
 *.icloud
 
+# local-only tooling: the squad scraper runs on this machine and its output is
+# uploaded into the app by hand, so neither the script nor its data belongs here
+/squad-scraper/
+
 # dev server runtime state
 /.dev-server/
 
