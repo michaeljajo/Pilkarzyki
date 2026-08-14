@@ -59,3 +59,8 @@ next-env.d.ts
 
 # supabase CLI cache
 supabase/.temp/
+
+# Claude Code local state: launch.json (dev-server config), settings.local.json
+# (per-machine permissions), scheduled-task locks and worktrees. All local to a
+# checkout, none of it shared.
+.claude/
