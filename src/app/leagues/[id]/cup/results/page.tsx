@@ -210,8 +210,10 @@ export default function CupResultsPage({ params }: CupResultsPageProps) {
   return (
     <div>
 
-      <main className="w-full flex justify-center" style={{ paddingTop: '48px', paddingBottom: '64px' }}>
-        <div className="w-full max-w-4xl px-6">
+      {/* No nested <main> (AppShell provides one) and no own centring wrapper —
+          the section layout caps and centres this content, same as Liga. */}
+      <div className="w-full pb-12">
+        <div className="w-full">
 
           {/* Loading */}
           {loading && (
@@ -271,7 +273,7 @@ export default function CupResultsPage({ params }: CupResultsPageProps) {
             </>
           )}
         </div>
-      </main>
+      </div>
     </div>
   )
 }

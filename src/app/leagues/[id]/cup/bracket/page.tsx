@@ -69,6 +69,8 @@ interface CupGameweek {
 interface CupStandingsData {
   cup: Cup
   groups: Group[]
+  /** Internal id of the signed-in manager, used to pick the default group tab. */
+  currentManagerId?: string | null
 }
 
 interface CupResultsData {
@@ -191,8 +193,11 @@ export default function CupStandingsPage({ params }: CupStandingsPageProps) {
   return (
     <div>
 
-      <main className="w-full flex justify-center" style={{ paddingTop: '48px', paddingBottom: '64px' }}>
-        <div className="w-full max-w-4xl px-6">
+      {/* No nested <main> (AppShell provides one) and no own centring wrapper —
+          the section layout caps and centres this content. Matches the Liga
+          section, so the cup tables line up exactly with the league table. */}
+      <div className="w-full pb-12">
+        <div className="w-full">
 
           {/* Loading */}
           {loading && (
@@ -215,7 +220,10 @@ export default function CupStandingsPage({ params }: CupStandingsPageProps) {
             <>
               {/* Group Stage View */}
               {showGroupStage && (
-                <CupGroupTable groups={cupStandingsData.groups} />
+                <CupGroupTable
+                  groups={cupStandingsData.groups}
+                  currentManagerId={cupStandingsData.currentManagerId}
+                />
               )}
 
               {/* Knockout Stage View */}
@@ -225,7 +233,10 @@ export default function CupStandingsPage({ params }: CupStandingsPageProps) {
                   {cupStandingsData.groups.length > 0 && (
                     <div className="mb-8">
                       <h2 className="text-xl font-bold text-gray-900 mb-4 text-center">Faza Grupowa (zakończona)</h2>
-                      <CupGroupTable groups={cupStandingsData.groups} />
+                      <CupGroupTable
+                        groups={cupStandingsData.groups}
+                        currentManagerId={cupStandingsData.currentManagerId}
+                      />
                     </div>
                   )}
 
@@ -248,7 +259,7 @@ export default function CupStandingsPage({ params }: CupStandingsPageProps) {
             </>
           )}
         </div>
-      </main>
+      </div>
     </div>
   )
 }

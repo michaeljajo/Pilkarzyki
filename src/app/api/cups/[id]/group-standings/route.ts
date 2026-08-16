@@ -95,7 +95,8 @@ export async function GET(
     if (!standings || standings.length === 0) {
       return NextResponse.json({
         cup,
-        groups: []
+        groups: [],
+        currentManagerId: userRecord.id
       })
     }
 
@@ -139,7 +140,9 @@ export async function GET(
 
     return NextResponse.json({
       cup,
-      groups
+      groups,
+      // Lets the client open on the group this manager actually plays in.
+      currentManagerId: userRecord.id
     })
   } catch (error) {
     console.error('Error fetching cup group standings:', error)
