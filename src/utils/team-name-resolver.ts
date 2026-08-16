@@ -81,15 +81,24 @@ export function validateTeamName(teamName: string): { valid: boolean; error?: st
 }
 
 /**
- * Format team name for display (trim and capitalize first letter of each word)
+ * Format team name for storage and display.
+ *
+ * Casing is left exactly as the manager typed it — "Juve ToMino" stays
+ * "Juve ToMino" — because inner capitals in team names are deliberate. Only
+ * surrounding and repeated whitespace is collapsed, so two names that differ
+ * only in spacing cannot both be stored.
+ *
  * @param teamName - Team name to format
  * @returns Formatted team name
  */
 export function formatTeamName(teamName: string): string {
-  return teamName
-    .trim()
-    .split(' ')
-    .filter(word => word.length > 0)
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ')
+  return teamName.replace(/\s+/g, ' ').trim()
+}
+
+/**
+ * Compare two team names case-insensitively, the way the league sees them:
+ * "Juve ToMino" and "juve tomino" are the same team, not two.
+ */
+export function teamNamesMatch(a: string, b: string): boolean {
+  return formatTeamName(a).toLocaleLowerCase('pl-PL') === formatTeamName(b).toLocaleLowerCase('pl-PL')
 }

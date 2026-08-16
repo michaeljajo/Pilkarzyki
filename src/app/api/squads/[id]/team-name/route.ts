@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
-import { validateTeamName, formatTeamName } from '@/utils/team-name-resolver'
+import { validateTeamName, formatTeamName, teamNamesMatch } from '@/utils/team-name-resolver'
 import { assertLeagueMutable } from '@/lib/auth-helpers'
 
 /**
@@ -64,15 +64,24 @@ export async function PATCH(
       return NextResponse.json({ error: mutable.error }, { status: mutable.status })
     }
 
-    // Check if team name is already taken in this league
+    // Check if team name is already taken in this league. Names now keep the
+    // casing the manager typed, so the comparison has to ignore case rather
+    // than rely on an exact match against a normalised value.
     const formattedName = formatTeamName(teamName)
-    const { data: existingSquad } = await supabaseAdmin
+    const { data: leagueSquads, error: leagueSquadsError } = await supabaseAdmin
       .from('squads')
-      .select('id')
+      .select('id, team_name')
       .eq('league_id', squad.league_id)
-      .eq('team_name', formattedName)
       .neq('id', squadId)
-      .single()
+
+    if (leagueSquadsError) {
+      console.error('Error checking team name uniqueness:', leagueSquadsError)
+      return NextResponse.json({ error: 'Failed to update team name' }, { status: 500 })
+    }
+
+    const existingSquad = (leagueSquads || []).find(
+      (other) => other.team_name && teamNamesMatch(other.team_name, formattedName)
+    )
 
     if (existingSquad) {
       return NextResponse.json({ error: 'Ta nazwa drużyny jest już zajęta w tej lidze' }, { status: 409 })
