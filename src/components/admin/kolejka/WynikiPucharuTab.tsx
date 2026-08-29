@@ -3,8 +3,9 @@
 import { useState } from 'react'
 import { Icon, Trophy, Timer, CircleDot } from 'lucide-react'
 import { soccerBall } from '@lucide/lab'
-import { MatchWithLineups } from '@/types'
+import { MatchWithLineups, PlayerWithResult } from '@/types'
 import { AdminCupLineupPicker } from '@/components/admin/AdminCupLineupPicker'
+import { GoalStepper } from './GoalStepper'
 import { MatchGoalsCard } from './MatchGoalsCard'
 import {
   Cup,
@@ -229,26 +230,23 @@ function EtSection({
   const awayEt = etLineups[`${cgwId}_${match.away_manager_id}`]
   if (!homeEt && !awayEt) return null
 
-  const renderInputs = (playerId: string, goals: number, hasPlayed: boolean) => (
+  const renderInputs = (player: PlayerWithResult, goals: number, hasPlayed: boolean) => (
     <>
-      <input
-        type="number"
-        min="-1"
-        max="9"
+      <GoalStepper
         value={goals}
-        onChange={(e) => onGoalsChange(playerId, e.target.value)}
+        onChange={(value) => onGoalsChange(player.id, value)}
         onFocus={onFocus}
         disabled={inputsDisabled}
-        className={`w-8 sm:w-12 px-0.5 py-0 text-[10px] sm:text-xs text-center border rounded disabled:bg-gray-100 ${
-          goals === -1 ? 'border-red-300 bg-red-50 text-red-700' : 'border-orange-300 focus:ring-orange-500'
-        }`}
+        accent="et"
+        mirrored
+        label={`Gole w dogrywce — ${player.name} ${player.surname}`}
       />
       <input
         type="checkbox"
         checked={hasPlayed}
-        onChange={(e) => onHasPlayedChange(playerId, e.target.checked)}
+        onChange={(e) => onHasPlayedChange(player.id, e.target.checked)}
         disabled={inputsDisabled}
-        className="w-3 h-3 sm:w-4 sm:h-4 cursor-pointer mt-0.5"
+        className="w-4 h-4 shrink-0 cursor-pointer"
       />
     </>
   )
@@ -260,30 +258,26 @@ function EtSection({
         <span className="text-xs font-semibold text-orange-700">Dogrywka</span>
       </div>
       <div className="flex items-start justify-between">
-        <div className="flex-1 space-y-0.5 pr-4 sm:pr-12">
+        <div className="flex-1 space-y-1 pr-1 sm:pr-12">
           {homeEt?.players?.map((player) => {
             const goals = playerGoals[player.id] || 0
             const hasPlayed = playerHasPlayed[player.id] || false
             return (
-              <div key={player.id} className="flex items-start gap-1 sm:gap-2 min-h-[24px]">
+              <div key={player.id} className="flex items-center gap-1 sm:gap-2 min-h-[36px]">
                 <input
                   type="checkbox"
                   checked={hasPlayed}
                   onChange={(e) => onHasPlayedChange(player.id, e.target.checked)}
                   disabled={inputsDisabled}
-                  className="w-3 h-3 sm:w-4 sm:h-4 cursor-pointer mt-0.5"
+                  className="w-4 h-4 shrink-0 cursor-pointer"
                 />
-                <input
-                  type="number"
-                  min="-1"
-                  max="9"
+                <GoalStepper
                   value={goals}
-                  onChange={(e) => onGoalsChange(player.id, e.target.value)}
+                  onChange={(value) => onGoalsChange(player.id, value)}
                   onFocus={onFocus}
                   disabled={inputsDisabled}
-                  className={`w-8 sm:w-12 px-0.5 py-0 text-[10px] sm:text-xs text-center border rounded disabled:bg-gray-100 ${
-                    goals === -1 ? 'border-red-300 bg-red-50 text-red-700' : 'border-orange-300 focus:ring-orange-500'
-                  }`}
+                  accent="et"
+                  label={`Gole w dogrywce — ${player.name} ${player.surname}`}
                 />
                 <p className="text-[11px] sm:text-sm text-gray-600">
                   {player.name} {player.surname}
@@ -296,12 +290,12 @@ function EtSection({
             )
           }) || <p className="text-[11px] text-gray-400 italic">Brak składu ET</p>}
         </div>
-        <div className="flex-1 text-right space-y-0.5 pl-4 sm:pl-12">
+        <div className="flex-1 text-right space-y-1 pl-1 sm:pl-12">
           {awayEt?.players?.map((player) => {
             const goals = playerGoals[player.id] || 0
             const hasPlayed = playerHasPlayed[player.id] || false
             return (
-              <div key={player.id} className="flex items-start justify-end gap-1 sm:gap-2 min-h-[24px]">
+              <div key={player.id} className="flex items-center justify-end gap-1 sm:gap-2 min-h-[36px]">
                 <p className="text-[11px] sm:text-sm text-right text-gray-600">
                   {goals > 0 &&
                     Array.from({ length: goals }).map((_, i) => (
@@ -309,7 +303,7 @@ function EtSection({
                     ))}
                   {player.name} {player.surname}
                 </p>
-                {renderInputs(player.id, goals, hasPlayed)}
+                {renderInputs(player, goals, hasPlayed)}
               </div>
             )
           }) || <p className="text-[11px] text-gray-400 italic">Brak składu ET</p>}

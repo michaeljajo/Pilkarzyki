@@ -10,6 +10,9 @@ export const LEAGUE_LIMITS = {
   MAX_MANAGERS: 32,
   MIN_MANAGERS: 2,
   DEFAULT_MANAGERS: 18,
+  // Admin rights are per league (there is no global admin). This caps how many
+  // people can hold them for one league; enforced in /api/leagues/[id]/admins.
+  MAX_ADMINS: 5,
 } as const
 
 export const SEASON_FORMAT = {

@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
+import { LeagueAdminsCard } from '@/components/admin/LeagueAdminsCard'
 import { Archive, ArchiveRestore, Download } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { League } from '@/types'
@@ -258,6 +259,9 @@ export default function LeagueSettingsPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* League administrators — per-league rights, no global admin. */}
+        {league && <LeagueAdminsCard leagueId={league.id} />}
 
         {/* Export */}
         <Card>

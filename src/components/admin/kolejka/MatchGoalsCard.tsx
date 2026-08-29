@@ -5,6 +5,7 @@ import { Icon } from 'lucide-react'
 import { soccerBall } from '@lucide/lab'
 import { calculateMatchScore } from '@/utils/own-goal-calculator'
 import { MatchWithLineups, PlayerWithResult } from '@/types'
+import { GoalStepper } from './GoalStepper'
 import { getManagerDisplayName } from './types'
 
 type Accent = 'league' | 'cup'
@@ -76,22 +77,15 @@ export function MatchGoalsCard({
   const nameColor = (players: PlayerWithResult[]) =>
     allPlayed(players) ? 'text-[#061852]' : 'text-[#2E7D32]'
 
-  const renderGoalInput = (playerId: string, goals: number) => (
-    <input
-      type="number"
-      min="-1"
-      max="9"
+  const renderGoalInput = (player: PlayerWithResult, goals: number, mirrored = false) => (
+    <GoalStepper
       value={goals}
-      onChange={(e) => onGoalsChange(playerId, e.target.value)}
+      onChange={(value) => onGoalsChange(player.id, value)}
       onFocus={onFocus}
       disabled={inputsDisabled}
-      className={`w-8 sm:w-12 px-0.5 sm:px-1 py-0 sm:py-0.5 text-[10px] sm:text-xs text-center border rounded focus:outline-none focus:ring-1 disabled:bg-gray-100 ${
-        goals === -1
-          ? 'border-red-300 bg-red-50 text-red-700 focus:ring-red-500'
-          : accent === 'cup'
-            ? 'border-gray-300 focus:ring-yellow-600'
-            : 'border-gray-300 focus:ring-[#29544D]'
-      }`}
+      accent={accent}
+      mirrored={mirrored}
+      label={`Gole — ${player.name} ${player.surname}`}
     />
   )
 
@@ -101,7 +95,7 @@ export function MatchGoalsCard({
       checked={hasPlayed}
       onChange={(e) => onHasPlayedChange(playerId, e.target.checked)}
       disabled={inputsDisabled}
-      className="w-3 h-3 sm:w-4 sm:h-4 cursor-pointer disabled:cursor-not-allowed mt-0.5"
+      className="w-4 h-4 shrink-0 cursor-pointer disabled:cursor-not-allowed"
       title="Oznacz, że zawodnik rozegrał mecz"
     />
   )
@@ -150,15 +144,15 @@ export function MatchGoalsCard({
       {/* Player details */}
       <div className={`flex items-start justify-between pt-2 sm:pt-3 border-t-2 ${colors.divider}`}>
         {/* Home */}
-        <div className="flex-1 space-y-0.5 sm:space-y-1 pr-4 sm:pr-12">
+        <div className="flex-1 space-y-1 pr-1 sm:pr-12">
           {homePlayers.length > 0 ? (
             homePlayers.map((player) => {
               const goals = playerGoals[player.id] || 0
               const hasPlayed = playerHasPlayed[player.id] || false
               return (
-                <div key={player.id} className="flex items-start gap-1 sm:gap-2 min-h-[24px] sm:min-h-[32px]">
+                <div key={player.id} className="flex items-center gap-1 sm:gap-2 min-h-[36px] sm:min-h-[32px]">
                   {renderCheckbox(player.id, hasPlayed)}
-                  {renderGoalInput(player.id, goals)}
+                  {renderGoalInput(player, goals)}
                   <p className={`text-[11px] sm:text-sm ${nameClass(goals, hasPlayed)}`}>
                     {player.name} {player.surname}
                     {goals === -1 && <span className="ml-1 text-red-600">(OG)</span>}
@@ -171,20 +165,20 @@ export function MatchGoalsCard({
               )
             })
           ) : (
-            <div className="flex items-baseline gap-2 min-h-[24px] sm:min-h-[32px]">
+            <div className="flex items-baseline gap-2 min-h-[36px] sm:min-h-[32px]">
               <p className="text-[11px] sm:text-sm text-gray-400 italic">Nie ustawiono składu</p>
             </div>
           )}
         </div>
 
         {/* Away */}
-        <div className="flex-1 text-right space-y-0.5 sm:space-y-1 pl-4 sm:pl-12">
+        <div className="flex-1 text-right space-y-1 pl-1 sm:pl-12">
           {awayPlayers.length > 0 ? (
             awayPlayers.map((player) => {
               const goals = playerGoals[player.id] || 0
               const hasPlayed = playerHasPlayed[player.id] || false
               return (
-                <div key={player.id} className="flex items-start justify-end gap-1 sm:gap-2 min-h-[24px] sm:min-h-[32px]">
+                <div key={player.id} className="flex items-center justify-end gap-1 sm:gap-2 min-h-[36px] sm:min-h-[32px]">
                   <p className={`text-[11px] sm:text-sm text-right ${nameClass(goals, hasPlayed)}`}>
                     {goals > 0 &&
                       Array.from({ length: goals }).map((_, i) => (
@@ -193,13 +187,13 @@ export function MatchGoalsCard({
                     {player.name} {player.surname}
                     {goals === -1 && <span className="ml-1 text-red-600">(OG)</span>}
                   </p>
-                  {renderGoalInput(player.id, goals)}
+                  {renderGoalInput(player, goals, true)}
                   {renderCheckbox(player.id, hasPlayed)}
                 </div>
               )
             })
           ) : (
-            <div className="flex items-baseline gap-2 justify-end min-h-[24px] sm:min-h-[32px]">
+            <div className="flex items-baseline gap-2 justify-end min-h-[36px] sm:min-h-[32px]">
               <p className="text-[11px] sm:text-sm text-gray-400 italic">Nie ustawiono składu</p>
             </div>
           )}

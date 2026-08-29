@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { GameweekMatchData, MatchWithLineups, PlayerWithResult } from '@/types'
@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button'
 import { SkladyTab } from '@/components/admin/kolejka/SkladyTab'
 import { WynikiLigiTab } from '@/components/admin/kolejka/WynikiLigiTab'
 import { WynikiPucharuTab } from '@/components/admin/kolejka/WynikiPucharuTab'
+import { ResultsActionBar } from '@/components/admin/kolejka/ResultsActionBar'
 import { FinishGameweekModal } from '@/components/admin/kolejka/FinishGameweekModal'
 import {
   Cup,
@@ -49,6 +50,7 @@ export default function KolejkaPage() {
   const [activeTab, setActiveTab] = useState<Tab>('sklady')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [savingAll, setSavingAll] = useState(false)
   const [finishing, setFinishing] = useState(false)
   const [playerGoals, setPlayerGoals] = useState<{ [key: string]: number }>({})
   const [playerHasPlayed, setPlayerHasPlayed] = useState<{ [key: string]: boolean }>({})
@@ -62,6 +64,46 @@ export default function KolejkaPage() {
   // here instead would put it in fetchGameweeks' deps, and since fetchGameweeks
   // sets it, the load effect would re-run itself.
   const hasAutoSelected = useRef(false)
+
+  // Players edited since the last successful save. Two jobs: it drives the
+  // "unsaved changes" hint, and it tells a post-save refetch which entries must
+  // survive the server payload — without it, saving one match would silently
+  // revert everything typed into the other matches.
+  const [dirtyIds, setDirtyIds] = useState<Set<string>>(() => new Set())
+  const dirtyIdsRef = useRef(dirtyIds)
+  useEffect(() => {
+    dirtyIdsRef.current = dirtyIds
+  }, [dirtyIds])
+
+  // Which gameweek the goal/has-played maps currently describe, so a refresh of
+  // the same gameweek merges while a switch replaces (stale players from the
+  // previous gameweek must never reach the bulk save).
+  const loadedGameweek = useRef<string | null>(null)
+
+  const markDirty = useCallback((playerId: string) => {
+    setDirtyIds((prev) => {
+      if (prev.has(playerId)) return prev
+      const next = new Set(prev)
+      next.add(playerId)
+      return next
+    })
+  }, [])
+
+  /** Adopt a server-side result, unless the admin has unsaved edits for it. */
+  const applyServerResult = useCallback((player: PlayerWithResult) => {
+    if (dirtyIdsRef.current.has(player.id)) return
+    setPlayerGoals((prev) => ({ ...prev, [player.id]: player.goals_scored || 0 }))
+    setPlayerHasPlayed((prev) => ({ ...prev, [player.id]: player.has_played || false }))
+  }, [])
+
+  const clearDirty = useCallback((playerIds?: string[]) => {
+    setDirtyIds((prev) => {
+      if (!playerIds) return prev.size === 0 ? prev : new Set()
+      const next = new Set(prev)
+      playerIds.forEach((id) => next.delete(id))
+      return next
+    })
+  }, [])
 
   const gw = gameweeks.find((g) => g.id === selectedGameweek)
   const state = deriveGameweekState(gw)
@@ -125,8 +167,28 @@ export default function KolejkaPage() {
             }
           )
         })
-        setPlayerGoals(goalsMap)
-        setPlayerHasPlayed(hasPlayedMap)
+
+        // A refresh of the same gameweek keeps the cup/ET entries already in
+        // state and any edit not yet saved; a switch starts from scratch.
+        const isRefresh = loadedGameweek.current === selectedGameweek
+        const keep = isRefresh ? dirtyIdsRef.current : new Set<string>()
+        if (!isRefresh) clearDirty()
+
+        setPlayerGoals((prev) => {
+          const next = isRefresh ? { ...prev, ...goalsMap } : { ...goalsMap }
+          keep.forEach((id) => {
+            if (id in prev) next[id] = prev[id]
+          })
+          return next
+        })
+        setPlayerHasPlayed((prev) => {
+          const next = isRefresh ? { ...prev, ...hasPlayedMap } : { ...hasPlayedMap }
+          keep.forEach((id) => {
+            if (id in prev) next[id] = prev[id]
+          })
+          return next
+        })
+        loadedGameweek.current = selectedGameweek
       } else {
         setMatchData(null)
       }
@@ -136,10 +198,10 @@ export default function KolejkaPage() {
     } finally {
       setLoading(false)
     }
-  }, [selectedGameweek])
+  }, [selectedGameweek, clearDirty])
 
-  // Works purely from its arguments and functional state updates, so it needs no
-  // deps and stays referentially stable for fetchCupMatches below.
+  // Works purely from its arguments, functional state updates and stable
+  // callbacks, so it stays referentially stable for fetchCupMatches below.
   const fetchEtPenaltyLineups = useCallback(async (cupGameweekId: string, matches: MatchWithLineups[]) => {
     try {
       const managerIds = new Set<string>()
@@ -160,10 +222,7 @@ export default function KolejkaPage() {
 
       data.etLineups?.forEach((et: EtLineupData) => {
         newEt[`${et.cup_gameweek_id}_${et.manager_id}`] = et
-        et.players?.forEach((player: PlayerWithResult) => {
-          setPlayerGoals((prev) => ({ ...prev, [player.id]: player.goals_scored || 0 }))
-          setPlayerHasPlayed((prev) => ({ ...prev, [player.id]: player.has_played || false }))
-        })
+        et.players?.forEach(applyServerResult)
       })
       data.penaltyLineups?.forEach((pen: PenaltyLineupData) => {
         const key = `${pen.cup_gameweek_id}_${pen.manager_id}`
@@ -177,7 +236,7 @@ export default function KolejkaPage() {
     } catch (error) {
       console.error('Failed to fetch ET/penalty lineups:', error)
     }
-  }, [])
+  }, [applyServerResult])
 
   const fetchCupMatches = useCallback(async () => {
     if (!cup || !selectedGameweek) return
@@ -192,12 +251,10 @@ export default function KolejkaPage() {
 
         matching.forEach((cgw) => {
           cgw.matches?.forEach((match) => {
-            ;[...(match.home_lineup?.players || []), ...(match.away_lineup?.players || [])].forEach(
-              (player: PlayerWithResult) => {
-                setPlayerGoals((prev) => ({ ...prev, [player.id]: player.goals_scored || 0 }))
-                setPlayerHasPlayed((prev) => ({ ...prev, [player.id]: player.has_played || false }))
-              }
-            )
+            ;[
+              ...(match.home_lineup?.players || []),
+              ...(match.away_lineup?.players || []),
+            ].forEach(applyServerResult)
           })
         })
 
@@ -208,7 +265,7 @@ export default function KolejkaPage() {
     } catch (error) {
       console.error('Failed to fetch cup matches:', error)
     }
-  }, [cup, selectedGameweek, fetchEtPenaltyLineups])
+  }, [cup, selectedGameweek, fetchEtPenaltyLineups, applyServerResult])
 
   useEffect(() => {
     fetchGameweeks()
@@ -223,8 +280,10 @@ export default function KolejkaPage() {
       setCupGameweeks([])
       setPlayerGoals({})
       setPlayerHasPlayed({})
+      clearDirty()
+      loadedGameweek.current = null
     }
-  }, [selectedGameweek, cup, fetchMatchData, fetchCupMatches])
+  }, [selectedGameweek, cup, fetchMatchData, fetchCupMatches, clearDirty])
 
   const handleGoalsChange = (playerId: string, value: string) => {
     let goals = 0
@@ -233,10 +292,12 @@ export default function KolejkaPage() {
       if (!isNaN(parsed)) goals = Math.min(Math.max(parsed, -1), 9)
     }
     setPlayerGoals((prev) => ({ ...prev, [playerId]: goals }))
+    markDirty(playerId)
   }
 
   const handleHasPlayedChange = (playerId: string, checked: boolean) => {
     setPlayerHasPlayed((prev) => ({ ...prev, [playerId]: checked }))
+    markDirty(playerId)
   }
 
   const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => e.target.select()
@@ -269,7 +330,10 @@ export default function KolejkaPage() {
     }
   }
 
-  /** Persist every goal/has_played entry currently in state. Returns success. */
+  /**
+   * Persist every goal/has_played entry currently in state — league, cup and
+   * extra time together, in one request. Returns success.
+   */
   const saveAllResults = async (silent = false): Promise<boolean> => {
     if (!selectedGameweek) return false
     const results = Object.entries(playerGoals).map(([player_id, goals]) => ({
@@ -284,6 +348,7 @@ export default function KolejkaPage() {
         body: JSON.stringify({ results }),
       })
       if (response.ok) {
+        clearDirty()
         if (!silent) toast.success('Wyniki zapisane — tabela zaktualizowana')
         return true
       }
@@ -293,6 +358,21 @@ export default function KolejkaPage() {
     } catch {
       toast.error('Nie udało się zapisać wyników')
       return false
+    }
+  }
+
+  /** Bulk-save action behind the sticky "Zapisz wszystkie wyniki" button. */
+  const handleSaveAll = async () => {
+    if (savingAll || saving) return
+    setSavingAll(true)
+    try {
+      const saved = await saveAllResults()
+      if (saved) {
+        await fetchMatchData()
+        await fetchCupMatches()
+      }
+    } finally {
+      setSavingAll(false)
     }
   }
 
@@ -341,6 +421,9 @@ export default function KolejkaPage() {
       })
       if (response.ok) {
         toast.success('Wynik meczu zapisany')
+        // Only this match is now in sync; edits elsewhere stay pending so the
+        // refetch below does not overwrite them.
+        clearDirty(playerIds)
         await fetchMatchData()
         await fetchCupMatches()
       } else {
@@ -424,6 +507,46 @@ export default function KolejkaPage() {
     }
   }
 
+  // Progress is reported for the tab you are looking at, so the cup tab is not
+  // dragged down by league players you have not reached yet (and vice versa).
+  const leaguePlayerIds = useMemo(
+    () =>
+      (matchData?.matches || []).flatMap((m) => [
+        ...(m.home_lineup?.players || []).map((p) => p.id),
+        ...(m.away_lineup?.players || []).map((p) => p.id),
+      ]),
+    [matchData]
+  )
+
+  const cupPlayerIds = useMemo(() => {
+    const ids: string[] = []
+    cupGameweeks.forEach((cgw) => {
+      cgw.matches?.forEach((m) => {
+        ids.push(
+          ...(m.home_lineup?.players || []).map((p) => p.id),
+          ...(m.away_lineup?.players || []).map((p) => p.id)
+        )
+        const homeEt = etLineups[`${cgw.id}_${m.home_manager_id}`]
+        const awayEt = etLineups[`${cgw.id}_${m.away_manager_id}`]
+        if (homeEt?.players) ids.push(...homeEt.players.map((p) => p.id))
+        if (awayEt?.players) ids.push(...awayEt.players.map((p) => p.id))
+      })
+    })
+    return Array.from(new Set(ids))
+  }, [cupGameweeks, etLineups])
+
+  const visiblePlayerIds = activeTab === 'puchar' ? cupPlayerIds : leaguePlayerIds
+  const doneCount = visiblePlayerIds.filter((id) => playerHasPlayed[id]).length
+  const hasUnsavedChanges = dirtyIds.size > 0
+
+  // Leaving with results typed but not sent would lose the whole gameweek's work.
+  useEffect(() => {
+    if (!hasUnsavedChanges) return
+    const warn = (e: BeforeUnloadEvent) => e.preventDefault()
+    window.addEventListener('beforeunload', warn)
+    return () => window.removeEventListener('beforeunload', warn)
+  }, [hasUnsavedChanges])
+
   const tabs: { key: Tab; label: string; icon: typeof ClipboardList }[] = [
     { key: 'sklady', label: 'Składy', icon: ListChecks },
     { key: 'liga', label: 'Wyniki Ligi', icon: ClipboardList },
@@ -501,6 +624,19 @@ export default function KolejkaPage() {
             })}
           </div>
 
+          {/* Progress + bulk save, shared by both result tabs. */}
+          {(activeTab === 'liga' || activeTab === 'puchar') && (
+            <ResultsActionBar
+              done={doneCount}
+              total={visiblePlayerIds.length}
+              dirty={hasUnsavedChanges}
+              saving={savingAll}
+              disabled={resultsDisabled || saving}
+              onSaveAll={handleSaveAll}
+              accent={activeTab === 'puchar' ? 'cup' : 'league'}
+            />
+          )}
+
           {/* Tab content */}
           {activeTab === 'sklady' && (
             <SkladyTab
@@ -523,7 +659,7 @@ export default function KolejkaPage() {
               onHasPlayedChange={handleHasPlayedChange}
               onFocus={handleFocus}
               onSaveMatch={saveMatch}
-              saving={saving}
+              saving={saving || savingAll}
               disabled={resultsDisabled}
             />
           )}
@@ -544,7 +680,7 @@ export default function KolejkaPage() {
               onSaveMatch={saveMatch}
               onPenaltyToggle={handlePenaltyToggle}
               onSavePenalties={savePenaltyResults}
-              saving={saving}
+              saving={saving || savingAll}
               disabled={resultsDisabled}
               onCorrected={() => {
                 fetchMatchData().then(() => fetchCupMatches())

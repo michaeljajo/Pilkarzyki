@@ -453,7 +453,10 @@ export async function getLeagueAdmins(leagueId: string): Promise<Array<{
   try {
     const { data: adminRecords, error } = await supabaseAdmin
       .from('league_admins')
-      .select('user_id, users!inner(id, email, first_name, last_name)')
+      // league_admins has two FKs to users (user_id and created_by), so the
+      // embed must name the constraint — an unqualified users!inner is rejected
+      // by PostgREST as ambiguous and this helper returned [] every time.
+      .select('user_id, users!league_admins_user_id_fkey(id, email, first_name, last_name)')
       .eq('league_id', leagueId)
 
     if (error) {
