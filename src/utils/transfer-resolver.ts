@@ -224,8 +224,24 @@ export async function createPlayerTransfer(
 }
 
 /**
- * Batch resolve managers for multiple players at a specific gameweek
- * More efficient than calling getManagerAtGameweek multiple times
+ * Batch resolve managers for multiple players at a specific gameweek.
+ * More efficient than calling getManagerAtGameweek multiple times, and the
+ * only resolver the app actually reads through (top scorers, results).
+ *
+ * Resolution runs in three steps, because player_transfers does not in
+ * practice hold the whole truth. Squads filled from a spreadsheet write
+ * players.manager_id directly and leave no transfer row at all, so a
+ * history-only lookup answers "nobody" for most of a league and every
+ * scorer shows up as "Brak managera":
+ *
+ *   1. The transfer row covering that gameweek, when there is one. History
+ *      always wins — including when it says the player was unowned, which is
+ *      a real answer (a dropped player scoring while in the pool), not a gap.
+ *   2. Otherwise, the manager who FIELDED him that gameweek. This is exactly
+ *      what the score was computed from, and it keeps a departed player's old
+ *      goals with the manager who actually had him.
+ *   3. Otherwise, his current owner — the best guess left for a player nobody
+ *      fielded. This one can mis-credit a player who later changed hands.
  *
  * @param playerIds - Array of player UUIDs
  * @param gameweekId - UUID of the gameweek
@@ -279,12 +295,16 @@ export async function batchGetManagersAtGameweek(
       return resultMap
     }
 
-    // For each player, find the most recent transfer before/during gameweek
+    // Step 1 — the transfer row covering this gameweek, where one exists.
+    // Players with no covering row are left for the fallbacks below; a row
+    // that names no manager is an answer, so those are NOT reopened.
+    const needsFallback: string[] = []
     for (const playerId of playerIds) {
       const playerTransfers = transfers?.filter(t => t.player_id === playerId) || []
 
       if (playerTransfers.length === 0) {
         resultMap.set(playerId, null)
+        needsFallback.push(playerId)
         continue
       }
 
@@ -294,6 +314,59 @@ export async function batchGetManagersAtGameweek(
       )[0]
 
       resultMap.set(playerId, activeTransfer.manager_id)
+    }
+
+    if (needsFallback.length === 0) {
+      return resultMap
+    }
+
+    // Step 2 — who fielded him in this gameweek. Lineups are keyed by
+    // gameweek, which already scopes this to the league.
+    const { data: lineups } = await supabaseAdmin
+      .from('lineups')
+      .select('manager_id, player_ids')
+      .eq('gameweek_id', gameweekId)
+
+    const fieldedBy = new Map<string, string>()
+    for (const lineup of lineups ?? []) {
+      if (!lineup.manager_id) continue
+      for (const playerId of lineup.player_ids ?? []) {
+        fieldedBy.set(playerId, lineup.manager_id)
+      }
+    }
+
+    // Step 3 — current owner, for whoever is still unresolved. Only for
+    // players with NO transfer history at all: a player who does have rows,
+    // none of which reach back this far, joined his current manager later,
+    // and crediting that manager for goals scored before he arrived would be
+    // inventing a fact the history already contradicts.
+    const stillUnresolved = needsFallback.filter(id => !fieldedBy.has(id))
+    const currentOwner = new Map<string, string | null>()
+    if (stillUnresolved.length > 0) {
+      const { data: anyHistory } = await supabaseAdmin
+        .from('player_transfers')
+        .select('player_id')
+        .eq('league_id', leagueId)
+        .in('player_id', stillUnresolved)
+
+      const hasHistory = new Set((anyHistory ?? []).map(t => t.player_id))
+      const noHistory = stillUnresolved.filter(id => !hasHistory.has(id))
+
+      if (noHistory.length > 0) {
+        const { data: owners } = await supabaseAdmin
+          .from('players')
+          .select('id, manager_id')
+          .eq('league_id', leagueId)
+          .in('id', noHistory)
+
+        for (const owner of owners ?? []) {
+          currentOwner.set(owner.id, owner.manager_id)
+        }
+      }
+    }
+
+    for (const playerId of needsFallback) {
+      resultMap.set(playerId, fieldedBy.get(playerId) ?? currentOwner.get(playerId) ?? null)
     }
 
     return resultMap
