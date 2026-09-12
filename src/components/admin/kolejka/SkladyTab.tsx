@@ -127,7 +127,7 @@ export function SkladyTab({ matches, leagueId, gameweekId, canCorrect, onCorrect
           managerId={editing.managerId}
           managerName={editing.name}
           gameweekId={gameweekId}
-          existingLineup={{ id: '', player_ids: editing.players.map((p) => p.id) }}
+          existingPlayers={editing.players}
           onClose={() => setEditing(null)}
           onSave={() => {
             setEditing(null)

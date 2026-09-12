@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
-import { X, Save } from 'lucide-react'
+import { X, Save, AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 interface Player {
@@ -13,9 +13,11 @@ interface Player {
   position: string
 }
 
-interface CupLineup {
+/** A player as stored in the lineup — named, so a departed one can be named. */
+interface LineupPlayer {
   id: string
-  player_ids: string[]
+  name: string
+  surname: string
 }
 
 interface AdminCupLineupPickerProps {
@@ -24,7 +26,8 @@ interface AdminCupLineupPickerProps {
   managerId: string
   managerName: string
   cupGameweekId: string
-  existingLineup?: CupLineup
+  /** The lineup as currently stored, in full — not just ids. */
+  existingPlayers?: LineupPlayer[]
   onClose: () => void
   onSave: () => void
 }
@@ -35,12 +38,14 @@ export function AdminCupLineupPicker({
   managerId,
   managerName,
   cupGameweekId,
-  existingLineup,
+  existingPlayers,
   onClose,
   onSave
 }: AdminCupLineupPickerProps) {
   const [players, setPlayers] = useState<Player[]>([])
-  const [selectedPlayers, setSelectedPlayers] = useState<string[]>(existingLineup?.player_ids || [])
+  const [selectedPlayers, setSelectedPlayers] = useState<string[]>(
+    () => existingPlayers?.map((p) => p.id) ?? []
+  )
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
@@ -64,6 +69,26 @@ export function AdminCupLineupPicker({
   useEffect(() => {
     loadSquad()
   }, [loadSquad])
+
+  // Players the lineup still names but who have since left the squad — a
+  // transfer out, a replacement, a mid-season draft drop. They are not in the
+  // squad list, so no button renders them and they cannot be deselected; left
+  // in the selection they would silently eat one of the three slots and make
+  // the save fail ("not in manager's squad"). Drop them, and say so.
+  const departed = loading
+    ? []
+    : (existingPlayers ?? []).filter((p) => !players.some((sp) => sp.id === p.id))
+
+  // React's "adjust state when something changes" pattern rather than an
+  // effect: reconciling during render avoids showing the stale selection for
+  // one frame, and keeps the squad fetch free of selection logic.
+  const [reconciled, setReconciled] = useState(false)
+  if (!loading && !reconciled) {
+    setReconciled(true)
+    const inSquad = new Set(players.map((p) => p.id))
+    const kept = selectedPlayers.filter((id) => inSquad.has(id))
+    if (kept.length !== selectedPlayers.length) setSelectedPlayers(kept)
+  }
 
   const togglePlayer = (playerId: string) => {
     if (selectedPlayers.includes(playerId)) {
@@ -145,6 +170,22 @@ export function AdminCupLineupPicker({
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
+          {departed.length > 0 && (
+            <div className="mb-6 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+              <AlertTriangle size={18} className="shrink-0 mt-0.5 text-amber-600" />
+              <p className="text-sm text-amber-800">
+                {departed.length === 1 ? 'Zawodnik ' : 'Zawodnicy '}
+                <span className="font-semibold">
+                  {departed.map((p) => `${p.name} ${p.surname}`.trim()).join(', ')}
+                </span>{' '}
+                {departed.length === 1 ? 'nie należy' : 'nie należą'} już do składu menedżera —
+                {departed.length === 1 ? ' usunięto go' : ' usunięto ich'} z wyboru. Wybierz
+                {departed.length === 1 ? ' zawodnika' : ' zawodników'} w{' '}
+                {departed.length === 1 ? 'jego' : 'ich'} miejsce. Gole z poprzednich kolejek
+                pozostają bez zmian.
+              </p>
+            </div>
+          )}
           {loading ? (
             <div className="py-12 text-center text-gray-500">
               Ładowanie zawodników...

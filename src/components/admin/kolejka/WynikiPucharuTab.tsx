@@ -67,7 +67,8 @@ export function WynikiPucharuTab(props: WynikiPucharuTabProps) {
     cupGameweekId: string
     managerId: string
     managerName: string
-    playerIds: string[]
+    /** The stored lineup in full, so the picker can name a departed player. */
+    players: { id: string; name: string; surname: string }[]
   } | null>(null)
 
   if (cupGameweeks.length === 0) {
@@ -134,7 +135,7 @@ export function WynikiPucharuTab(props: WynikiPucharuTabProps) {
                                 cupGameweekId: cgw.id,
                                 managerId: match.home_manager_id,
                                 managerName: getManagerDisplayName(match.home_manager),
-                                playerIds: (match.home_lineup?.players || []).map((p) => p.id),
+                                players: match.home_lineup?.players || [],
                               })
                             }
                             className="px-2 py-0.5 text-xs border border-yellow-600 text-yellow-700 rounded hover:bg-yellow-50"
@@ -149,7 +150,7 @@ export function WynikiPucharuTab(props: WynikiPucharuTabProps) {
                                 cupGameweekId: cgw.id,
                                 managerId: match.away_manager_id,
                                 managerName: getManagerDisplayName(match.away_manager),
-                                playerIds: (match.away_lineup?.players || []).map((p) => p.id),
+                                players: match.away_lineup?.players || [],
                               })
                             }
                             className="px-2 py-0.5 text-xs border border-yellow-600 text-yellow-700 rounded hover:bg-yellow-50"
@@ -191,7 +192,7 @@ export function WynikiPucharuTab(props: WynikiPucharuTabProps) {
           managerId={editing.managerId}
           managerName={editing.managerName}
           cupGameweekId={editing.cupGameweekId}
-          existingLineup={{ id: '', player_ids: editing.playerIds }}
+          existingPlayers={editing.players}
           onClose={() => setEditing(null)}
           onSave={() => {
             setEditing(null)
