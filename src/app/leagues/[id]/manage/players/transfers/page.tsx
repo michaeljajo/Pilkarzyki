@@ -6,16 +6,10 @@ import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { ArrowLeftRight, ArrowRight, FileSpreadsheet, Clock } from 'lucide-react'
+import { ArrowLeftRight, ArrowRight, FileSpreadsheet, Clock, Repeat } from 'lucide-react'
 import MidseasonDraftAdminPanel from './MidseasonDraftAdminPanel'
-
-interface Manager {
-  databaseId: string
-  firstName?: string
-  lastName?: string
-  displayName?: string
-  email?: string
-}
+import PlayerReplacementPanel from './PlayerReplacementPanel'
+import { managerLabel, type ManagerRef as Manager } from '@/lib/manager-label'
 
 interface SquadPlayer {
   id: string
@@ -24,19 +18,12 @@ interface SquadPlayer {
   position: string
 }
 
-function managerLabel(m: Manager): string {
-  if (m.displayName) return m.displayName
-  const full = `${m.firstName ?? ''} ${m.lastName ?? ''}`.trim()
-  // Fall back to the email local-part only — never the full address (GDPR).
-  return full || m.email?.split('@')[0] || 'Menedżer'
-}
-
 /**
- * Transfery — the admin home for mid-season roster changes. Currently hosts the
+ * Transfery — the admin home for mid-season roster changes. Hosts the
  * manager-to-manager swap tool (a rare exchange of one player between two
- * managers, via the atomic admin_swap_players RPC). The live mid-season draft
- * will be added here in a later increment; the spreadsheet bulk tool remains
- * available as a fallback path.
+ * managers, via the atomic admin_swap_players RPC), the one-for-one replacement
+ * from the free-agent pool (a player who left the leagues we play with), and the
+ * live mid-season draft. The spreadsheet bulk tool remains a fallback path.
  */
 export default function TransfersPage() {
   const params = useParams()
@@ -225,6 +212,19 @@ export default function TransfersPage() {
               Wykonaj wymianę
             </Button>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* One-for-one replacement from the free-agent pool */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Repeat size={20} className="text-[#29544D]" />
+            Zmiana zawodnika (wolny transfer)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <PlayerReplacementPanel leagueId={leagueId} managers={managers} />
         </CardContent>
       </Card>
 
