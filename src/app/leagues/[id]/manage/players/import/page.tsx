@@ -5,10 +5,13 @@ import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 
+type ImportMode = 'insert' | 'update'
+
 export default function LeaguePlayersImportPage() {
   const params = useParams()
   const router = useRouter()
   const [file, setFile] = useState<File | null>(null)
+  const [mode, setMode] = useState<ImportMode>('insert')
   const [loading, setLoading] = useState(false)
   const [downloading, setDownloading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -62,6 +65,7 @@ export default function LeaguePlayersImportPage() {
       const formData = new FormData()
       formData.append('file', file)
       formData.append('leagueId', params.id as string)
+      formData.append('mode', mode)
 
       const response = await fetch('/api/admin/players/import', {
         method: 'POST',
@@ -73,7 +77,10 @@ export default function LeaguePlayersImportPage() {
       // browser wording ("The string did not match the expected pattern")
       // told the admin nothing about what actually went wrong.
       const body = await response.text()
-      let data: { error?: string; result?: { imported?: number; skipped?: number } }
+      let data: {
+        error?: string
+        result?: { imported?: number; updated?: number; unchanged?: number; skipped?: number }
+      }
       try {
         data = JSON.parse(body)
       } catch {
@@ -88,9 +95,19 @@ export default function LeaguePlayersImportPage() {
         throw new Error(data.error || 'Failed to import players')
       }
 
-      const imported = data.result?.imported ?? 0
       const skipped = data.result?.skipped ?? 0
-      setSuccess(`Zaimportowano ${imported} zawodników${skipped ? `, pominięto ${skipped}` : ''}.`)
+      if (mode === 'update') {
+        const updated = data.result?.updated ?? 0
+        const unchanged = data.result?.unchanged ?? 0
+        setSuccess(
+          `Zaktualizowano ${updated} zawodników` +
+          `${unchanged ? `, bez zmian ${unchanged}` : ''}` +
+          `${skipped ? `, pominięto ${skipped}` : ''}.`
+        )
+      } else {
+        const imported = data.result?.imported ?? 0
+        setSuccess(`Zaimportowano ${imported} zawodników${skipped ? `, pominięto ${skipped}` : ''}.`)
+      }
       setFile(null)
 
       // Redirect back to players page after 2 seconds
@@ -141,6 +158,48 @@ export default function LeaguePlayersImportPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            <fieldset>
+              <legend className="block text-sm font-medium text-gray-700 mb-2">
+                Co zrobić z pliku
+              </legend>
+              <div className="space-y-2">
+                {([
+                  {
+                    value: 'insert' as const,
+                    label: 'Dodaj nowych zawodników',
+                    hint: 'Wstawia zawodników spoza puli jako nieprzypisanych. Istniejący są pomijani.',
+                  },
+                  {
+                    value: 'update' as const,
+                    label: 'Zaktualizuj kluby (okno transferowe)',
+                    hint: 'Zmienia tylko klub i ligę zawodników już w puli. Nie rusza przypisania do menedżera, goli ani składów.',
+                  },
+                ]).map((opt) => (
+                  <label
+                    key={opt.value}
+                    className={`flex gap-3 rounded-md border p-3 cursor-pointer ${
+                      mode === opt.value
+                        ? 'border-indigo-500 bg-indigo-50'
+                        : 'border-gray-200 hover:bg-gray-50'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="mode"
+                      value={opt.value}
+                      checked={mode === opt.value}
+                      onChange={() => setMode(opt.value)}
+                      className="mt-1"
+                    />
+                    <span>
+                      <span className="block text-sm font-medium text-gray-900">{opt.label}</span>
+                      <span className="block text-xs text-gray-600">{opt.hint}</span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Wybierz plik Excel
@@ -172,7 +231,7 @@ export default function LeaguePlayersImportPage() {
                 Anuluj
               </Button>
               <Button type="submit" loading={loading} disabled={!file}>
-                Importuj Zawodników
+                {mode === 'update' ? 'Zaktualizuj Kluby' : 'Importuj Zawodników'}
               </Button>
             </div>
           </form>
@@ -197,6 +256,12 @@ export default function LeaguePlayersImportPage() {
             <p className="text-gray-500 text-xs mt-2">
               Uwaga: Zawodnicy trafiają do puli tej ligi jako nieprzypisani — menedżerowie
               wybierają ich podczas draftu. Bramkarze nie są obsługiwani.
+            </p>
+            <p className="text-gray-500 text-xs">
+              W trybie <strong>aktualizacji klubów</strong> kolumna Pozycja nie jest
+              wymagana ani zapisywana — liczą się Imię i Nazwisko (do dopasowania) oraz
+              Klub i Liga (do zapisania). Zawodnicy spoza puli i powtarzające się
+              nazwiska są pomijane i wypisane w podsumowaniu.
             </p>
             <p className="text-gray-700 mt-4">
               Przykład:
