@@ -4,11 +4,21 @@ import { supabaseAdmin } from '@/lib/supabase'
 import * as XLSX from 'xlsx'
 import { DraftPoolImport } from '@/types'
 import { assertLeagueMutable, verifyLeagueAdmin, userAdminsAnyLeague } from '@/lib/auth-helpers'
-import { resolvePosition, splitFullName, ALLOWED_POSITIONS_PL } from '@/lib/draft-players'
+import {
+  resolvePosition,
+  splitFullName,
+  planClubUpdates,
+  ALLOWED_POSITIONS_PL,
+  type PoolPlayerRef,
+} from '@/lib/draft-players'
 
 interface ImportResult {
   success: boolean
   imported: number
+  /** Rows that changed an existing player's club/league. Update mode only. */
+  updated: number
+  /** Rows matched to a player that already held those values. Update mode only. */
+  unchanged: number
   skipped: number
   errors: string[]
   details: {
@@ -16,10 +26,25 @@ interface ImportResult {
   }
 }
 
+/**
+ * `insert` adds new players to the pool, unassigned, and skips anyone already
+ * there. `update` is the transfer-window pass: it matches players already in
+ * the pool by name and rewrites only their club and football league. It never
+ * inserts, and never touches manager_id, total_goals, position or squad
+ * membership — a mid-season club change must not disturb who owns the player.
+ */
+type ImportMode = 'insert' | 'update'
+
 // The 2026/27 pool is imported UNASSIGNED — managers are assigned via the live
 // draft, so there is no Manager/Team Name column. The spreadsheet uses four
 // Polish-headed columns: Imię i Nazwisko, Liga, Klub, Pozycja.
-const REQUIRED_COLUMNS = ['Imię i Nazwisko', 'Klub', 'Pozycja'] as const
+// Update mode does not write the position, so it does not demand the column:
+// rejecting a club change over a position typo in a field we ignore would be
+// a confusing failure.
+const REQUIRED_COLUMNS: Record<ImportMode, readonly string[]> = {
+  insert: ['Imię i Nazwisko', 'Klub', 'Pozycja'],
+  update: ['Imię i Nazwisko', 'Klub'],
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -31,6 +56,15 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData()
     const file = formData.get('file') as File
     const leagueId = formData.get('leagueId') as string
+    const rawMode = String(formData.get('mode') ?? 'insert')
+
+    if (rawMode !== 'insert' && rawMode !== 'update') {
+      return NextResponse.json(
+        { error: `Nieznany tryb importu "${rawMode}". Dozwolone: insert, update.` },
+        { status: 400 }
+      )
+    }
+    const mode: ImportMode = rawMode
 
     if (!file) {
       return NextResponse.json({ error: 'No file uploaded' }, { status: 400 })
@@ -78,7 +112,7 @@ export async function POST(request: NextRequest) {
 
     // Validate required columns (Liga is optional)
     const firstRow = jsonData[0]
-    const missingColumns = REQUIRED_COLUMNS.filter(col => !(col in firstRow))
+    const missingColumns = REQUIRED_COLUMNS[mode].filter(col => !(col in firstRow))
 
     if (missingColumns.length > 0) {
       return NextResponse.json({
@@ -89,11 +123,17 @@ export async function POST(request: NextRequest) {
     const result: ImportResult = {
       success: true,
       imported: 0,
+      updated: 0,
+      unchanged: 0,
       skipped: 0,
       errors: [],
       details: {
         players: []
       }
+    }
+
+    if (mode === 'update') {
+      return await runClubUpdate(jsonData, leagueId, leagueName, result)
     }
 
     // A full draft pool is ~5000 rows. Validating and de-duplicating in memory
@@ -244,6 +284,84 @@ export async function POST(request: NextRequest) {
       details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 })
   }
+}
+
+/**
+ * Transfer-window pass: rewrite club / football league for players already in
+ * the pool, leaving ownership alone. The matching policy lives in
+ * planClubUpdates(); this is the database either side of it.
+ */
+async function runClubUpdate(
+  jsonData: DraftPoolImport[],
+  leagueId: string,
+  leagueName: string,
+  result: ImportResult
+) {
+  // The whole pool in one paged read. Supabase caps a select at 1000 rows by
+  // default, so page explicitly rather than matching against a silent prefix
+  // and reporting everyone past it as "not found".
+  const pool: PoolPlayerRef[] = []
+  const PAGE = 1000
+  for (let from = 0; ; from += PAGE) {
+    const { data: page, error } = await supabaseAdmin
+      .from('players')
+      .select('id, name, surname, club, football_league')
+      .eq('league_id', leagueId)
+      .range(from, from + PAGE - 1)
+
+    if (error) {
+      return NextResponse.json(
+        { error: `Nie udało się odczytać istniejących zawodników: ${error.message}` },
+        { status: 500 }
+      )
+    }
+    pool.push(...((page ?? []) as PoolPlayerRef[]))
+    if (!page || page.length < PAGE) break
+  }
+
+  const plan = planClubUpdates(jsonData, pool, leagueName)
+  result.unchanged = plan.unchanged
+  result.skipped += plan.skipped
+  result.errors.push(...plan.errors)
+
+  // Each row sets a different value, so this cannot be one statement. Run them
+  // in bounded batches: sequential would be ~250 round-trips against the 30s
+  // function limit (vercel.json), and unbounded would open a connection per
+  // row. Only club / football_league / updated_at are written -- manager_id,
+  // total_goals, position and squad_players are deliberately untouched.
+  const BATCH = 25
+  for (let from = 0; from < plan.updates.length; from += BATCH) {
+    const batch = plan.updates.slice(from, from + BATCH)
+    const settled = await Promise.all(
+      batch.map(async ({ id, row, ...fields }) => {
+        const { error } = await supabaseAdmin
+          .from('players')
+          .update({ ...fields, updated_at: new Date().toISOString() })
+          .eq('id', id)
+          .eq('league_id', leagueId) // never step outside the target league
+        return { id, row, error }
+      })
+    )
+
+    for (const s of settled) {
+      if (s.error) {
+        result.errors.push(
+          `Nie udało się zaktualizować zawodnika (wiersz ${s.row}) - ${s.error.message}`
+        )
+        result.skipped++
+        continue
+      }
+      result.updated++
+      result.details.players.push({ id: s.id })
+    }
+  }
+
+  return NextResponse.json({
+    message:
+      `Aktualizacja zakończona. Zaktualizowano ${result.updated} zawodników, ` +
+      `bez zmian ${result.unchanged}, pominięto ${result.skipped}.`,
+    result
+  })
 }
 
 // Template download endpoint
