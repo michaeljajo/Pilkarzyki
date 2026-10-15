@@ -53,6 +53,7 @@ export default function KolejkaPage() {
   const [savingAll, setSavingAll] = useState(false)
   const [finishing, setFinishing] = useState(false)
   const [playerGoals, setPlayerGoals] = useState<{ [key: string]: number }>({})
+  const [playerOwnGoals, setPlayerOwnGoals] = useState<{ [key: string]: number }>({})
   const [playerHasPlayed, setPlayerHasPlayed] = useState<{ [key: string]: boolean }>({})
   const [etLineups, setEtLineups] = useState<{ [key: string]: EtLineupData }>({})
   const [penaltyLineups, setPenaltyLineups] = useState<{ [key: string]: PenaltyLineupData }>({})
@@ -93,6 +94,7 @@ export default function KolejkaPage() {
   const applyServerResult = useCallback((player: PlayerWithResult) => {
     if (dirtyIdsRef.current.has(player.id)) return
     setPlayerGoals((prev) => ({ ...prev, [player.id]: player.goals_scored || 0 }))
+    setPlayerOwnGoals((prev) => ({ ...prev, [player.id]: player.own_goals || 0 }))
     setPlayerHasPlayed((prev) => ({ ...prev, [player.id]: player.has_played || false }))
   }, [])
 
@@ -158,11 +160,13 @@ export default function KolejkaPage() {
         const data = await response.json()
         setMatchData(data)
         const goalsMap: { [key: string]: number } = {}
+        const ownGoalsMap: { [key: string]: number } = {}
         const hasPlayedMap: { [key: string]: boolean } = {}
         data.matches?.forEach((match: MatchWithLineups) => {
           ;[...(match.home_lineup?.players || []), ...(match.away_lineup?.players || [])].forEach(
             (player: PlayerWithResult) => {
               goalsMap[player.id] = player.goals_scored || 0
+              ownGoalsMap[player.id] = player.own_goals || 0
               hasPlayedMap[player.id] = player.has_played || false
             }
           )
@@ -176,6 +180,13 @@ export default function KolejkaPage() {
 
         setPlayerGoals((prev) => {
           const next = isRefresh ? { ...prev, ...goalsMap } : { ...goalsMap }
+          keep.forEach((id) => {
+            if (id in prev) next[id] = prev[id]
+          })
+          return next
+        })
+        setPlayerOwnGoals((prev) => {
+          const next = isRefresh ? { ...prev, ...ownGoalsMap } : { ...ownGoalsMap }
           keep.forEach((id) => {
             if (id in prev) next[id] = prev[id]
           })
@@ -279,6 +290,7 @@ export default function KolejkaPage() {
       setMatchData(null)
       setCupGameweeks([])
       setPlayerGoals({})
+      setPlayerOwnGoals({})
       setPlayerHasPlayed({})
       clearDirty()
       loadedGameweek.current = null
@@ -287,11 +299,16 @@ export default function KolejkaPage() {
 
   const handleGoalsChange = (playerId: string, value: string) => {
     let goals = 0
-    if (value !== '' && value !== '-') {
+    if (value !== '') {
       const parsed = parseInt(value)
-      if (!isNaN(parsed)) goals = Math.min(Math.max(parsed, -1), 9)
+      if (!isNaN(parsed)) goals = Math.min(Math.max(parsed, 0), 9)
     }
     setPlayerGoals((prev) => ({ ...prev, [playerId]: goals }))
+    markDirty(playerId)
+  }
+
+  const handleOwnGoalsChange = (playerId: string, ownGoals: number) => {
+    setPlayerOwnGoals((prev) => ({ ...prev, [playerId]: ownGoals }))
     markDirty(playerId)
   }
 
@@ -339,6 +356,7 @@ export default function KolejkaPage() {
     const results = Object.entries(playerGoals).map(([player_id, goals]) => ({
       player_id,
       goals,
+      own_goals: playerOwnGoals[player_id] || 0,
       has_played: playerHasPlayed[player_id] || false,
     }))
     try {
@@ -411,6 +429,7 @@ export default function KolejkaPage() {
       const results = playerIds.map((playerId) => ({
         player_id: playerId,
         goals: playerGoals[playerId] || 0,
+        own_goals: playerOwnGoals[playerId] || 0,
         has_played: playerHasPlayed[playerId] || false,
       }))
 
@@ -654,8 +673,10 @@ export default function KolejkaPage() {
             <WynikiLigiTab
               matches={matchData.matches}
               playerGoals={playerGoals}
+              playerOwnGoals={playerOwnGoals}
               playerHasPlayed={playerHasPlayed}
               onGoalsChange={handleGoalsChange}
+              onOwnGoalsChange={handleOwnGoalsChange}
               onHasPlayedChange={handleHasPlayedChange}
               onFocus={handleFocus}
               onSaveMatch={saveMatch}
@@ -670,11 +691,13 @@ export default function KolejkaPage() {
               cupGameweeks={cupGameweeks}
               leagueId={leagueId}
               playerGoals={playerGoals}
+              playerOwnGoals={playerOwnGoals}
               playerHasPlayed={playerHasPlayed}
               etLineups={etLineups}
               penaltyLineups={penaltyLineups}
               penaltyGoals={penaltyGoals}
               onGoalsChange={handleGoalsChange}
+              onOwnGoalsChange={handleOwnGoalsChange}
               onHasPlayedChange={handleHasPlayedChange}
               onFocus={handleFocus}
               onSaveMatch={saveMatch}

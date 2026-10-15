@@ -2,8 +2,8 @@
 
 import { ChevronUp, ChevronDown } from 'lucide-react'
 
-/** Own goal is encoded as -1; the API and calculateMatchScore both rely on it. */
-export const MIN_GOALS = -1
+/** Goals only — own goals are a separate count, entered with OwnGoalToggle. */
+export const MIN_GOALS = 0
 export const MAX_GOALS = 9
 
 type StepperAccent = 'league' | 'cup' | 'et'
@@ -51,8 +51,7 @@ export function GoalStepper({
   label,
 }: GoalStepperProps) {
   const colors = ACCENT[accent]
-  const isOwnGoal = value === MIN_GOALS
-  const borderColor = isOwnGoal ? 'border-red-300' : colors.border
+  const borderColor = colors.border
 
   const step = (delta: number) => {
     const next = Math.min(MAX_GOALS, Math.max(MIN_GOALS, value + delta))
@@ -96,7 +95,7 @@ export function GoalStepper({
         disabled:bg-gray-100 disabled:text-gray-500
         [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none
         ${mirrored ? 'rounded-r-md' : 'rounded-l-md'}
-        ${isOwnGoal ? 'border-red-300 bg-red-50 text-red-700 focus:ring-red-500' : `${colors.border} ${colors.ring}`}`}
+        ${colors.border} ${colors.ring}`}
     />
   )
 

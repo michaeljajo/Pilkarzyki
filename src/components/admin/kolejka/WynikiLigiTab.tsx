@@ -6,8 +6,10 @@ import { MatchGoalsCard } from './MatchGoalsCard'
 interface WynikiLigiTabProps {
   matches: MatchWithLineups[]
   playerGoals: { [key: string]: number }
+  playerOwnGoals: { [key: string]: number }
   playerHasPlayed: { [key: string]: boolean }
   onGoalsChange: (playerId: string, value: string) => void
+  onOwnGoalsChange: (playerId: string, value: number) => void
   onHasPlayedChange: (playerId: string, checked: boolean) => void
   onFocus: (e: React.FocusEvent<HTMLInputElement>) => void
   onSaveMatch: (matchId: string) => void
@@ -24,8 +26,10 @@ interface WynikiLigiTabProps {
 export function WynikiLigiTab({
   matches,
   playerGoals,
+  playerOwnGoals,
   playerHasPlayed,
   onGoalsChange,
+  onOwnGoalsChange,
   onHasPlayedChange,
   onFocus,
   onSaveMatch,
@@ -49,8 +53,10 @@ export function WynikiLigiTab({
             key={match.id}
             match={match}
             playerGoals={playerGoals}
+            playerOwnGoals={playerOwnGoals}
             playerHasPlayed={playerHasPlayed}
             onGoalsChange={onGoalsChange}
+            onOwnGoalsChange={onOwnGoalsChange}
             onHasPlayedChange={onHasPlayedChange}
             onFocus={onFocus}
             onSave={onSaveMatch}

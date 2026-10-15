@@ -187,12 +187,12 @@ export async function GET(
     if (allPlayerIds.length > 0 && leagueGameweekIds.length > 0) {
       const { data: results } = await supabaseAdmin
         .from('results')
-        .select('player_id, gameweek_id, goals, has_played')
+        .select('player_id, gameweek_id, goals, own_goals, has_played')
         .in('gameweek_id', leagueGameweekIds)
         .in('player_id', allPlayerIds)
 
       results?.forEach(r => {
-        resultsMap.set(`${r.gameweek_id}_${r.player_id}`, { goals: r.goals, has_played: r.has_played })
+        resultsMap.set(`${r.gameweek_id}_${r.player_id}`, { goals: r.goals, own_goals: r.own_goals, has_played: r.has_played })
       })
     }
 
@@ -231,6 +231,7 @@ export async function GET(
               return {
                 ...player,
                 goals_scored: result?.goals || 0,
+                own_goals: result?.own_goals || 0,
                 has_played: result?.has_played || false
               }
             })
@@ -254,6 +255,7 @@ export async function GET(
               return {
                 ...player,
                 goals_scored: result?.goals || 0,
+                own_goals: result?.own_goals || 0,
                 has_played: result?.has_played || false
               }
             })

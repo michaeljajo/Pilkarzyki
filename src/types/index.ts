@@ -139,6 +139,8 @@ export interface Result {
   gameweekId: string
   playerId: string
   goals: number
+  /** Own goals, each credited to the opponent; independent of `goals`. */
+  ownGoals: number
   hasPlayed: boolean
   createdAt: Date
 }
@@ -240,6 +242,7 @@ export interface PlayerWithResult {
   position: Position
   manager_id?: string
   goals_scored?: number
+  own_goals?: number
   has_played?: boolean
 }
 

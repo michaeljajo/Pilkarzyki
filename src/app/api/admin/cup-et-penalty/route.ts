@@ -67,11 +67,11 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Fetch existing results for ET players (goals_scored, has_played)
+    // Fetch existing results for ET players (goals_scored, own_goals, has_played)
     const etPlayerIds = new Set<string>()
     etLineups?.forEach(et => et.player_ids?.forEach((id: string) => etPlayerIds.add(id)))
 
-    let resultsMap: { [playerId: string]: { goals_scored: number; has_played: boolean } } = {}
+    let resultsMap: { [playerId: string]: { goals_scored: number; own_goals: number; has_played: boolean } } = {}
     if (etPlayerIds.size > 0) {
       // Get the league gameweek ID for this cup gameweek
       const { data: cupGw } = await supabaseAdmin
@@ -83,12 +83,12 @@ export async function GET(request: NextRequest) {
       if (cupGw?.league_gameweek_id) {
         const { data: results } = await supabaseAdmin
           .from('results')
-          .select('player_id, goals, has_played')
+          .select('player_id, goals, own_goals, has_played')
           .eq('gameweek_id', cupGw.league_gameweek_id)
           .in('player_id', Array.from(etPlayerIds))
 
         results?.forEach(r => {
-          resultsMap[r.player_id] = { goals_scored: r.goals || 0, has_played: r.has_played || false }
+          resultsMap[r.player_id] = { goals_scored: r.goals || 0, own_goals: r.own_goals || 0, has_played: r.has_played || false }
         })
       }
     }
@@ -99,6 +99,7 @@ export async function GET(request: NextRequest) {
       players: et.player_ids?.map((id: string) => ({
         ...playersMap[id],
         goals_scored: resultsMap[id]?.goals_scored || 0,
+        own_goals: resultsMap[id]?.own_goals || 0,
         has_played: resultsMap[id]?.has_played || false,
       })).filter(Boolean) || []
     })) || []

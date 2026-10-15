@@ -57,9 +57,17 @@ to set `updated_at`.
 Not a trigger, but the same category of non-obvious rule, implemented in
 `src/utils/own-goal-calculator.ts`:
 
-- A result of `-1` means an **own goal**.
-- An own goal adds 1 to the **opponent's** match score.
-- An own goal never counts toward the scoring player's or lineup's total goals.
+- `results.goals` and `results.own_goals` are **independent counts** (each
+  0–9, enforced by check constraints). A player who scores and also puts one
+  into his own net is `goals = 1, own_goals = 1`: both teams get a goal.
+- Each own goal adds 1 to the **opponent's** match score.
+- Own goals never count toward the scoring player's or lineup's total goals,
+  nor toward top-scorer tables.
+
+Until migration `035_add_own_goals_to_results.sql`, an own goal was encoded as
+`goals = -1`, which made a goal and an own goal in the same match cancel out
+to 0 — losing a goal from both teams' `goals_for` tiebreaker. That migration
+converted every `-1` row and the check constraint now rejects negative goals.
 
 Both functions in that file document this at the call site; the former
 `scripts/test-own-goal-logic.ts` asserted exactly these cases and was removed as

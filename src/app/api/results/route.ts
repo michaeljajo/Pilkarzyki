@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { recalculateLeagueStandings } from '@/utils/standings-calculator'
-import { calculateMatchScore } from '@/utils/own-goal-calculator'
+import { calculateMatchScore, buildResultsMap } from '@/utils/own-goal-calculator'
 import { assertLeagueMutableByGameweek, requireLeagueAdminByGameweek } from '@/lib/auth-helpers'
 
 export async function GET(request: NextRequest) {
@@ -59,11 +59,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { gameweek_id, player_id, goals } = await request.json()
+    const { gameweek_id, player_id, goals, own_goals = 0 } = await request.json()
 
     if (!gameweek_id || !player_id || goals === undefined) {
       return NextResponse.json({
         error: 'Missing required fields: gameweek_id, player_id, goals'
+      }, { status: 400 })
+    }
+
+    // Own goals live in their own column; the old -1 encoding is rejected.
+    const isGoalCount = (value: unknown) =>
+      Number.isInteger(value) && (value as number) >= 0 && (value as number) <= 9
+    if (!isGoalCount(goals) || !isGoalCount(own_goals)) {
+      return NextResponse.json({
+        error: 'goals and own_goals must be integers between 0 and 9'
       }, { status: 400 })
     }
 
@@ -99,7 +108,7 @@ export async function POST(request: NextRequest) {
       // Update existing result
       const { data, error } = await supabaseAdmin
         .from('results')
-        .update({ goals })
+        .update({ goals, own_goals })
         .eq('gameweek_id', gameweek_id)
         .eq('player_id', player_id)
         .select()
@@ -117,7 +126,8 @@ export async function POST(request: NextRequest) {
         .insert({
           gameweek_id,
           player_id,
-          goals
+          goals,
+          own_goals
         })
         .select()
         .single()
@@ -152,10 +162,10 @@ export async function POST(request: NextRequest) {
           // Get all results for this gameweek
           const { data: allResults } = await supabaseAdmin
             .from('results')
-            .select('player_id, goals')
+            .select('player_id, goals, own_goals')
             .eq('gameweek_id', gameweek_id)
 
-          const resultsMap = new Map(allResults?.map(r => [r.player_id, r.goals]) || [])
+          const resultsMap = buildResultsMap(allResults)
 
           // Calculate and update match scores
           for (const match of matches) {

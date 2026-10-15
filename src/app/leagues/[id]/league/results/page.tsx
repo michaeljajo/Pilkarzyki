@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Icon } from 'lucide-react'
 import { soccerBall } from '@lucide/lab'
+import { formatOwnGoalLabel } from '@/utils/own-goal-calculator'
 import { getTeamOrManagerName } from '@/utils/team-name-resolver'
 
 interface League {
@@ -30,6 +31,7 @@ interface Player {
   surname: string
   position: string
   goals_scored?: number
+  own_goals?: number
   has_played?: boolean
 }
 
@@ -308,18 +310,18 @@ export default function LeagueResultsPage({ params }: LeagueResultsPageProps) {
                               homePlayers.map((player) => {
                                 const goals = player.goals_scored || 0
                                 const hasPlayed = player.has_played || false
-                                const isOwnGoal = goals === -1
+                                const ownGoals = player.own_goals || 0
                                 const isFromDefault = match.home_lineup?.is_from_default || false
                                 return (
                                   <div key={player.id} className="flex items-baseline gap-2 h-[20px]">
                                     <p className={`text-xs sm:text-sm leading-5 truncate ${
-                                      isOwnGoal ? 'font-bold text-red-600' :
+                                      ownGoals > 0 && goals === 0 ? 'font-bold text-red-600' :
                                       hasPlayed && goals > 0 ? 'font-bold text-[#061852]' :
                                       hasPlayed && goals === 0 ? 'italic text-gray-600' :
                                       'text-gray-600'
                                     } ${isFromDefault ? 'underline' : ''}`}>
                                       {player.name} {player.surname}
-                                      {isOwnGoal && <span className="ml-1">(OG)</span>}
+                                      {ownGoals > 0 && <span className="ml-1 text-red-600">{formatOwnGoalLabel(ownGoals)}</span>}
                                     </p>
                                     {goals > 0 && (
                                       <div className="flex items-center gap-1 shrink-0">
@@ -344,7 +346,7 @@ export default function LeagueResultsPage({ params }: LeagueResultsPageProps) {
                               awayPlayers.map((player) => {
                                 const goals = player.goals_scored || 0
                                 const hasPlayed = player.has_played || false
-                                const isOwnGoal = goals === -1
+                                const ownGoals = player.own_goals || 0
                                 const isFromDefault = match.away_lineup?.is_from_default || false
                                 return (
                                   <div key={player.id} className="flex items-baseline justify-end gap-2 h-[20px]">
@@ -356,13 +358,13 @@ export default function LeagueResultsPage({ params }: LeagueResultsPageProps) {
                                       </div>
                                     )}
                                     <p className={`text-xs sm:text-sm leading-5 truncate ${
-                                      isOwnGoal ? 'font-bold text-red-600' :
+                                      ownGoals > 0 && goals === 0 ? 'font-bold text-red-600' :
                                       hasPlayed && goals > 0 ? 'font-bold text-[#061852]' :
                                       hasPlayed && goals === 0 ? 'italic text-gray-600' :
                                       'text-gray-600'
                                     } ${isFromDefault ? 'underline' : ''}`}>
                                       {player.name} {player.surname}
-                                      {isOwnGoal && <span className="ml-1">(OG)</span>}
+                                      {ownGoals > 0 && <span className="ml-1 text-red-600">{formatOwnGoalLabel(ownGoals)}</span>}
                                     </p>
                                   </div>
                                 )

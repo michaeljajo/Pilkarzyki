@@ -1,75 +1,90 @@
 /**
- * Calculate match scores accounting for own goals
+ * A player's tally for one gameweek, as stored in the `results` table.
  *
- * Own goals (-1) should:
- * 1. NOT count towards the scoring team's total
- * 2. Add 1 goal to the opponent's score
+ * Goals and own goals are independent counts, so a player who scores and also
+ * puts one into his own net is recorded as { goals: 1, ownGoals: 1 } — both
+ * teams get a goal, rather than the two cancelling out.
+ */
+export interface PlayerGoalTally {
+  goals: number
+  ownGoals: number
+}
+
+export type ResultsMap = Map<string, PlayerGoalTally>
+
+/** The `results` columns the scoring functions need. */
+export interface ResultGoalsRow {
+  player_id: string
+  goals: number | null
+  own_goals: number | null
+}
+
+/** Build a player_id → tally map from `results` rows. */
+export function buildResultsMap(rows: ResultGoalsRow[] | null | undefined): ResultsMap {
+  return new Map(
+    (rows ?? []).map((r) => [r.player_id, { goals: r.goals ?? 0, ownGoals: r.own_goals ?? 0 }])
+  )
+}
+
+/**
+ * Calculate match scores accounting for own goals.
+ *
+ * A player's goals count for his own team; each of his own goals adds 1 to the
+ * opponent's score.
  *
  * @param homePlayerIds - Array of player IDs in home lineup
  * @param awayPlayerIds - Array of player IDs in away lineup
- * @param resultsMap - Map of player_id -> goals
+ * @param resultsMap - Map of player_id -> goal tally
  * @returns Object with homeScore and awayScore
  */
 export function calculateMatchScore(
   homePlayerIds: string[],
   awayPlayerIds: string[],
-  resultsMap: Map<string, number>
+  resultsMap: ResultsMap
 ): { homeScore: number; awayScore: number } {
   let homeScore = 0
   let awayScore = 0
 
-  // Calculate home team's goals (including own goals FOR the away team)
-  if (homePlayerIds && homePlayerIds.length > 0) {
-    homePlayerIds.forEach((playerId: string) => {
-      const goals = resultsMap.get(playerId) || 0
-
-      if (goals === -1) {
-        // Own goal - add to AWAY team's score
-        awayScore += 1
-      } else if (goals > 0) {
-        // Regular goals - add to HOME team's score
-        homeScore += goals
-      }
-    })
+  for (const playerId of homePlayerIds ?? []) {
+    const tally = resultsMap.get(playerId)
+    if (!tally) continue
+    homeScore += tally.goals
+    awayScore += tally.ownGoals
   }
 
-  // Calculate away team's goals (including own goals FOR the home team)
-  if (awayPlayerIds && awayPlayerIds.length > 0) {
-    awayPlayerIds.forEach((playerId: string) => {
-      const goals = resultsMap.get(playerId) || 0
-
-      if (goals === -1) {
-        // Own goal - add to HOME team's score
-        homeScore += 1
-      } else if (goals > 0) {
-        // Regular goals - add to AWAY team's score
-        awayScore += goals
-      }
-    })
+  for (const playerId of awayPlayerIds ?? []) {
+    const tally = resultsMap.get(playerId)
+    if (!tally) continue
+    awayScore += tally.goals
+    homeScore += tally.ownGoals
   }
 
   return { homeScore, awayScore }
 }
 
 /**
- * Calculate total goals for a lineup, excluding own goals
- * Own goals (-1) should not count in the lineup's total_goals
+ * Calculate total goals for a lineup, excluding own goals.
+ * Own goals never count in the lineup's own total_goals.
  *
  * @param playerIds - Array of player IDs in the lineup
- * @param resultsMap - Map of player_id -> goals
+ * @param resultsMap - Map of player_id -> goal tally
  * @returns Total goals scored (excluding own goals)
  */
 export function calculateLineupTotalGoals(
   playerIds: string[],
-  resultsMap: Map<string, number>
+  resultsMap: ResultsMap
 ): number {
   if (!playerIds || playerIds.length === 0) {
     return 0
   }
 
-  return playerIds.reduce((sum: number, playerId: string) => {
-    const goals = resultsMap.get(playerId) || 0
-    // Only count positive goals, ignore own goals (-1) and no goals (0)
-    return sum + (goals > 0 ? goals : 0)
-  }, 0)
+  return playerIds.reduce(
+    (sum: number, playerId: string) => sum + (resultsMap.get(playerId)?.goals ?? 0),
+    0
+  )
+}
+
+/** Label shown next to a player's name: "(OG)", or "(2× OG)" for several. */
+export function formatOwnGoalLabel(ownGoals: number): string {
+  return ownGoals > 1 ? `(${ownGoals}× OG)` : '(OG)'
 }

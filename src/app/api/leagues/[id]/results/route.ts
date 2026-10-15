@@ -23,6 +23,7 @@ export async function GET(
       .select(`
         id,
         goals,
+        own_goals,
         player_id,
         gameweek_id,
         player:players!results_player_id_fkey (
@@ -49,6 +50,7 @@ export async function GET(
     interface ResultWithRelations {
       id: string
       goals: number
+      own_goals: number
       player_id: string
       gameweek_id: string
       player: {
@@ -140,6 +142,7 @@ export async function GET(
         id: result.id,
         player_name: playerFullName,
         goals: result.goals,
+        own_goals: result.own_goals,
         gameweek_week: result.gameweek?.week || 0,
         manager_name: managerName,
       }

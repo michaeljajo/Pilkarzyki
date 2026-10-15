@@ -2,9 +2,21 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { recalculateLeagueStandings, recalculateCupGroupStandings } from '@/utils/standings-calculator'
-import { calculateMatchScore, calculateLineupTotalGoals } from '@/utils/own-goal-calculator'
+import { calculateMatchScore, calculateLineupTotalGoals, buildResultsMap } from '@/utils/own-goal-calculator'
 import { resolveNextRoundPlaceholders } from '@/utils/knockout-winner'
 import { assertLeagueMutableByGameweek, requireLeagueAdminByGameweek } from '@/lib/auth-helpers'
+
+/**
+ * Goals and own goals are each a count of 0-9 (see the results table checks).
+ * Missing means 0; anything else out of range — notably the retired `-1`
+ * own-goal encoding from a stale browser tab — is rejected rather than coerced,
+ * so an own goal can never be silently dropped.
+ */
+function parseGoalCount(value: unknown): number | null {
+  if (value === undefined || value === null || value === '') return 0
+  const parsed = Number(value)
+  return Number.isInteger(parsed) && parsed >= 0 && parsed <= 9 ? parsed : null
+}
 
 export async function GET(
   request: NextRequest,
@@ -105,14 +117,14 @@ export async function GET(
     if (allPlayerIds.length > 0) {
       const { data: results, error: resultsError } = await supabaseAdmin
         .from('results')
-        .select('player_id, goals, has_played')
+        .select('player_id, goals, own_goals, has_played')
         .eq('gameweek_id', gameweekId)
         .in('player_id', allPlayerIds)
 
       if (resultsError) {
         console.error('Error fetching results:', resultsError)
       } else {
-        resultsMap = new Map(results?.map(r => [r.player_id, { goals: r.goals, has_played: r.has_played }]) || [])
+        resultsMap = new Map(results?.map(r => [r.player_id, { goals: r.goals, own_goals: r.own_goals, has_played: r.has_played }]) || [])
       }
     }
 
@@ -134,6 +146,7 @@ export async function GET(
           return {
             ...player,
             goals_scored: result?.goals || 0,
+            own_goals: result?.own_goals || 0,
             has_played: result?.has_played || false
           }
         })
@@ -170,7 +183,7 @@ export async function PUT(
 
     if (!Array.isArray(results)) {
       return NextResponse.json({
-        error: 'Results must be an array of { player_id, goals, has_played? } objects'
+        error: 'Results must be an array of { player_id, goals, own_goals?, has_played? } objects'
       }, { status: 400 })
     }
 
@@ -186,16 +199,29 @@ export async function PUT(
       return NextResponse.json({ error: mutable.error }, { status: mutable.status })
     }
 
+    const rows = []
+    for (const { player_id, goals, own_goals, has_played } of results) {
+      const goalCount = parseGoalCount(goals)
+      const ownGoalCount = parseGoalCount(own_goals)
+      if (!player_id || goalCount === null || ownGoalCount === null) {
+        return NextResponse.json({
+          error: 'Nieprawidłowa liczba goli lub goli samobójczych (dozwolone 0–9). Odśwież stronę i spróbuj ponownie.'
+        }, { status: 400 })
+      }
+      rows.push({
+        gameweek_id: gameweekId,
+        player_id,
+        goals: goalCount,
+        own_goals: ownGoalCount,
+        has_played: has_played !== undefined ? has_played : false
+      })
+    }
+
     // Start a transaction-like operation
-    const resultPromises = results.map(async ({ player_id, goals, has_played }) => {
+    const resultPromises = rows.map(async (row) => {
       const { error } = await supabaseAdmin
         .from('results')
-        .upsert({
-          gameweek_id: gameweekId,
-          player_id,
-          goals: parseInt(goals) || 0,
-          has_played: has_played !== undefined ? has_played : false
-        }, {
+        .upsert(row, {
           onConflict: 'gameweek_id,player_id'
         })
 
@@ -217,10 +243,10 @@ export async function PUT(
       // Fetch all results for this gameweek once
       const { data: allResults } = await supabaseAdmin
         .from('results')
-        .select('player_id, goals')
+        .select('player_id, goals, own_goals')
         .eq('gameweek_id', gameweekId)
 
-      const resultsMap = new Map(allResults?.map(r => [r.player_id, r.goals]) || [])
+      const resultsMap = buildResultsMap(allResults)
 
       // Calculate totals and prepare batch update (excluding own goals)
       const lineupUpdates = lineups.map(lineup => {
@@ -271,10 +297,10 @@ export async function PUT(
       // Reuse it or fetch again if needed
       const { data: allResults } = await supabaseAdmin
         .from('results')
-        .select('player_id, goals')
+        .select('player_id, goals, own_goals')
         .eq('gameweek_id', gameweekId)
 
-      const resultsMap = new Map(allResults?.map(r => [r.player_id, r.goals]) || [])
+      const resultsMap = buildResultsMap(allResults)
 
       // Calculate match scores without additional queries (with own goal logic)
       const matchUpdates = matches.map(match => {
@@ -346,10 +372,10 @@ export async function PUT(
           // Fetch results for this gameweek
           const { data: allResults } = await supabaseAdmin
             .from('results')
-            .select('player_id, goals')
+            .select('player_id, goals, own_goals')
             .eq('gameweek_id', gameweekId)
 
-          const resultsMap = new Map(allResults?.map(r => [r.player_id, r.goals]) || [])
+          const resultsMap = buildResultsMap(allResults)
 
           // Check if this is a knockout decider (for ET inclusion in main score)
           const { data: cupGwDetails } = await supabaseAdmin

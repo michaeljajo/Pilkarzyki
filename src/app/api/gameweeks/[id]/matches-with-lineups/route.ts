@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabaseAdmin } from '@/lib/supabase'
-import { calculateLineupTotalGoals } from '@/utils/own-goal-calculator'
+import { calculateLineupTotalGoals, PlayerGoalTally } from '@/utils/own-goal-calculator'
 
 /** The player columns this route selects, as they come back from Supabase. */
 interface LineupPlayerRow {
@@ -15,6 +15,7 @@ interface LineupPlayerRow {
 /** A lineup player joined with its result row for this gameweek. */
 type LineupPlayerWithResult = LineupPlayerRow & {
   goals_scored: number
+  own_goals: number
   has_played: boolean
 }
 
@@ -153,11 +154,11 @@ export async function GET(
     }
 
     // Batch fetch all results for this gameweek
-    let resultsMap = new Map<string, { goals: number; has_played: boolean }>()
+    let resultsMap = new Map<string, { goals: number; own_goals: number; has_played: boolean }>()
     if (allPlayerIds.length > 0) {
       const { data: results, error: resultsError } = await supabaseAdmin
         .from('results')
-        .select('player_id, goals, has_played')
+        .select('player_id, goals, own_goals, has_played')
         .eq('gameweek_id', gameweekId)
         .in('player_id', allPlayerIds)
 
@@ -165,9 +166,9 @@ export async function GET(
         console.error('Error fetching results:', resultsError)
       } else {
         resultsMap = new Map(
-          (results ?? []).map((r): [string, { goals: number; has_played: boolean }] => [
+          (results ?? []).map((r): [string, { goals: number; own_goals: number; has_played: boolean }] => [
             r.player_id,
-            { goals: r.goals, has_played: r.has_played },
+            { goals: r.goals, own_goals: r.own_goals, has_played: r.has_played },
           ])
         )
       }
@@ -190,6 +191,7 @@ export async function GET(
             return {
               ...player,
               goals_scored: result?.goals || 0,
+              own_goals: result?.own_goals || 0,
               has_played: result?.has_played || false
             }
           })
@@ -197,7 +199,7 @@ export async function GET(
 
         // Calculate actual total goals from results (excluding own goals)
         const playerGoalsMap = new Map(
-          homePlayersWithResults.map(p => [p.id, p.goals_scored || 0])
+          homePlayersWithResults.map((p): [string, PlayerGoalTally] => [p.id, { goals: p.goals_scored, ownGoals: p.own_goals }])
         )
         const calculatedTotalGoals = calculateLineupTotalGoals(
           homeLineup.player_ids,
@@ -223,6 +225,7 @@ export async function GET(
             return {
               ...player,
               goals_scored: result?.goals || 0,
+              own_goals: result?.own_goals || 0,
               has_played: result?.has_played || false
             }
           })
@@ -230,7 +233,7 @@ export async function GET(
 
         // Calculate actual total goals from results (excluding own goals)
         const playerGoalsMap = new Map(
-          awayPlayersWithResults.map(p => [p.id, p.goals_scored || 0])
+          awayPlayersWithResults.map((p): [string, PlayerGoalTally] => [p.id, { goals: p.goals_scored, ownGoals: p.own_goals }])
         )
         const calculatedTotalGoals = calculateLineupTotalGoals(
           awayLineup.player_ids,

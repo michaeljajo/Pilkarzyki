@@ -7,7 +7,7 @@ numeric prefixes no longer uniquely order them (see Collisions below).
 ## Convention going forward
 
 `NNN_description.sql`, strictly sequential, one number per migration, never
-reused. The next free number is **034**.
+reused. The next free number is **036**.
 
 **Check every branch before picking a number**, not just your own —
 `git ls-tree --name-only <branch> -- supabase/migrations/`. Unmerged branches
@@ -63,6 +63,13 @@ Reconstructed from `git log --diff-filter=A`:
 | 2026-08-02 | `031_players_league_id.sql` — **APPLIED** (was recorded here as not yet applied; confirmed live 2026-08-14, `players.league_id` is populated and correct for all 5,092 WNC players) |
 | 2026-08-13 | `032_draft_delegation_functions.sql` — applied; see CLAIM in CLAUDE.md, do not re-run |
 | 2026-08-14 | `033_league_validation_by_id.sql` — applied by hand mid-draft to unblock the WNC draft and lineup saving |
+| 2026-09-12 | `034_add_player_replacement.sql` |
+| 2026-10-15 | `035_add_own_goals_to_results.sql` — **APPLIED** 2026-10-15 (second version; the first failed and rolled back) |
+
+`007_update_goals_range.sql` does not describe production: its
+`goals_range_check` constraint was found missing on 2026-10-15 when the first
+version of 035 tried to drop it by name. 035 now drops any CHECK on
+`results.goals` by column and recreates `goals_range_check` itself.
 
 029 and 030 are taken by `feat/draft-ux-overhaul` (`029_skip_keeps_pick_order`,
 `030_add_public_leagues`), which is why the players change is numbered 031.

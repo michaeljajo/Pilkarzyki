@@ -259,7 +259,7 @@ export async function GET(
           l.manager_id === match.away_manager_id && l.gameweek_id === gw.id
         )
 
-        // Get player names and goals
+        // Get player names, goals and own goals
         const getPlayerData = (playerIds: string[], managerId: string) => {
           const playerData = []
           for (let i = 0; i < 3; i++) {
@@ -268,10 +268,11 @@ export async function GET(
               const result = gwResults.find((r: any) => r.player_id === playerId)
               playerData.push({
                 name: playerMap.get(playerId) || 'Unknown',
-                goals: result?.goals || 0
+                goals: result?.goals || 0,
+                ownGoals: result?.own_goals || 0
               })
             } else {
-              playerData.push({ name: '', goals: '' })
+              playerData.push({ name: '', goals: '', ownGoals: '' })
             }
           }
           return playerData
@@ -286,18 +287,24 @@ export async function GET(
           HomeManager: `${match.home_manager?.first_name || ''} ${match.home_manager?.last_name || ''}`.trim(),
           HomePlayer1: homePlayers[0].name,
           HomePlayer1Goals: homePlayers[0].goals,
+          HomePlayer1OwnGoals: homePlayers[0].ownGoals,
           HomePlayer2: homePlayers[1].name,
           HomePlayer2Goals: homePlayers[1].goals,
+          HomePlayer2OwnGoals: homePlayers[1].ownGoals,
           HomePlayer3: homePlayers[2].name,
           HomePlayer3Goals: homePlayers[2].goals,
+          HomePlayer3OwnGoals: homePlayers[2].ownGoals,
           HomeScore: match.home_score ?? '',
           AwayManager: `${match.away_manager?.first_name || ''} ${match.away_manager?.last_name || ''}`.trim(),
           AwayPlayer1: awayPlayers[0].name,
           AwayPlayer1Goals: awayPlayers[0].goals,
+          AwayPlayer1OwnGoals: awayPlayers[0].ownGoals,
           AwayPlayer2: awayPlayers[1].name,
           AwayPlayer2Goals: awayPlayers[1].goals,
+          AwayPlayer2OwnGoals: awayPlayers[1].ownGoals,
           AwayPlayer3: awayPlayers[2].name,
           AwayPlayer3Goals: awayPlayers[2].goals,
+          AwayPlayer3OwnGoals: awayPlayers[2].ownGoals,
           AwayScore: match.away_score ?? '',
           IsCompleted: match.is_completed ? 'YES' : 'NO'
         }

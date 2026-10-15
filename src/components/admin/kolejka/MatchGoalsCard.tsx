@@ -3,9 +3,10 @@
 import { ReactNode } from 'react'
 import { Icon } from 'lucide-react'
 import { soccerBall } from '@lucide/lab'
-import { calculateMatchScore } from '@/utils/own-goal-calculator'
+import { calculateMatchScore, formatOwnGoalLabel, ResultsMap } from '@/utils/own-goal-calculator'
 import { MatchWithLineups, PlayerWithResult } from '@/types'
 import { GoalStepper } from './GoalStepper'
+import { OwnGoalToggle } from './OwnGoalToggle'
 import { getManagerDisplayName } from './types'
 
 type Accent = 'league' | 'cup'
@@ -28,8 +29,10 @@ const ACCENT: Record<Accent, { border: string; button: string; divider: string; 
 interface MatchGoalsCardProps {
   match: MatchWithLineups
   playerGoals: { [key: string]: number }
+  playerOwnGoals: { [key: string]: number }
   playerHasPlayed: { [key: string]: boolean }
   onGoalsChange: (playerId: string, value: string) => void
+  onOwnGoalsChange: (playerId: string, value: number) => void
   onHasPlayedChange: (playerId: string, checked: boolean) => void
   onFocus: (e: React.FocusEvent<HTMLInputElement>) => void
   onSave: (matchId: string) => void
@@ -42,15 +45,18 @@ interface MatchGoalsCardProps {
 }
 
 /**
- * A single head-to-head match with per-player goal + "rozegrał mecz" inputs.
- * Shared by the league and cup result-entry tabs; the accent prop switches the
- * card's colour scheme. Own goals (-1) are handled via calculateMatchScore.
+ * A single head-to-head match with per-player goal, own-goal and "rozegrał
+ * mecz" inputs. Shared by the league and cup result-entry tabs; the accent prop
+ * switches the card's colour scheme. Own goals are credited to the opponent by
+ * calculateMatchScore.
  */
 export function MatchGoalsCard({
   match,
   playerGoals,
+  playerOwnGoals,
   playerHasPlayed,
   onGoalsChange,
+  onOwnGoalsChange,
   onHasPlayedChange,
   onFocus,
   onSave,
@@ -64,12 +70,16 @@ export function MatchGoalsCard({
   const awayPlayers = match.away_lineup?.players || []
   const inputsDisabled = saving || disabled
 
-  const homeGoalsMap = new Map(homePlayers.map((p) => [p.id, playerGoals[p.id] || 0]))
-  const awayGoalsMap = new Map(awayPlayers.map((p) => [p.id, playerGoals[p.id] || 0]))
+  const tallies: ResultsMap = new Map(
+    [...homePlayers, ...awayPlayers].map((p) => [
+      p.id,
+      { goals: playerGoals[p.id] || 0, ownGoals: playerOwnGoals[p.id] || 0 },
+    ])
+  )
   const { homeScore: homeGoals, awayScore: awayGoals } = calculateMatchScore(
     homePlayers.map((p) => p.id),
     awayPlayers.map((p) => p.id),
-    new Map([...homeGoalsMap, ...awayGoalsMap])
+    tallies
   )
 
   const allPlayed = (players: PlayerWithResult[]) =>
@@ -89,6 +99,16 @@ export function MatchGoalsCard({
     />
   )
 
+  const renderOwnGoalInput = (player: PlayerWithResult, ownGoals: number) => (
+    <OwnGoalToggle
+      value={ownGoals}
+      onChange={(value) => onOwnGoalsChange(player.id, value)}
+      disabled={inputsDisabled}
+      accent={accent}
+      label={`Gole samobójcze — ${player.name} ${player.surname}`}
+    />
+  )
+
   const renderCheckbox = (playerId: string, hasPlayed: boolean) => (
     <input
       type="checkbox"
@@ -100,8 +120,8 @@ export function MatchGoalsCard({
     />
   )
 
-  const nameClass = (goals: number, hasPlayed: boolean) =>
-    goals === -1
+  const nameClass = (goals: number, ownGoals: number, hasPlayed: boolean) =>
+    ownGoals > 0 && goals === 0
       ? 'font-bold text-red-600'
       : hasPlayed && goals > 0
         ? 'font-bold text-[#061852]'
@@ -148,14 +168,16 @@ export function MatchGoalsCard({
           {homePlayers.length > 0 ? (
             homePlayers.map((player) => {
               const goals = playerGoals[player.id] || 0
+              const ownGoals = playerOwnGoals[player.id] || 0
               const hasPlayed = playerHasPlayed[player.id] || false
               return (
                 <div key={player.id} className="flex items-center gap-1 sm:gap-2 min-h-[36px] sm:min-h-[32px]">
                   {renderCheckbox(player.id, hasPlayed)}
                   {renderGoalInput(player, goals)}
-                  <p className={`text-[11px] sm:text-sm ${nameClass(goals, hasPlayed)}`}>
+                  {renderOwnGoalInput(player, ownGoals)}
+                  <p className={`text-[11px] sm:text-sm ${nameClass(goals, ownGoals, hasPlayed)}`}>
                     {player.name} {player.surname}
-                    {goals === -1 && <span className="ml-1 text-red-600">(OG)</span>}
+                    {ownGoals > 0 && <span className="ml-1 text-red-600">{formatOwnGoalLabel(ownGoals)}</span>}
                     {goals > 0 &&
                       Array.from({ length: goals }).map((_, i) => (
                         <Icon key={i} iconNode={soccerBall} size={10} className={`${colors.ball} sm:w-3 sm:h-3 inline-block align-middle ml-0.5`} strokeWidth={2} />
@@ -176,17 +198,19 @@ export function MatchGoalsCard({
           {awayPlayers.length > 0 ? (
             awayPlayers.map((player) => {
               const goals = playerGoals[player.id] || 0
+              const ownGoals = playerOwnGoals[player.id] || 0
               const hasPlayed = playerHasPlayed[player.id] || false
               return (
                 <div key={player.id} className="flex items-center justify-end gap-1 sm:gap-2 min-h-[36px] sm:min-h-[32px]">
-                  <p className={`text-[11px] sm:text-sm text-right ${nameClass(goals, hasPlayed)}`}>
+                  <p className={`text-[11px] sm:text-sm text-right ${nameClass(goals, ownGoals, hasPlayed)}`}>
                     {goals > 0 &&
                       Array.from({ length: goals }).map((_, i) => (
                         <Icon key={i} iconNode={soccerBall} size={10} className={`${colors.ball} sm:w-3 sm:h-3 inline-block align-middle mr-0.5`} strokeWidth={2} />
                       ))}
                     {player.name} {player.surname}
-                    {goals === -1 && <span className="ml-1 text-red-600">(OG)</span>}
+                    {ownGoals > 0 && <span className="ml-1 text-red-600">{formatOwnGoalLabel(ownGoals)}</span>}
                   </p>
+                  {renderOwnGoalInput(player, ownGoals)}
                   {renderGoalInput(player, goals, true)}
                   {renderCheckbox(player.id, hasPlayed)}
                 </div>

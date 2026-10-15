@@ -4,8 +4,10 @@ import { useState } from 'react'
 import { Icon, Trophy, Timer, CircleDot } from 'lucide-react'
 import { soccerBall } from '@lucide/lab'
 import { MatchWithLineups, PlayerWithResult } from '@/types'
+import { formatOwnGoalLabel } from '@/utils/own-goal-calculator'
 import { AdminCupLineupPicker } from '@/components/admin/AdminCupLineupPicker'
 import { GoalStepper } from './GoalStepper'
+import { OwnGoalToggle } from './OwnGoalToggle'
 import { MatchGoalsCard } from './MatchGoalsCard'
 import {
   Cup,
@@ -22,11 +24,13 @@ interface WynikiPucharuTabProps {
   cupGameweeks: CupGameweek[]
   leagueId: string
   playerGoals: { [key: string]: number }
+  playerOwnGoals: { [key: string]: number }
   playerHasPlayed: { [key: string]: boolean }
   etLineups: { [key: string]: EtLineupData }
   penaltyLineups: { [key: string]: PenaltyLineupData }
   penaltyGoals: { [key: string]: number[] }
   onGoalsChange: (playerId: string, value: string) => void
+  onOwnGoalsChange: (playerId: string, value: number) => void
   onHasPlayedChange: (playerId: string, checked: boolean) => void
   onFocus: (e: React.FocusEvent<HTMLInputElement>) => void
   onSaveMatch: (matchId: string) => void
@@ -48,11 +52,13 @@ export function WynikiPucharuTab(props: WynikiPucharuTabProps) {
     cupGameweeks,
     leagueId,
     playerGoals,
+    playerOwnGoals,
     playerHasPlayed,
     etLineups,
     penaltyLineups,
     penaltyGoals,
     onGoalsChange,
+    onOwnGoalsChange,
     onHasPlayedChange,
     onFocus,
     onSaveMatch,
@@ -106,8 +112,10 @@ export function WynikiPucharuTab(props: WynikiPucharuTabProps) {
                         match={match}
                         etLineups={etLineups}
                         playerGoals={playerGoals}
+                        playerOwnGoals={playerOwnGoals}
                         playerHasPlayed={playerHasPlayed}
                         onGoalsChange={onGoalsChange}
+                        onOwnGoalsChange={onOwnGoalsChange}
                         onHasPlayedChange={onHasPlayedChange}
                         onFocus={onFocus}
                         inputsDisabled={inputsDisabled}
@@ -168,8 +176,10 @@ export function WynikiPucharuTab(props: WynikiPucharuTabProps) {
                     key={match.id}
                     match={match}
                     playerGoals={playerGoals}
+                    playerOwnGoals={playerOwnGoals}
                     playerHasPlayed={playerHasPlayed}
                     onGoalsChange={onGoalsChange}
+                    onOwnGoalsChange={onOwnGoalsChange}
                     onHasPlayedChange={onHasPlayedChange}
                     onFocus={onFocus}
                     onSave={onSaveMatch}
@@ -211,8 +221,10 @@ function EtSection({
   match,
   etLineups,
   playerGoals,
+  playerOwnGoals,
   playerHasPlayed,
   onGoalsChange,
+  onOwnGoalsChange,
   onHasPlayedChange,
   onFocus,
   inputsDisabled,
@@ -221,8 +233,10 @@ function EtSection({
   match: MatchWithLineups
   etLineups: { [key: string]: EtLineupData }
   playerGoals: { [key: string]: number }
+  playerOwnGoals: { [key: string]: number }
   playerHasPlayed: { [key: string]: boolean }
   onGoalsChange: (playerId: string, value: string) => void
+  onOwnGoalsChange: (playerId: string, value: number) => void
   onHasPlayedChange: (playerId: string, checked: boolean) => void
   onFocus: (e: React.FocusEvent<HTMLInputElement>) => void
   inputsDisabled: boolean
@@ -231,8 +245,22 @@ function EtSection({
   const awayEt = etLineups[`${cgwId}_${match.away_manager_id}`]
   if (!homeEt && !awayEt) return null
 
-  const renderInputs = (player: PlayerWithResult, goals: number, hasPlayed: boolean) => (
+  const renderOwnGoalInput = (player: PlayerWithResult, ownGoals: number) => (
+    <OwnGoalToggle
+      value={ownGoals}
+      onChange={(value) => onOwnGoalsChange(player.id, value)}
+      disabled={inputsDisabled}
+      accent="et"
+      label={`Gole samobójcze w dogrywce — ${player.name} ${player.surname}`}
+    />
+  )
+
+  const ownGoalLabel = (ownGoals: number) =>
+    ownGoals > 0 && <span className="ml-1 text-red-600">{formatOwnGoalLabel(ownGoals)}</span>
+
+  const renderInputs = (player: PlayerWithResult, goals: number, ownGoals: number, hasPlayed: boolean) => (
     <>
+      {renderOwnGoalInput(player, ownGoals)}
       <GoalStepper
         value={goals}
         onChange={(value) => onGoalsChange(player.id, value)}
@@ -262,6 +290,7 @@ function EtSection({
         <div className="flex-1 space-y-1 pr-1 sm:pr-12">
           {homeEt?.players?.map((player) => {
             const goals = playerGoals[player.id] || 0
+            const ownGoals = playerOwnGoals[player.id] || 0
             const hasPlayed = playerHasPlayed[player.id] || false
             return (
               <div key={player.id} className="flex items-center gap-1 sm:gap-2 min-h-[36px]">
@@ -280,8 +309,10 @@ function EtSection({
                   accent="et"
                   label={`Gole w dogrywce — ${player.name} ${player.surname}`}
                 />
+                {renderOwnGoalInput(player, ownGoals)}
                 <p className="text-[11px] sm:text-sm text-gray-600">
                   {player.name} {player.surname}
+                  {ownGoalLabel(ownGoals)}
                   {goals > 0 &&
                     Array.from({ length: goals }).map((_, i) => (
                       <Icon key={i} iconNode={soccerBall} size={10} className="text-orange-600 inline-block ml-0.5" strokeWidth={2} />
@@ -294,6 +325,7 @@ function EtSection({
         <div className="flex-1 text-right space-y-1 pl-1 sm:pl-12">
           {awayEt?.players?.map((player) => {
             const goals = playerGoals[player.id] || 0
+            const ownGoals = playerOwnGoals[player.id] || 0
             const hasPlayed = playerHasPlayed[player.id] || false
             return (
               <div key={player.id} className="flex items-center justify-end gap-1 sm:gap-2 min-h-[36px]">
@@ -303,8 +335,9 @@ function EtSection({
                       <Icon key={i} iconNode={soccerBall} size={10} className="text-orange-600 inline-block mr-0.5" strokeWidth={2} />
                     ))}
                   {player.name} {player.surname}
+                  {ownGoalLabel(ownGoals)}
                 </p>
-                {renderInputs(player, goals, hasPlayed)}
+                {renderInputs(player, goals, ownGoals, hasPlayed)}
               </div>
             )
           }) || <p className="text-[11px] text-gray-400 italic">Brak składu ET</p>}

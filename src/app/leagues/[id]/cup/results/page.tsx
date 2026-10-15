@@ -24,6 +24,7 @@ interface Player {
   surname: string
   position: string
   goals_scored?: number
+  own_goals?: number
 }
 
 interface Lineup {
