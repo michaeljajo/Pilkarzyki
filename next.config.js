@@ -11,6 +11,10 @@ const nextConfig = {
   // No additional configuration needed for standard Next.js apps
   turbopack: {},
 
+  // impit ships a native (Rust) binary per platform; let Node require it at
+  // runtime instead of bundling it (used by the SofaScore score sync).
+  serverExternalPackages: ['impit'],
+
   // Webpack fallback configuration (if Turbopack fails)
   webpack: (config, { isServer }) => {
     if (!isServer) {

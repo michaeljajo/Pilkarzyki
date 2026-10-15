@@ -10,7 +10,7 @@ Gameweeks were not completing automatically because the Vercel cron job was not 
 
 ## Current Status
 
-✅ **CRON_SECRET exists** in Vercel (value: `pilkarzyki_cron_secret_2025`)
+✅ **CRON_SECRET exists** in Vercel (value kept in Vercel → Settings → Environment Variables only — never commit it)
 ✅ **Cron endpoint works** (tested locally - returns HTTP 200)
 ❌ **Cron jobs NOT registered** in Vercel (need activation)
 
